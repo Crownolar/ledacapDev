@@ -14,8 +14,6 @@ const Sidebar = ({
   theme,
   mobileMenuOpen,
   setMobileMenuOpen,
-  currentView,
-  setCurrentView,
   darkMode,
   setShowForm,
   excelImportRef,
@@ -50,8 +48,6 @@ const Sidebar = ({
             icon={BarChart3}
             label="Dashboard"
             route="/dashboard"
-            currentView={currentView}
-            setCurrentView={setCurrentView}
             setMobileMenuOpen={setMobileMenuOpen}
             darkMode={darkMode}
             theme={theme}
@@ -59,9 +55,7 @@ const Sidebar = ({
           <NavItem
             icon={Database}
             label="Sample Database"
-            route="database"
-            currentView={currentView}
-            setCurrentView={setCurrentView}
+            route="/database"
             setMobileMenuOpen={setMobileMenuOpen}
             darkMode={darkMode}
             theme={theme}
@@ -69,9 +63,7 @@ const Sidebar = ({
           <NavItem
             icon={Map}
             label="Geographic View"
-            route="map"
-            currentView={currentView}
-            setCurrentView={setCurrentView}
+            route="/map"
             setMobileMenuOpen={setMobileMenuOpen}
             darkMode={darkMode}
             theme={theme}
@@ -79,9 +71,7 @@ const Sidebar = ({
           <NavItem
             icon={FileText}
             label="Reports"
-            route="reports"
-            currentView={currentView}
-            setCurrentView={setCurrentView}
+            route="/reports"
             setMobileMenuOpen={setMobileMenuOpen}
             darkMode={darkMode}
             theme={theme}
@@ -89,9 +79,7 @@ const Sidebar = ({
           <NavItem
             icon={Users}
             label="Field Agents"
-            route="agents"
-            currentView={currentView}
-            setCurrentView={setCurrentView}
+            route="/agents"
             setMobileMenuOpen={setMobileMenuOpen}
             darkMode={darkMode}
             theme={theme}

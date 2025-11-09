@@ -16,65 +16,56 @@ import { Package, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import StatCard from "../common/StatCard";
 import { COLORS } from "../../utils/constants";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const Dashboard = ({ theme, darkMode }) => {
-  const { currentUser } = useSelector((state) => state.auth);
-  const [analytics, setAnalytics] = useState(null);
+  const dispatch = useDispatch();
+  const { samples, loading } = useSelector((state) => state.samples);
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const res = await axios.get("/api/samples", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  // useEffect(() => {
+  //   dispatch(fetchSamples());
+  // }, [dispatch]);
 
-        const samples = res.data?.data || [];
+  if (loading) {
+    return <p className={`${theme?.text}`}>Loading samples...</p>;
+  }
 
-        const analyticsData = {
-          total: samples.length,
-          contaminated: samples.filter((s) => s.contaminated).length,
-          safe: samples.filter((s) => !s.contaminated).length,
-          pending: samples.filter((s) => s.status === "pending").length,
-          byState: Object.entries(
-            samples.reduce((acc, s) => {
-              acc[s.state] = (acc[s.state] || 0) + 1;
-              return acc;
-            }, {})
-          ).map(([name, value]) => ({ name, value })),
-          byProductType: Object.entries(
-            samples.reduce((acc, s) => {
-              acc[s.productType] = (acc[s.productType] || 0) + 1;
-              return acc;
-            }, {})
-          ).map(([name, value]) => ({ name, value })),
-          registeredVsUnregistered: [
-            {
-              name: "Registered",
-              total: samples.filter((s) => s.registered).length,
-              contaminated: samples.filter(
-                (s) => s.registered && s.contaminated
-              ).length,
-            },
-            {
-              name: "Unregistered",
-              total: samples.filter((s) => !s.registered).length,
-              contaminated: samples.filter(
-                (s) => !s.registered && s.contaminated
-              ).length,
-            },
-          ],
-        };
+  // if (!samples || samples.length === 0) {
+  //   return <p className={`${theme?.text}`}>No samples yet.</p>;
+  // }
 
-        setAnalytics(analyticsData);
-      } catch (err) {
-        console.error("Error fetching analytics:", err);
-      }
-    };
-
-    fetchAnalytics();
-  }, []);
+  const analytics = {
+    total: samples?.length,
+    contaminated: samples?.filter((s) => s?.contaminated).length,
+    safe: samples?.filter((s) => !s?.contaminated)?.length,
+    pending: samples?.filter((s) => s?.status === "pending")?.length,
+    byState: Object?.entries(
+      samples?.reduce((acc, s) => {
+        acc[s?.state] = (acc[s?.state] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([name, value]) => ({ name, value })),
+    byProductType: Object?.entries(
+      samples.reduce((acc, s) => {
+        acc[s?.productType] = (acc[s?.productType] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([name, value]) => ({ name, value })),
+    registeredVsUnregistered: [
+      {
+        name: "Registered",
+        total: samples?.filter((s) => s?.registered)?.length,
+        contaminated: samples?.filter((s) => s?.registered && s?.contaminated)
+          ?.length,
+      },
+      {
+        name: "Unregistered",
+        total: samples?.filter((s) => !s?.registered)?.length,
+        contaminated: samples?.filter((s) => !s?.registered && s?.contaminated)
+          ?.length,
+      },
+    ],
+  };
 
   return (
     <div className="space-y-6 px-10">

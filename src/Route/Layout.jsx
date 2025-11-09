@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { handleLogout } from "../redux/slice/authSlice";
 import { useTheme } from "../hooks/useTheme";
 import { useState } from "react";
+import SampleFormModal from "../components/modals/SampleFormModal";
 
 const Layout = () => {
   const dispatch = useDispatch();
@@ -13,6 +14,8 @@ const Layout = () => {
   const { theme, darkMode, toggleDarkMode } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState("dashboard");
+  const [showForm, setShowForm] = useState(false);
+
   const logout = () => {
     dispatch(handleLogout());
     localStorage.removeItem("accessToken");
@@ -39,10 +42,22 @@ const Layout = () => {
           darkMode={darkMode}
           currentView={currentView}
           setCurrentView={setCurrentView}
+          setShowForm={setShowForm}
         />
         <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>
+
+        {showForm && (
+          <SampleFormModal
+            theme={theme}
+            onClose={() => setShowForm(false)}
+            onSubmit={(formData) => {
+              console.log("Form submitted:", formData);
+              setShowForm(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

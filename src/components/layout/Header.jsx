@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { AlertTriangle, Moon, Sun, LogOut, Menu, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Moon,
+  Sun,
+  LogOut,
+  Menu,
+  X,
+  ShieldCheck,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LogoutConfirmModal from "../../pages/LogoutConfirmModal";
 
 const Header = ({
@@ -12,10 +21,18 @@ const Header = ({
   setMobileMenuOpen,
 }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navigate = useNavigate();
 
   const confirmLogout = () => {
     handleLogout();
     setShowLogoutConfirm(false);
+  };
+
+  const isSuperAdmin =
+    currentUser?.role === "SUPER_ADMIN" || currentUser?.role === "SYSTEM_ADMIN";
+
+  const handleAdminAccess = () => {
+    navigate("/invitecodes");
   };
 
   return (
@@ -61,6 +78,16 @@ const Header = ({
                 </div>
               </div>
 
+              {isSuperAdmin && (
+                <button
+                  onClick={handleAdminAccess}
+                  className={`p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg text-white`}
+                  title="invite-codes"
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                </button>
+              )}
+
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg ${theme?.hover} transition-colors ${theme?.text}`}
@@ -73,7 +100,7 @@ const Header = ({
               </button>
 
               <button
-                onClick={() => setShowLogoutConfirm(true)} // 👈 opens modal
+                onClick={() => setShowLogoutConfirm(true)}
                 className={`p-2 rounded-lg ${theme?.hover} transition-colors ${theme?.text}`}
                 title="Logout"
               >

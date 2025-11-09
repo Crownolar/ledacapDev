@@ -1,16 +1,19 @@
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const NavItem = ({
   icon: Icon,
   label,
   route,
   badge,
-  currentRoute,
   setMobileMenuOpen,
   darkMode,
   theme,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = location.pathname === route;
 
   return (
     <button
@@ -19,7 +22,7 @@ const NavItem = ({
         setMobileMenuOpen(false);
       }}
       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-        currentRoute === route
+        isActive
           ? darkMode
             ? "bg-emerald-600 text-white"
             : "bg-emerald-500 text-white"
