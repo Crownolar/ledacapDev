@@ -1,5 +1,13 @@
 import React from "react";
-import { BarChart3, Database, Map, FileText, Users, Plus, Upload } from "lucide-react";
+import {
+  BarChart3,
+  Database,
+  Map,
+  FileText,
+  Users,
+  Plus,
+  Upload,
+} from "lucide-react";
 import NavItem from "../common/NavItem";
 
 const Sidebar = ({
@@ -25,7 +33,9 @@ const Sidebar = ({
         className={`
           fixed lg:sticky top-0 left-0 h-full lg:h-fit z-50 lg:z-0
           w-64 lg:w-64
-          ${theme?.card} shadow-xl lg:shadow-md border-r lg:border ${theme?.border}
+          ${theme?.card} shadow-xl lg:shadow-md border-r lg:border ${
+          theme?.border
+        }
           p-4 lg:rounded-lg lg:top-24
           transform transition-transform duration-300 ease-in-out
           ${
@@ -39,7 +49,7 @@ const Sidebar = ({
           <NavItem
             icon={BarChart3}
             label="Dashboard"
-            view="dashboard"
+            route="/dashboard"
             currentView={currentView}
             setCurrentView={setCurrentView}
             setMobileMenuOpen={setMobileMenuOpen}
@@ -49,7 +59,7 @@ const Sidebar = ({
           <NavItem
             icon={Database}
             label="Sample Database"
-            view="database"
+            route="database"
             currentView={currentView}
             setCurrentView={setCurrentView}
             setMobileMenuOpen={setMobileMenuOpen}
@@ -59,7 +69,7 @@ const Sidebar = ({
           <NavItem
             icon={Map}
             label="Geographic View"
-            view="map"
+            route="map"
             currentView={currentView}
             setCurrentView={setCurrentView}
             setMobileMenuOpen={setMobileMenuOpen}
@@ -69,7 +79,7 @@ const Sidebar = ({
           <NavItem
             icon={FileText}
             label="Reports"
-            view="reports"
+            route="reports"
             currentView={currentView}
             setCurrentView={setCurrentView}
             setMobileMenuOpen={setMobileMenuOpen}
@@ -79,7 +89,7 @@ const Sidebar = ({
           <NavItem
             icon={Users}
             label="Field Agents"
-            view="agents"
+            route="agents"
             currentView={currentView}
             setCurrentView={setCurrentView}
             setMobileMenuOpen={setMobileMenuOpen}

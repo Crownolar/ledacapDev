@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { KeyRound } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useSelector } from "react-redux";
 
-// ✅ Use full API URL (not relative)
 const API_BASE_URL = "/api";
 
 const InviteCodeGenerate = ({ theme }) => {
@@ -12,7 +11,8 @@ const InviteCodeGenerate = ({ theme }) => {
   const [generatedCode, setGeneratedCode] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+
+  const { currentUser } = useSelector((state) => state.auth);
 
   const handleGenerateInviteCode = async (role) => {
     setInviteLoading(true);
@@ -24,7 +24,7 @@ const InviteCodeGenerate = ({ theme }) => {
 
       const res = await axios.post(
         `${API_BASE_URL}/auth/generate`,
-        { role: role.toUpperCase() }, // ✅ Ensure uppercase as docs require
+        { role: role.toUpperCase() },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -60,8 +60,8 @@ const InviteCodeGenerate = ({ theme }) => {
           <KeyRound className="text-emerald-500" /> Generate Invite Codes
         </h2>
         <p className={`text-sm mb-6 ${theme.textMuted}`}>
-          Welcome, {currentUser?.fullName || "Super Admin"}.
-          Generate invite codes for other roles below.
+          Welcome, {currentUser?.fullName || "Super Admin"}. Generate invite
+          codes for other roles below.
         </p>
 
         <div className="flex flex-col gap-2">

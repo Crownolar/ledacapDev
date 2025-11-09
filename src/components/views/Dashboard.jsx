@@ -15,11 +15,11 @@ import {
 import { Package, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import StatCard from "../common/StatCard";
 import { COLORS } from "../../utils/constants";
-import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const Dashboard = ({ theme, darkMode }) => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useSelector((state) => state.auth);
   const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
@@ -27,43 +27,47 @@ const Dashboard = ({ theme, darkMode }) => {
       try {
         const token = localStorage.getItem("accessToken");
         const res = await axios.get("/api/samples", {
-  headers: { Authorization: `Bearer ${token}` },
-});
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-const samples = res.data?.data || [];
+        const samples = res.data?.data || [];
 
-const analyticsData = {
-  total: samples.length,
-  contaminated: samples.filter(s => s.contaminated).length,
-  safe: samples.filter(s => !s.contaminated).length,
-  pending: samples.filter(s => s.status === "pending").length,
-  byState: Object.entries(
-    samples.reduce((acc, s) => {
-      acc[s.state] = (acc[s.state] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value })),
-  byProductType: Object.entries(
-    samples.reduce((acc, s) => {
-      acc[s.productType] = (acc[s.productType] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value })),
-  registeredVsUnregistered: [
-    {
-      name: "Registered",
-      total: samples.filter(s => s.registered).length,
-      contaminated: samples.filter(s => s.registered && s.contaminated).length,
-    },
-    {
-      name: "Unregistered",
-      total: samples.filter(s => !s.registered).length,
-      contaminated: samples.filter(s => !s.registered && s.contaminated).length,
-    },
-  ],
-};
+        const analyticsData = {
+          total: samples.length,
+          contaminated: samples.filter((s) => s.contaminated).length,
+          safe: samples.filter((s) => !s.contaminated).length,
+          pending: samples.filter((s) => s.status === "pending").length,
+          byState: Object.entries(
+            samples.reduce((acc, s) => {
+              acc[s.state] = (acc[s.state] || 0) + 1;
+              return acc;
+            }, {})
+          ).map(([name, value]) => ({ name, value })),
+          byProductType: Object.entries(
+            samples.reduce((acc, s) => {
+              acc[s.productType] = (acc[s.productType] || 0) + 1;
+              return acc;
+            }, {})
+          ).map(([name, value]) => ({ name, value })),
+          registeredVsUnregistered: [
+            {
+              name: "Registered",
+              total: samples.filter((s) => s.registered).length,
+              contaminated: samples.filter(
+                (s) => s.registered && s.contaminated
+              ).length,
+            },
+            {
+              name: "Unregistered",
+              total: samples.filter((s) => !s.registered).length,
+              contaminated: samples.filter(
+                (s) => !s.registered && s.contaminated
+              ).length,
+            },
+          ],
+        };
 
-setAnalytics(analyticsData);
+        setAnalytics(analyticsData);
       } catch (err) {
         console.error("Error fetching analytics:", err);
       }
@@ -71,6 +75,7 @@ setAnalytics(analyticsData);
 
     fetchAnalytics();
   }, []);
+
   return (
     <div className="space-y-6 px-10">
       <div

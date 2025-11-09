@@ -1,89 +1,60 @@
 import React, { useState } from "react";
 import { AlertTriangle, Eye, EyeOff, KeyRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import axios from "axios";
 
-const API_BASE_URL = "/api";
+import { useDispatch, useSelector } from "react-redux";
+import { handleLogin, handleSignup } from "../../redux/slice/authSlice";
 
 const AuthModal = ({ theme }) => {
-  const {
-    authForm,
-    setAuthForm,
-    showPassword,
-    setShowPassword,
-    authMode,
-    setAuthMode,
-    handleLogin,
-    handleSignup,
-    loading,
-    currentUser,
-  } = useAuth();
-
-  const [message, setMessage] = useState("");
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState("");
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, currentUser, error, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
+  const [authForm, setAuthForm] = useState({
+    email: "",
+    password: "",
+    name: "",
+    inviteCode: "",
+  });
+  const [authMode, setAuthMode] = useState("login");
+  const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
     if (authMode === "login") {
-      const res = await handleLogin(authForm.email, authForm.password);
-      if (res.success) {
-        setMessage(
-          `Welcome back, ${res.user.fullName || "User"}! Redirecting...`
-        );
-             setTimeout(() => {
-              const role = res.user?.role?.toLowerCase();
-      if (role === "super_admin" || role === "superadmin") {
-        navigate("/invitecodes", { state: { user: res.user } });
+      const result = await dispatch(
+        handleLogin({ email: authForm.email, password: authForm.password })
+      );
+
+      if (handleLogin.fulfilled.match(result)) {
+        const { fullName, role } = result.payload.user;
+        console.log(fullName, role);
+        setMessage(`Welcome back, ${fullName || "User"}!`);
+        setTimeout(() => {
+          const normalizedRole = role?.toLowerCase().replace(/[\s_]/g, "");
+          if (normalizedRole === "superadmin") {
+            navigate("/invitecodes");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 1000);
       } else {
-        navigate("/dashboard", { state: { user: res.user } });
+        setMessage(result.payload || "Login failed!");
       }
-    }, 1000);
-  } else {
-    setMessage(res.message);
-  }
-  
     } else {
-      const res = await handleSignup(authForm);
-      setMessage(res.message);
-      if (res.success) setAuthMode("login");
+      const result = await dispatch(handleSignup(authForm));
+      if (handleSignup.fulfilled.match(result)) {
+        setMessage(result.payload);
+        setAuthMode("login");
+      } else {
+        setMessage(result.payload);
+      }
     }
   };
-
-  const handleGenerateInviteCode = async (role) => {
-    setInviteLoading(true);
-    setGeneratedCode("");
-    setMessage("");
-
-    try {
-      const token = localStorage.getItem("accessToken");
-      const res = await axios.post(
-        `${API_BASE_URL}/invite-codes`,
-        { role },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const code = res.data.data.code;
-      setGeneratedCode(code);
-      await navigator.clipboard.writeText(code);
-      setMessage(`Invite code for ${role} copied to clipboard!`);
-    } catch (err) {
-      setMessage(
-        err.response?.data?.message ||
-          "Failed to generate invite code. Check your token or permissions."
-      );
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  const isSuperAdmin =
-    currentUser?.role?.toLowerCase?.() === "super_admin" ||
-    currentUser?.role?.toLowerCase?.() === "superadmin";
 
   return (
     <div
@@ -202,13 +173,12 @@ const AuthModal = ({ theme }) => {
         {message && (
           <p className="text-sm text-center mt-3 text-emerald-400">{message}</p>
         )}
-
       </div>
     </div>
   );
 };
 
-// Reusable Input Component
+// Reusable IPT
 const Input = ({
   label,
   type = "text",

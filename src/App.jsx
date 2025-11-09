@@ -6,7 +6,12 @@ import Layout from "./Route/Layout";
 import AuthModal from "./components/auth/AuthModal";
 import InviteCodeGenerate from "./pages/InviteCodeGenerate";
 import { useState } from "react";
-import { useAuth } from "./context/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { handleLogout } from "./redux/slice/authSlice";
+import MapView from "./components/views/MapView";
+import Agents from "./components/views/Agents";
+import Reports from "./components/views/Reports";
+import Database from "./components/views/Database";
 
 const lightTheme = {
   bg: "bg-gray-100",
@@ -29,29 +34,29 @@ const darkTheme = {
 };
 
 const App = () => {
-  const { currentUser, handleLogout } = useAuth();
+  const dispatch = useDispatch();
+
+  const { currentUser, isAuthenticated } = useSelector((state) => state.auth);
+
   const [darkMode, setDarkMode] = useState(false);
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
   const theme = darkMode ? darkTheme : lightTheme;
 
+  const logout = () => dispatch(handleLogout());
+
   return (
     <div>
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<AuthModal theme={theme} />} />
-
-        {/* Protected routes */}
+        <Route path="/auth" element={<AuthModal theme={theme} />} />{" "}
         <Route
           path="/invitecodes"
           element={
-            <PrivateRoute>
+            <PrivateRoute isAuthenticated={isAuthenticated}>
               <InviteCodeGenerate theme={theme} />
             </PrivateRoute>
           }
         />
-
-        {/* ✅ Layout wraps protected pages */}
         <Route
           element={
             <Layout
@@ -59,18 +64,22 @@ const App = () => {
               currentUser={currentUser}
               darkMode={darkMode}
               toggleDarkMode={toggleDarkMode}
-              handleLogout={handleLogout}
+              handleLogout={logout}
             />
           }
         >
           <Route
             path="/dashboard"
             element={
-              <PrivateRoute>
+              <PrivateRoute isAuthenticated={isAuthenticated}>
                 <Dashboard />
               </PrivateRoute>
             }
           />
+          <Route path="database" element={<Database />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="agents" element={<Agents />} />
+          <Route path="map" element={<MapView />} />
         </Route>
       </Routes>
     </div>

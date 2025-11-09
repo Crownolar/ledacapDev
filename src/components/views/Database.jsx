@@ -17,31 +17,29 @@ const Database = ({
   setSelectedSample,
 }) => {
   return (
-    <div className={`space-y-4 ${theme.text}`}>
+    <div className={`space-y-4 ${theme?.text}`}>
       <div
-        className={`${theme.card} rounded-lg shadow-md border ${theme.border} p-3 sm:p-4 md:p-6 w-full max-w-full overflow-x-auto`}
+        className={`${theme?.card} rounded-lg shadow-md border ${theme?.border} p-3 sm:p-4 md:p-6 w-full max-w-full overflow-x-auto`}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Search Input */}
           <div className="relative w-full max-w-full sm:max-w-[100%]">
             <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${theme.textMuted}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${theme?.textMuted}`}
             />
             <input
               type="text"
               placeholder="Search samples..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg ${theme?.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
             />
           </div>
 
-          {/* State Filter */}
           <div className="w-full max-w-full sm:max-w-[100%]">
             <select
               value={filterState}
               onChange={(e) => setFilterState(e.target.value)}
-              className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
+              className={`w-full px-4 py-2 border rounded-lg ${theme?.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
             >
               <option value="all">All States</option>
               {Object.keys(statesData).map((state) => (
@@ -52,12 +50,11 @@ const Database = ({
             </select>
           </div>
 
-          {/* Product Filter */}
           <div className="w-full max-w-full sm:max-w-[100%]">
             <select
               value={filterProduct}
               onChange={(e) => setFilterProduct(e.target.value)}
-              className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
+              className={`w-full px-4 py-2 border rounded-lg ${theme?.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
             >
               <option value="all">All Products</option>
               {Object.entries(productTypes).map(([key, value]) => (
@@ -68,12 +65,11 @@ const Database = ({
             </select>
           </div>
 
-          {/* Status Filter */}
           <div className="w-full max-w-full sm:max-w-[100%]">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
+              className={`w-full px-4 py-2 border rounded-lg ${theme?.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base`}
             >
               <option value="all">All Status</option>
               <option value="safe">Safe</option>
@@ -94,14 +90,16 @@ const Database = ({
         </div>
       </div>
 
-      {/* Table Card */}
       <div
-        className={`${theme.card} rounded-lg shadow-md border ${theme.border} overflow-hidden w-full`}
+        className={`${theme?.card} rounded-lg shadow-md border ${theme?.border} overflow-hidden w-full`}
       >
-        {/* Desktop Table */}
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full min-w-[700px] text-sm">
-            <thead className={theme.card === "bg-gray-800" ? "bg-gray-700" : "bg-gray-50"}>
+            <thead
+              className={
+                theme?.card === "bg-gray-800" ? "bg-gray-700" : "bg-gray-50"
+              }
+            >
               <tr>
                 {[
                   "Sample ID",
@@ -114,7 +112,7 @@ const Database = ({
                 ].map((header) => (
                   <th
                     key={header}
-                    className={`px-4 py-3 text-left font-medium ${theme.textMuted} uppercase tracking-wider`}
+                    className={`px-4 py-3 text-left font-medium ${theme?.textMuted} uppercase tracking-wider`}
                   >
                     {header}
                   </th>
@@ -123,23 +121,23 @@ const Database = ({
             </thead>
 
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredSamples.map((sample) => (
-                <tr key={sample.id} className={theme.hover}>
+              {filteredSamples?.map((sample) => (
+                <tr key={sample?.id} className={theme?.hover}>
                   <td className="px-4 py-3 whitespace-nowrap font-medium">
-                    {sample.id}
+                    {sample?.id}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div>
-                      <div className="font-medium">{sample.productName}</div>
-                      <div className={`text-xs ${theme.textMuted}`}>
-                        {sample.brand}
+                      <div className="font-medium">{sample?.productName}</div>
+                      <div className={`text-xs ${theme?.textMuted}`}>
+                        {sample?.brand}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div>
                       <div>
-                        {sample.lga}, {sample.state}
+                        {sample?.lga}, {sample?.state}
                       </div>
                       <div className={`text-xs ${theme.textMuted}`}>
                         {sample.market}
@@ -149,12 +147,12 @@ const Database = ({
                   <td className="px-4 py-3 whitespace-nowrap font-semibold">
                     <span
                       className={
-                        sample.leadLevel > 1000
+                        sample?.leadLevel > 1000
                           ? "text-red-500"
                           : "text-green-500"
                       }
                     >
-                      {sample.leadLevel.toLocaleString()}
+                      {sample?.leadLevel.toLocaleString()}
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -167,10 +165,12 @@ const Database = ({
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {sample.status.toUpperCase()}
+                      {sample?.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">{sample.date}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {sample?.date}
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <button
                       onClick={() => setSelectedSample(sample)}
@@ -185,33 +185,32 @@ const Database = ({
           </table>
         </div>
 
-        {/* Mobile Card Layout */}
         <div className="block sm:hidden space-y-4 p-2">
-          {filteredSamples.map((sample) => (
+          {filteredSamples?.map((sample) => (
             <div
-              key={sample.id}
-              className={`${theme.card} border ${theme.border} rounded-lg p-3 shadow-sm`}
+              key={sample?.id}
+              className={`${theme?.card} border ${theme?.border} rounded-lg p-3 shadow-sm`}
             >
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs font-semibold text-gray-500">
                   Sample ID
                 </span>
-                <span className="text-sm font-medium">{sample.id}</span>
+                <span className="text-sm font-medium">{sample?.id}</span>
               </div>
 
               <div className="text-sm mb-1">
                 <span className="font-semibold">Product:</span>{" "}
-                {sample.productName}{" "}
-                <span className={`block text-xs ${theme.textMuted}`}>
-                  {sample.brand}
+                {sample?.productName}{" "}
+                <span className={`block text-xs ${theme?.textMuted}`}>
+                  {sample?.brand}
                 </span>
               </div>
 
               <div className="text-sm mb-1">
-                <span className="font-semibold">Location:</span> {sample.lga},{" "}
-                {sample.state}
-                <div className={`text-xs ${theme.textMuted}`}>
-                  {sample.market}
+                <span className="font-semibold">Location:</span> {sample?.lga},{" "}
+                {sample?.state}
+                <div className={`text-xs ${theme?.textMuted}`}>
+                  {sample?.market}
                 </div>
               </div>
 
@@ -219,12 +218,10 @@ const Database = ({
                 <span className="font-semibold">Lead Level:</span>{" "}
                 <span
                   className={`font-semibold ${
-                    sample.leadLevel > 1000
-                      ? "text-red-500"
-                      : "text-green-500"
+                    sample?.leadLevel > 1000 ? "text-red-500" : "text-green-500"
                   }`}
                 >
-                  {sample.leadLevel.toLocaleString()} ppm
+                  {sample?.leadLevel.toLocaleString()} ppm
                 </span>
               </div>
 
@@ -232,19 +229,19 @@ const Database = ({
                 <span className="font-semibold">Status:</span>{" "}
                 <span
                   className={`px-2 py-[2px] text-xs font-semibold rounded-full ${
-                    sample.status === "safe"
+                    sample?.status === "safe"
                       ? "bg-green-100 text-green-800"
                       : sample.status === "contaminated"
                       ? "bg-red-100 text-red-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
-                  {sample.status.toUpperCase()}
+                  {sample?.status.toUpperCase()}
                 </span>
               </div>
 
               <div className="text-sm mb-1">
-                <span className="font-semibold">Date:</span> {sample.date}
+                <span className="font-semibold">Date:</span> {sample?.date}
               </div>
 
               <button

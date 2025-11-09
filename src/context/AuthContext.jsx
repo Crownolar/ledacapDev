@@ -1,199 +1,3 @@
-// import React, { createContext, useContext, useState, useEffect } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-
-// const AuthContext = createContext(null);
-
-// export const AuthProvider = ({ children }) => {
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const [currentUser, setCurrentUser] = useState(null);
-//   const [authForm, setAuthForm] = useState({
-//     email: "",
-//     password: "",
-//     name: "",
-//     inviteCode: "",
-//   });
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [authMode, setAuthMode] = useState("login");
-//   const [loading, setLoading] = useState(false);
-//   const API_BASE_URL = "/api";
-//   const navigate = useNavigate();
-
-//   const handleLogin = async (email, password) => {
-//     setLoading(true);
-//     try {
-//       const res = await axios.post(`${API_BASE_URL}/auth/login`, {
-//         email,
-//         password,
-//       });
-
-//       console.log("✅ Login response:", res.data);
-//       console.log("✅ Login response:", res.data.data.user.role);
-
-//       if (res.data?.success && res.data?.data) {
-//         const { user, tokens } = res.data.data;
-//         const accessToken = tokens.accessToken;
-//         const refreshToken = tokens.refreshToken;
-
-//         localStorage.setItem("accessToken", accessToken);
-//         localStorage.setItem("refreshToken", refreshToken);
-//         localStorage.setItem("user", JSON.stringify(user));
-
-//         setCurrentUser(user);
-//         setIsAuthenticated(true);
-
-//         setAuthForm({
-//           email: "",
-//           password: "",
-//         });
-
-//         return { success: true, user };
-//       } else {
-//         return {
-//           success: false,
-//           message: res.data.message || "Invalid credentials.",
-//         };
-//       }
-//     } catch (err) {
-//       console.error("❌ Login error:", err);
-//       const msg =
-//         err.response?.data?.message ||
-//         "Something went wrong. Please try again.";
-//       return { success: false, message: msg };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleSignup = async (authForm) => {
-//     setLoading(true);
-//     try {
-//       const res = await axios.post(`${API_BASE_URL}/auth/register`, {
-//         email: authForm.email,
-//         fullName: authForm.name,
-//         password: authForm.password,
-//         inviteCode: authForm.inviteCode,
-//       });
-
-//       if (res.data?.success) {
-//         return {
-//           success: true,
-//           message: res.data.message || "Signup successful! You can now login.",
-//         };
-//       } else {
-//         return {
-//           success: false,
-//           message: res.data.message || "Signup failed. Try again.",
-//         };
-//       }
-//     } catch (err) {
-//       const msg =
-//         err.response?.data?.message ||
-//         "Signup failed. Invalid invite code or server error.";
-//       return { success: false, message: msg };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleGenerateInviteCode = async (role) => {
-//     setInviteLoading(true);
-//     setGeneratedCode("");
-//     setMessage("");
-
-//     try {
-//       const token = localStorage.getItem("accessToken");
-//       const res = await axios.post(
-//         `${API_BASE_URL}/invite-codes`,
-//         { role },
-//         { headers: { Authorization: `Bearer ${token}` } }
-//       );
-
-//       const code = res.data.data.code;
-//       setGeneratedCode(code);
-
-//       await navigator.clipboard.writeText(code);
-
-//       setMessage(`✅ Invite code for ${role} copied to clipboard!`);
-//     } catch (err) {
-//       setMessage(
-//         err.response?.data?.message ||
-//           "❌ Failed to generate invite code. Check your token or permissions."
-//       );
-//     } finally {
-//       setInviteLoading(false);
-//     }
-//   };
-
-//   const handleLogout = async () => {
-//     console.log("🔹 Logout clicked");
-//     try {
-//       const refreshToken = localStorage.getItem("refreshToken");
-//       const token = localStorage.getItem("accessToken");
-
-//       if (refreshToken && token) {
-//         await axios.post(
-//           `${API_BASE_URL}/auth/logout`,
-//           { refreshToken },
-//           { headers: { Authorization: `Bearer ${token}` } }
-//         );
-//       }
-//     } catch (err) {
-//       console.error(
-//         "Logout request failed:",
-//         err.response?.data || err.message
-//       );
-//     } finally {
-//       localStorage.removeItem("accessToken");
-//       localStorage.removeItem("refreshToken");
-//       localStorage.removeItem("user");
-//       setIsAuthenticated(false);
-//       setCurrentUser(null);
-//       setAuthForm({
-//         email: "",
-//         password: "",
-//       });
-//       navigate("/auth"); // 👈 Force re-render / redirect
-//     }
-//   };
-
-//   useEffect(() => {
-//     const savedUser = localStorage.getItem("user");
-//     const token = localStorage.getItem("accessToken");
-
-//     if (savedUser && token) {
-//       setCurrentUser(JSON.parse(savedUser));
-//       setIsAuthenticated(true);
-//     }
-//   }, []);
-
-//   return (
-//     <AuthContext.Provider
-//       value={{
-//         isAuthenticated,
-//         setIsAuthenticated,
-//         currentUser,
-//         setCurrentUser,
-//         authForm,
-//         setAuthForm,
-//         showPassword,
-//         setShowPassword,
-//         authMode,
-//         setAuthMode,
-//         handleLogin,
-//         handleSignup,
-//         handleGenerateInviteCode,
-//         handleLogout,
-//         loading,
-//       }}
-//     >
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-// export const useAuth = () => useContext(AuthContext);
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -215,19 +19,16 @@ export const AuthProvider = ({ children }) => {
   const API_BASE_URL = "/api";
   const navigate = useNavigate();
 
-  // ✅ Axios instance
   const api = axios.create({
     baseURL: API_BASE_URL,
   });
 
-  // ✅ Attach access token automatically to all requests
   api.interceptors.request.use((config) => {
     const token = localStorage.getItem("accessToken");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   });
 
-  // ✅ Refresh token function
   const refreshAccessToken = async () => {
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) return null;
@@ -251,12 +52,11 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       console.error("❌ Refresh token failed:", err.response?.data || err);
-      handleLogout(); // Auto logout on failure
+      handleLogout();
       return null;
     }
   };
 
-  // ✅ Intercept 401 errors globally
   api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -274,7 +74,6 @@ export const AuthProvider = ({ children }) => {
     }
   );
 
-  // ✅ Login function
   const handleLogin = async (email, password) => {
     setLoading(true);
     try {
@@ -317,7 +116,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Signup
   const handleSignup = async (authForm) => {
     setLoading(true);
     try {
@@ -349,7 +147,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Invite Code Generation
   const handleGenerateInviteCode = async (role) => {
     try {
       const res = await api.post("/invite-codes", { role });
@@ -366,7 +163,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Logout
   const handleLogout = async () => {
     console.log("🔹 Logout clicked");
     try {
@@ -396,7 +192,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Auto-login if tokens exist
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     const token = localStorage.getItem("accessToken");
@@ -425,7 +220,7 @@ export const AuthProvider = ({ children }) => {
         handleGenerateInviteCode,
         handleLogout,
         loading,
-        api, // ✅ export axios instance with interceptor
+        api,
       }}
     >
       {children}
