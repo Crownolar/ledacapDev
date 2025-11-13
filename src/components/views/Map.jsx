@@ -4,6 +4,9 @@ import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useEffect } from "react";
+import { useRef } from "react";
+import StatCard from "../common/StatCard";
+import MapSampleDetails from "../modals/mapSampleDetails";
 
 // L.Icon.Default.mergeOptions({
 //   iconUrl: markerIcon,
@@ -16,37 +19,38 @@ const FitBounds = ({ markers }) => {
   const map = useMap();
 
   useEffect(() => {
-    console.log(markers);
+    // console.log(markers);
     if (markers.length > 0) {
       try {
-        setTimeout(() => {
-          const bounds = L.latLngBounds(
-            markers.map((m) => {
-              console.log([m.coordinates.lat, m.coordinates.lng]);
-              return [m.coordinates.lat, m.coordinates.lng];
-            })
-          );
-          map.fitBounds(bounds, { padding: [50, 50] });
-        }, 3000);
+        const bounds = L.latLngBounds(
+          markers.map((m) => {
+            return [m.coordinates.lat, m.coordinates.lng];
+          })
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
       } catch (e) {
         console.log(e.message);
       }
     }
-  }, [map, markers]);
+  }, []);
 };
 
 const getDefaultIcon = (position) => {
-  console.log(position);
   return new L.Icon({
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
     iconSize: [30, 45],
     iconAnchor: position,
-    popupAnchor: position,
+    popupAnchor: [-5, -35],
   });
 };
 
+function handleClick(e) {
+  console.log("ive been clicked");
+}
+
 export default function Map({ samples }) {
+  const popupRef = useRef(null);
   return (
     <>
       <div className='border border-red-950'>
@@ -62,27 +66,43 @@ export default function Map({ samples }) {
             url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           ></TileLayer>
-          {samples.map((s) => (
-            <Marker
-              key={s.id}
-              position={[s.coordinates.lat, s.coordinates.lng]}
-              icon={getDefaultIcon([[s.coordinates.lat, s.coordinates.lng]])}
-            >
-              <Popup>
-                hello there
-                {/* <div className='flex flex-col'>
-                  <p>{s.state}</p>
-                  <p>Total:{2} samples</p>
-                </div> */}
-              </Popup>
-            </Marker>
-          ))}
-          {/* <FitBounds markers={samples} /> */}
+          {samples.map((s) => {
+            if (s.coordinates.lat && s.coordinates.lng) {
+              return (
+                <Marker
+                  key={s.id}
+                  ref={popupRef}
+                  position={[s.coordinates.lat, s.coordinates.lng]}
+                  icon={getDefaultIcon([s.coordinates.lat, s.coordinates.lng])}
+                  eventHandlers={{
+                    mouseover: (e) => e.target.openPopup(),
+                    click: (e) => {
+                      // Prevent Leaflet default popup toggle
+                      e.originalEvent.stopPropagation();
+                    },
+                    mouseout: (e) => e.target.closePopup(),
+                  }}
+                >
+                  <Popup
+                    closeOnClick={false}
+                    autoClose={false}
+                    closeButton={false}
+                  >
+                    <div>
+                      <h3>{s.state}</h3>
+                      <h4>Total: 2 samples</h4>
+                      <p>👍</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            }
+          })}
+          {/* fit bounds makes all the markers show at once after rendering */}
+          <FitBounds markers={samples} />
         </MapContainer>
-
-        <div>
-          <h1>samples[0].market</h1>
-        </div>
+        {/* Overlay */}
+        <MapSampleDetails />
       </div>
     </>
   );
