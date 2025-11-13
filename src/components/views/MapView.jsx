@@ -1,60 +1,58 @@
-import React from "react";
 import { MapPin, MapPinned } from "lucide-react";
+import Map from "./Map";
 
-const MapView = ({ theme, samples = [] }) => {
+const demoSamples = [
+  {
+    id: 1,
+    market: "Oja Oba market",
+    lga: "ilorin",
+    state: "kwara state",
+    leadLevel: 500,
+    coordinates: { lat: 23.56, lng: 45.6 },
+  },
+  // {
+  //   id: 2,
+  //   market: "Oshodi market",
+  //   lga: "lagos",
+  //   state: "Lagos state",
+  //   leadLevel: 800,
+  //   coordinates: { lat: 43.56, lng: 35.6 },
+  // },
+  // {
+  //   id: 3,
+  //   market: "Araromi market",
+  //   lga: "ijebu",
+  //   state: "Osun state",
+  //   leadLevel: 2000,
+  //   coordinates: { lat: 13.56, lng: 5.6 },
+  // },
+  // {
+  //   id: 4,
+  //   market: "Lautech market",
+  //   lga: "ilega",
+  //   state: "Ibadan state",
+  //   leadLevel: 100,
+  //   coordinates: { lat: 11.56, lng: 30.6 },
+  // },
+];
+
+const MapView = ({ theme, samples = demoSamples }) => {
   return (
     <div
       className={`${theme?.card} ${theme?.text} rounded-lg shadow-md p-6 border ${theme?.border}`}
     >
-      <h2 className="text-xl font-semibold mb-4">Geographic Distribution</h2>
-      <div className="space-y-4">
-        {samples
-          ?.filter((s) => s.coordinates?.lat && s.coordinates?.lng)
-          ?.map((sample) => (
-            <div
-              key={sample?.id}
-              className={`p-4 border ${theme?.border} rounded-lg flex items-start gap-4`}
-            >
-              <MapPinned
-                className={`w-6 h-6 mt-1 ${
-                  sample?.leadLevel > 1000 ? "text-red-500" : "text-green-500"
-                }`}
-              />
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold">{sample?.productName}</h3>
-                    <p className={`text-sm ${theme?.textMuted}`}>
-                      {sample?.market}, {sample?.lga}, {sample?.state}
-                    </p>
-                    <p className={`text-xs ${theme?.textMuted} mt-1`}>
-                      Coordinates: {sample?.coordinates?.lat},{" "}
-                      {sample?.coordinates?.lng}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      sample?.leadLevel > 1000
-                        ? "bg-red-100 text-red-800"
-                        : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {sample?.leadLevel} ppm
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-
+      <h2 className='text-xl font-semibold mb-4'>Geographic Distribution</h2>
+      <div className='space-y-4'>
         {samples?.filter((s) => s?.coordinates?.lat && s?.coordinates?.lng)
           .length === 0 && (
-          <div className="text-center py-12">
-            <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <div className='text-center py-12'>
+            <MapPin className='w-16 h-16 mx-auto mb-4 text-gray-400' />
             <p className={theme?.textMuted}>
               No samples with GPS coordinates yet
             </p>
           </div>
         )}
+        <Map samples={samples} />
       </div>
     </div>
   );
