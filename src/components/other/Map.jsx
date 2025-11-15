@@ -21,7 +21,7 @@ const FitBounds = ({ markers }) => {
         );
         map.fitBounds(bounds, { padding: [50, 50] });
       } catch (e) {
-        console.log(e.message);
+        console.error(e.message);
       }
     }
   }, []);
@@ -68,7 +68,6 @@ export default function Map({ samples }) {
 
   const getDefaultIcon = (samples, position) => {
     const samplesLength = sameLngAndLat(samples, position).length;
-    console.log(samplesLength);
     return iconObject(samplesLength, position);
   };
 
