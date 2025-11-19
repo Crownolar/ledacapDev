@@ -77,6 +77,7 @@ const Dashboard = ({ theme, darkMode }) => {
           label="Total Samples"
           value={analytics?.total}
           color="bg-blue-500"
+          theme={theme}
         />
         <StatCard
           icon={AlertTriangle}
@@ -87,6 +88,7 @@ const Dashboard = ({ theme, darkMode }) => {
             (analytics?.contaminated / analytics?.total) *
             100
           ).toFixed(1)}% of total`}
+          theme={theme}
         />
         <StatCard
           icon={CheckCircle}
@@ -96,11 +98,13 @@ const Dashboard = ({ theme, darkMode }) => {
           subtext={`${((analytics?.safe / analytics?.total) * 100).toFixed(
             1
           )}% of total`}
+          theme={theme}
         />
         <StatCard
           icon={Clock}
           label="Pending Tests"
           value={analytics?.pending}
+          theme={theme}
           color="bg-yellow-500"
         />
       </div>
