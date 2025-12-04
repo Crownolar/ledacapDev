@@ -204,7 +204,6 @@ const Dashboard = ({ theme, darkMode }) => {
           </ResponsiveContainer>
         </div>
       </div>
-      
     </div>
   );
 };

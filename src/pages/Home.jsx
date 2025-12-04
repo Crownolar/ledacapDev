@@ -27,7 +27,7 @@ const Home = () => {
     handleSignup,
   } = useAuth();
 
-  const { theme } = useTheme();
+  const { theme, darkMode, toggleDarkMode } = useTheme();
   const { analytics, filteredSamples, addSample } = useSamples(currentUser);
   const [currentView, setCurrentView] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);

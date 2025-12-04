@@ -10,6 +10,34 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export const fetchStates = createAsyncThunk(
+  "samples/fetchStates",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/states");
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch states"
+      );
+    }
+  }
+);
+
+export const fetchMarkets = createAsyncThunk(
+  "samples/fetchMarkets",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/markets");
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch markets"
+      );
+    }
+  }
+);
+
 export const fetchSamples = createAsyncThunk(
   "samples/fetchSamples",
   async (_, { rejectWithValue }) => {
@@ -28,32 +56,44 @@ export const createSample = createAsyncThunk(
   "samples/createSample",
   async (formData, { rejectWithValue }) => {
     try {
-      const payload = {
-        stateId: formData.stateId,
-        lgaId: formData.lgaId,
-        marketName: formData.marketName,
-        vendorType: formData.vendorType,
-        productType: formData.productType,
-        productName: formData.productName,
-        price: parseFloat(formData.price),
-        batchNumber: formData.batchNumber || "",
-        brandName: formData.brandName || "",
-        gpsLatitude: formData.gpsLatitude
-          ? parseFloat(formData.gpsLatitude)
-          : null,
-        gpsLongitude: formData.gpsLongitude
-          ? parseFloat(formData.gpsLongitude)
-          : null,
-        isRegistered: formData.isRegistered,
-        leadLevelPpm: formData.leadLevelPpm || 0,
-        // productPhotoUrl: formData.productPhoto || "",
-        // vendorPhotoUrl: formData.vendorPhoto || "",
-      };
+      const payload = formData.isRegistered
+        ? {
+            stateId: formData.stateId,
+            lgaId: formData.lgaId,
+            marketId: formData.marketId,
+            vendorType: formData.vendorType,
+            productName: formData.productName,
+            productType: formData.productType,
+            price: parseFloat(formData.price),
+            brandName: formData.brandName,
+            batchNumber: formData.batchNumber,
+            isRegistered: true,
+            sonNumber: formData.sonNumber,
+          }
+        : {
+            stateId: formData.stateId,
+            lgaId: formData.lgaId,
+            marketId: formData.marketId,
+            vendorType: formData.vendorType,
+            productName: formData.productName,
+            productType: formData.productType,
+            price: parseFloat(formData.price),
+            brandName: formData.brandName || "",
+            batchNumber: formData.batchNumber || "",
+            gpsLatitude: formData.gpsLatitude
+              ? parseFloat(formData.gpsLatitude)
+              : null,
+            gpsLongitude: formData.gpsLongitude
+              ? parseFloat(formData.gpsLongitude)
+              : null,
+            isRegistered: false,
+            vendorTypeOther:
+              formData.vendorType === "OTHER"
+                ? formData.vendorTypeOther
+                : undefined,
+            productPhotoUrl: formData.productPhoto || "",
+          };
 
-      // if (formData.productPhoto)
-      //   payload.productPhotoUrl = formData.productPhoto;
-      // if (formData.vendorPhoto) payload.vendorPhotoUrl = formData.vendorPhoto;
-      console.log("Payload being sent:", payload);
       const response = await api.post("/samples", payload);
       return response.data.data;
     } catch (error) {
@@ -66,6 +106,8 @@ export const createSample = createAsyncThunk(
 
 const initialState = {
   samples: [],
+  states: [],
+  markets: [],
   loading: false,
   error: null,
 };
@@ -88,7 +130,6 @@ const samplesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(createSample.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -98,6 +139,30 @@ const samplesSlice = createSlice({
         state.samples.unshift(action.payload);
       })
       .addCase(createSample.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchStates.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStates.fulfilled, (state, action) => {
+        state.loading = false;
+        state.states = action.payload;
+      })
+      .addCase(fetchStates.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMarkets.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMarkets.fulfilled, (state, action) => {
+        state.loading = false;
+        state.markets = action.payload;
+      })
+      .addCase(fetchMarkets.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

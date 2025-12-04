@@ -76,10 +76,41 @@ const App = () => {
               </PrivateRoute>
             }
           />
-          <Route path="database" element={<Database />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="agents" element={<Agents />} />
-          <Route path="map" element={<MapView />} />
+          <Route
+            path="database"
+            element={
+              <PrivateRoute>
+                <Database />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="reports"
+            element={
+              <PrivateRoute>
+                <Reports />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="agents"
+            element={
+              <PrivateRoute>
+                <Agents />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="map"
+            element={
+              <PrivateRoute>
+                <MapView />
+              </PrivateRoute>
+            }
+          />
         </Route>
       </Routes>
     </div>
