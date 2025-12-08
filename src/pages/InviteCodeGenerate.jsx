@@ -46,6 +46,7 @@ const InviteCodeGenerate = ({ theme = {} }) => {
     role: "HEAD_RESEARCHER",
   });
 
+<<<<<<< HEAD
   const [editableUser, setEditableUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -66,6 +67,11 @@ const InviteCodeGenerate = ({ theme = {} }) => {
       setIsEditing(false);
     }
   }, [selectedUser]);
+=======
+  const [users, setUsers] = useState([]);
+  const [samples, setSamples] = useState([]);
+  const [comments, setComments] = useState([]);
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
 
   const handleGenerateInviteCode = async (role) => {
     setInviteLoading(true);
@@ -84,8 +90,21 @@ const InviteCodeGenerate = ({ theme = {} }) => {
       });
       const data = await res.json();
 
+<<<<<<< HEAD
       if (!res.ok)
         throw new Error(data.message || "Failed to generate invite code");
+=======
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/generate-invite`,
+        { role: role.toUpperCase() },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
 
       const code = data.data?.code || data.code;
       setGeneratedCode(code);
@@ -239,35 +258,60 @@ const InviteCodeGenerate = ({ theme = {} }) => {
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <KeyRound className="text-emerald-500" /> Generate Invite Codes
               </h2>
+<<<<<<< HEAD
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+=======
+              <p className={`text-sm mb-6 ${currentTheme.textMuted}`}>
+                Generate secure invite codes for different user roles.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
                 {["POLICY_MAKER", "HEAD_RESEARCHER", "ADMIN"].map((role) => (
                   <button
                     key={role}
                     onClick={() => handleGenerateInviteCode(role)}
                     disabled={inviteLoading}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:from-gray-500 disabled:to-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg disabled:shadow-none disabled:cursor-not-allowed"
                   >
-                    {inviteLoading
-                      ? "Generating..."
-                      : `Generate ${role.replace(/_/g, " ")}`}
+                    {inviteLoading ? (
+                      <>
+                        <span className="inline-block animate-spin mr-2">⏳</span>
+                        Generating...
+                      </>
+                    ) : (
+                      `Generate ${role.replace(/_/g, " ")}`
+                    )}
                   </button>
                 ))}
               </div>
 
               {generatedCode && (
-                <div className="p-4 bg-gradient-to-r from-emerald-900/50 to-teal-900/50 border border-emerald-500/50 rounded-lg">
-                  <p className="text-xs text-emerald-400 mb-2">
-                    Generated Code:
+                <div className="p-5 bg-gradient-to-br from-emerald-900/40 to-teal-900/30 border border-emerald-500/30 rounded-lg backdrop-blur-sm">
+                  <p className="text-xs font-medium text-emerald-400 mb-3 uppercase tracking-wide">
+                    Generated Invite Code
                   </p>
-                  <p className="text-emerald-300 font-mono text-lg text-center">
+                  <p className="text-emerald-300 font-mono text-lg text-center p-3 bg-gray-800/50 rounded border border-emerald-500/20 select-all cursor-pointer hover:bg-gray-800 transition-colors duration-200">
                     {generatedCode}
+                  </p>
+                </div>
+              )}
+
+              {message && (
+                <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                  <p className="text-sm text-center text-emerald-400 font-medium">
+                    {message}
                   </p>
                 </div>
               )}
 
               <button
                 onClick={() => navigate("/dashboard")}
+<<<<<<< HEAD
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+=======
+                className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-emerald-500/50"
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
               >
                 <svg
                   className="w-5 h-5"
@@ -284,12 +328,6 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                 </svg>
                 Go to Dashboard
               </button>
-
-              {message && (
-                <p className="text-sm mt-4 text-center text-emerald-400">
-                  {message}
-                </p>
-              )}
             </div>
           )}
 
@@ -537,30 +575,31 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-lg border border-gray-700">
                 <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-emerald-400">
+                  <thead className="bg-gray-700/50">
+                    <tr className="border-b border-gray-600">
+                      <th className="text-left py-4 px-6 text-sm font-semibold text-emerald-400">
                         Name
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-emerald-400">
+                      <th className="text-left py-4 px-6 text-sm font-semibold text-emerald-400">
                         Email
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-emerald-400">
+                      <th className="text-left py-4 px-6 text-sm font-semibold text-emerald-400">
                         Role
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-emerald-400">
+                      <th className="text-left py-4 px-6 text-sm font-semibold text-emerald-400">
                         Status
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-emerald-400">
+                      <th className="text-left py-4 px-6 text-sm font-semibold text-emerald-400">
                         Joined
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-emerald-400">
+                      <th className="text-center py-4 px-6 text-sm font-semibold text-emerald-400">
                         Actions
                       </th>
                     </tr>
                   </thead>
+<<<<<<< HEAD
                   <tbody>
                     {filteredUsers?.map((user) => (
                       <tr
@@ -597,9 +636,52 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                               <Trash2 size={16} className="text-red-400" />
                             </button>
                           </div>
+=======
+                  <tbody className="divide-y divide-gray-700">
+                    {users.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="py-8 px-6 text-center text-gray-400">
+                          No users found
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      users.map((user) => (
+                        <tr
+                          key={user.id}
+                          className="hover:bg-gray-700/30 transition-colors duration-200"
+                        >
+                          <td className="py-4 px-6 font-medium">{user.fullName}</td>
+                          <td className="py-4 px-6 text-sm text-gray-400">
+                            {user.email}
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="text-xs px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full font-medium">
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6">
+                            {getStatusBadge(user.status)}
+                          </td>
+                          <td className="py-4 px-6 text-sm text-gray-400">
+                            {user.joinedDate}
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex gap-2 justify-center">
+                              <button className="p-2 hover:bg-emerald-500/20 rounded-lg transition-colors duration-200">
+                                <Eye size={16} className="text-emerald-400" />
+                              </button>
+                              <button className="p-2 hover:bg-blue-500/20 rounded-lg transition-colors duration-200">
+                                <Edit size={16} className="text-blue-400" />
+                              </button>
+                              <button className="p-2 hover:bg-red-500/20 rounded-lg transition-colors duration-200">
+                                <Trash2 size={16} className="text-red-400" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -637,6 +719,7 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                 </div>
               </div>
 
+<<<<<<< HEAD
               <div className="p-8">
                 <div className="mb-8">
                   <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b-2 border-teal-600">
@@ -675,6 +758,47 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                     </div>
                   </div>
                 </div>
+=======
+              <div className="grid gap-4">
+                {samples.length === 0 ? (
+                  <div className="py-12 px-6 text-center text-gray-400">
+                    <Beaker size={32} className="mx-auto mb-3 opacity-50" />
+                    <p>No samples available</p>
+                  </div>
+                ) : (
+                  samples.map((sample) => (
+                    <div
+                      key={sample.id}
+                      className="p-5 bg-gradient-to-br from-gray-700/50 to-gray-700/20 rounded-lg border border-gray-600 hover:border-emerald-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/10"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg text-white">
+                            {sample.name}
+                          </h3>
+                          <p className="text-sm text-gray-400 mt-1">
+                            <span className="font-medium">Type:</span> {sample.type} |{" "}
+                            <span className="font-medium">Location:</span> {sample.location}
+                          </p>
+                        </div>
+                        {getStatusBadge(sample.status)}
+                      </div>
+                      <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-600">
+                        <span className="text-sm text-gray-400">
+                          Submitted by:{" "}
+                          <span className="text-emerald-400 font-medium">
+                            {sample.submittedBy}
+                          </span>
+                        </span>
+                        <span className="text-xs text-gray-500">{sample.date}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
 
                 <div className="mb-8">
                   <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b-2 border-emerald-600">
@@ -727,6 +851,7 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                       )}
                     </div>
 
+<<<<<<< HEAD
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-600 uppercase tracking-wide">
                         Account Status
@@ -931,6 +1056,51 @@ const InviteCodeGenerate = ({ theme = {} }) => {
                     </div>
                   )}
                 </div>
+=======
+              <div className="space-y-4">
+                {comments.length === 0 ? (
+                  <div className="py-12 px-6 text-center text-gray-400">
+                    <MessageSquare size={32} className="mx-auto mb-3 opacity-50" />
+                    <p>No comments to moderate</p>
+                  </div>
+                ) : (
+                  comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="p-5 bg-gray-700/40 rounded-lg border border-gray-600 hover:border-emerald-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/10"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {comment.user.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-white">{comment.user}</p>
+                            <p className="text-xs text-gray-400">on {comment.sample}</p>
+                          </div>
+                        </div>
+                        {getStatusBadge(comment.status)}
+                      </div>
+                      <p className="text-gray-300 mb-4 leading-relaxed">
+                        {comment.comment}
+                      </p>
+                      <div className="flex justify-between items-center pt-4 border-t border-gray-600">
+                        <span className="text-xs text-gray-500">{comment.date}</span>
+                        <div className="flex gap-2">
+                          <button className="flex items-center gap-1 px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-colors duration-200 text-sm font-medium">
+                            <CheckCircle size={14} />
+                            Approve
+                          </button>
+                          <button className="flex items-center gap-1 px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors duration-200 text-sm font-medium">
+                            <XCircle size={14} />
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+>>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
               </div>
             </div>
           )}

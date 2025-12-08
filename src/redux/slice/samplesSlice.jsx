@@ -96,44 +96,31 @@ export const createSample = createAsyncThunk(
   "samples/createSample",
   async (formData, { rejectWithValue }) => {
     try {
-      const payload = formData.isRegistered
-        ? {
-            stateId: formData.stateId,
-            lgaId: formData.lgaId,
-            marketId: formData.marketId,
-            vendorType: formData.vendorType,
-            productName: formData.productName,
-            productType: formData.productType,
-            price: parseFloat(formData.price),
-            brandName: formData.brandName,
-            batchNumber: formData.batchNumber,
-            isRegistered: true,
-            sonNumber: formData.sonNumber,
-          }
-        : {
-            stateId: formData.stateId,
-            lgaId: formData.lgaId,
-            marketId: formData.marketId,
-            vendorType: formData.vendorType,
-            productName: formData.productName,
-            productType: formData.productType,
-            price: parseFloat(formData.price),
-            brandName: formData.brandName || "",
-            batchNumber: formData.batchNumber || "",
-            gpsLatitude: formData.gpsLatitude
-              ? parseFloat(formData.gpsLatitude)
-              : null,
-            gpsLongitude: formData.gpsLongitude
-              ? parseFloat(formData.gpsLongitude)
-              : null,
-            isRegistered: false,
-            vendorTypeOther:
-              formData.vendorType === "OTHER"
-                ? formData.vendorTypeOther
-                : undefined,
-            productPhotoUrl: formData.productPhoto || "",
-          };
+      const payload = {
+        stateId: formData.stateId,
+        lgaId: formData.lgaId,
+        marketId: formData.marketId,
+        vendorType: formData.vendorType,
+        vendorTypeOther: formData.vendorTypeOther || null,
+        productType: formData.productType,
+        productName: formData.productName,
+        price: parseFloat(formData.price),
+        batchNumber: formData.batchNumber || null,
+        brandName: formData.brandName || null,
+        gpsLatitude: formData.gpsLatitude
+          ? parseFloat(formData.gpsLatitude)
+          : null,
+        gpsLongitude: formData.gpsLongitude
+          ? parseFloat(formData.gpsLongitude)
+          : null,
+        isRegistered: formData.isRegistered,
+        productOrigin: formData.productOrigin || "LOCAL",
+        navdacNumber: formData.navdacNumber || null,
+        sonNumber: formData.sonNumber || null,
+        productPhotoUrl: formData.productPhotoUrl || null,
+      };
 
+      console.log("Payload being sent:", payload);
       const response = await api.post("/samples", payload);
       return response.data.data;
     } catch (error) {
