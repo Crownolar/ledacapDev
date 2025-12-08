@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_BASE_URL = "/api";
+// const API_BASE_URL = "/api";
+const API_BASE_URL = "https://194-146-38-237.cloud-xip.com/api/";
 
-const api = axios.create({ baseURL: API_BASE_URL });
+export const api = axios.create({ baseURL: API_BASE_URL });
 
 // Attach token
 api.interceptors.request.use((config) => {
