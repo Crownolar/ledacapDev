@@ -8,9 +8,9 @@ const API_BASE_URL = "/api";
 // Helper to get max heavy metal reading for display
 const getMaxReading = (heavyMetalReadings) => {
   if (!heavyMetalReadings || heavyMetalReadings.length === 0) return null;
-  
+
   let maxReading = 0;
-  heavyMetalReadings.forEach(reading => {
+  heavyMetalReadings.forEach((reading) => {
     const xrf = reading.xrfReading ? parseFloat(reading.xrfReading) : 0;
     const aas = reading.aasReading ? parseFloat(reading.aasReading) : 0;
     maxReading = Math.max(maxReading, xrf, aas);
@@ -38,12 +38,15 @@ const Database = ({
         params: { format: "excel" },
         responseType: "blob",
       });
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `samples-export-${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.setAttribute(
+        "download",
+        `samples-export-${new Date().toISOString().split("T")[0]}.xlsx`
+      );
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -73,20 +76,6 @@ const Database = ({
             />
           </div>
 
-<<<<<<< HEAD
-          <select
-            value={filterState}
-            onChange={(e) => setFilterState(e.target.value)}
-            className={`w-full px-4 py-2 border rounded-lg ${theme?.input} focus:ring-2 focus:ring-emerald-500`}
-          >
-            <option value="all">All States</option>
-            {Object.keys(statesData).map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-=======
           <div className="w-full max-w-full sm:max-w-[100%]">
             <select
               value={filterState}
@@ -101,7 +90,6 @@ const Database = ({
               ))}
             </select>
           </div>
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
 
           <select
             value={filterProduct}
@@ -130,13 +118,8 @@ const Database = ({
 
         <div className="flex justify-end mt-4">
           <button
-<<<<<<< HEAD
-            onClick={() => handleExcelExport(filteredSamples)}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg"
-=======
             onClick={() => handleExcelExportClick()}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors"
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
           >
             <Download className="w-4 h-4" />
             Export Excel
@@ -174,263 +157,162 @@ const Database = ({
               </tr>
             </thead>
 
-<<<<<<< HEAD
-            <tbody>
-              {filteredSamples?.map((sample) => (
-                <tr key={sample.id} className={`${theme?.hover}`}>
-                  <td className="px-4 py-3 font-medium">{sample.id}</td>
-
-                  <td className="px-4 py-3">
-                    <div className={`${theme?.text}`}>
-                      <div className="font-medium">{sample.productName}</div>
-                      <div className={`text-xs ${theme?.textMuted}`}>
-                        {sample.brand}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <div className={`${theme?.text}`}>
-                      {sample.lga}, {sample.state}
-                      <div className={`text-xs ${theme?.textMuted}`}>
-                        {sample.market}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-4 py-3 font-semibold">
-                    <span
-                      className={
-                        sample.leadLevel > 1000
-                          ? "text-red-400"
-                          : "text-green-400"
-                      }
-                    >
-                      {sample.leadLevel?.toLocaleString()}
-                    </span>
-=======
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredSamples?.map((sample) => {
                 const maxReading = getMaxReading(sample?.heavyMetalReadings);
                 return (
-                <tr key={sample?.id} className={theme?.hover}>
-                  <td className="px-4 py-3 whitespace-nowrap font-medium">
-                    {sample?.sampleId}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div>
-                      <div className="font-medium">{sample?.productName}</div>
-                      <div className={`text-xs ${theme?.textMuted}`}>
-                        {sample?.brandName || "N/A"}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div>
+                  <tr key={sample?.id} className={theme?.hover}>
+                    <td className="px-4 py-3 whitespace-nowrap font-medium">
+                      {sample?.sampleId}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div>
-                        {sample?.lga?.name}, {sample?.state?.name}
+                        <div className="font-medium">{sample?.productName}</div>
+                        <div className={`text-xs ${theme?.textMuted}`}>
+                          {sample?.brandName || "N/A"}
+                        </div>
                       </div>
-                      <div className={`text-xs ${theme.textMuted}`}>
-                        {sample?.market?.name || "N/A"}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div>
+                        <div>
+                          {sample?.lga?.name}, {sample?.state?.name}
+                        </div>
+                        <div className={`text-xs ${theme.textMuted}`}>
+                          {sample?.market?.name || "N/A"}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap font-semibold">
-                    {maxReading !== null ? (
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap font-semibold">
+                      {maxReading !== null ? (
+                        <span
+                          className={
+                            sample?.status === "contaminated"
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }
+                        >
+                          {maxReading.toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
                       <span
-                        className={
-                          sample?.status === "contaminated"
-                            ? "text-red-500"
-                            : "text-green-500"
-                        }
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          sample?.status === "safe"
+                            ? "bg-green-100 text-green-800"
+                            : sample?.status === "contaminated"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
                       >
-                        {maxReading.toLocaleString()}
+                        {sample?.status?.toUpperCase() || "PENDING"}
                       </span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <span
-<<<<<<< HEAD
-                      className={`
-                        px-2 py-1 text-xs font-bold rounded-full
-                        ${
-                          sample.status === "safe"
-                            ? "bg-green-500/20 text-green-400"
-                            : sample.status === "contaminated"
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-yellow-500/20 text-yellow-400"
-                        }
-                      `}
-                    >
-                      {sample.status.toUpperCase()}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3">{sample.date}</td>
-
-                  <td className="px-4 py-3">
-=======
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        sample?.status === "safe"
-                          ? "bg-green-100 text-green-800"
-                          : sample?.status === "contaminated"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {sample?.status?.toUpperCase() || "PENDING"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {sample?.createdAt ? new Date(sample?.createdAt).toLocaleDateString() : "N/A"}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-                    <button
-                      onClick={() => setSelectedSample(sample)}
-                      className="text-emerald-400 hover:text-emerald-300 font-medium"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              )})}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {sample?.createdAt
+                        ? new Date(sample?.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => setSelectedSample(sample)}
+                        className="text-emerald-400 hover:text-emerald-300 font-medium"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
-<<<<<<< HEAD
-        <div className="block sm:hidden space-y-4 p-3">
-          {filteredSamples?.map((sample) => (
-=======
         <div className="block sm:hidden space-y-4 p-2">
           {filteredSamples?.map((sample) => {
             const maxReading = getMaxReading(sample?.heavyMetalReadings);
             return (
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-            <div
-              key={sample.id}
-              className={`${theme?.card} border ${theme?.border} rounded-lg p-4 shadow`}
-            >
-<<<<<<< HEAD
-              <div className="font-semibold text-sm mb-2">
-                Sample ID: {sample.id}
-=======
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-semibold text-gray-500">
-                  Sample ID
-                </span>
-                <span className="text-sm font-medium">{sample?.sampleId}</span>
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-              </div>
-
-              <div className="text-sm mb-1">
-                <span className="font-semibold">Product:</span>{" "}
-<<<<<<< HEAD
-                {sample.productName}
-                <div className={`text-xs ${theme?.textMuted}`}>
-                  {sample.brand}
+              <div
+                key={sample.id}
+                className={`${theme?.card} border ${theme?.border} rounded-lg p-4 shadow`}
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs font-semibold text-gray-500">
+                    Sample ID
+                  </span>
+                  <span className="text-sm font-medium">
+                    {sample?.sampleId}
+                  </span>
                 </div>
-              </div>
 
-              <div className="text-sm mb-1">
-                <span className="font-semibold">Location:</span> {sample.lga},{" "}
-                {sample.state}
-                <div className={`text-xs ${theme?.textMuted}`}>
-                  {sample.market}
-=======
-                {sample?.productName}{" "}
-                <span className={`block text-xs ${theme?.textMuted}`}>
-                  {sample?.brandName || "N/A"}
-                </span>
-              </div>
-
-              <div className="text-sm mb-1">
-                <span className="font-semibold">Location:</span> {sample?.lga?.name},{" "}
-                {sample?.state?.name}
-                <div className={`text-xs ${theme?.textMuted}`}>
-                  {sample?.market?.name || "N/A"}
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Product:</span>{" "}
+                  {sample?.productName}{" "}
+                  <span className={`block text-xs ${theme?.textMuted}`}>
+                    {sample?.brandName || "N/A"}
+                  </span>
                 </div>
-              </div>
 
-              <div className="text-sm mb-1">
-<<<<<<< HEAD
-                <span className="font-semibold">Lead Level:</span>{" "}
-                <span
-                  className={
-                    sample.leadLevel > 1000 ? "text-red-400" : "text-green-400"
-                  }
-                >
-                  {sample.leadLevel?.toLocaleString()} ppm
-                </span>
-=======
-                <span className="font-semibold">Max Reading:</span>{" "}
-                {maxReading !== null ? (
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Location:</span>{" "}
+                  {sample?.lga?.name}, {sample?.state?.name}
+                  <div className={`text-xs ${theme?.textMuted}`}>
+                    {sample?.market?.name || "N/A"}
+                  </div>
+                </div>
+
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Max Reading:</span>{" "}
+                  {maxReading !== null ? (
+                    <span
+                      className={`font-semibold ${
+                        sample?.status === "contaminated"
+                          ? "text-red-500"
+                          : "text-green-500"
+                      }`}
+                    >
+                      {maxReading.toLocaleString()} ppm
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">No readings</span>
+                  )}
+                </div>
+
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Status:</span>{" "}
                   <span
-                    className={`font-semibold ${
-                      sample?.status === "contaminated" ? "text-red-500" : "text-green-500"
+                    className={`px-2 py-[2px] text-xs font-semibold rounded-full ${
+                      sample?.status === "safe"
+                        ? "bg-green-100 text-green-800"
+                        : sample?.status === "contaminated"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {maxReading.toLocaleString()} ppm
+                    {sample?.status?.toUpperCase() || "PENDING"}
                   </span>
-                ) : (
-                  <span className="text-gray-400">No readings</span>
-                )}
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-              </div>
+                </div>
 
-              <div className="text-sm mb-1">
-                <span className="font-semibold">Status:</span>{" "}
-                <span
-<<<<<<< HEAD
-                  className={`
-                    px-2 py-[2px] text-xs font-bold rounded-full
-                    ${
-                      sample.status === "safe"
-                        ? "bg-green-500/20 text-green-400"
-                        : sample.status === "contaminated"
-                        ? "bg-red-500/20 text-red-400"
-                        : "bg-yellow-500/20 text-yellow-400"
-                    }
-                  `}
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Date:</span>{" "}
+                  {sample?.createdAt
+                    ? new Date(sample?.createdAt).toLocaleDateString()
+                    : "N/A"}
+                </div>
+
+                <button
+                  onClick={() => setSelectedSample(sample)}
+                  className="mt-2 text-emerald-400 hover:text-emerald-300 text-sm font-medium"
                 >
-                  {sample.status.toUpperCase()}
-=======
-                  className={`px-2 py-[2px] text-xs font-semibold rounded-full ${
-                    sample?.status === "safe"
-                      ? "bg-green-100 text-green-800"
-                      : sample?.status === "contaminated"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {sample?.status?.toUpperCase() || "PENDING"}
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-                </span>
+                  View Details
+                </button>
               </div>
-
-              <div className="text-sm mb-1">
-<<<<<<< HEAD
-                <span className="font-semibold">Date:</span> {sample.date}
-=======
-                <span className="font-semibold">Date:</span>{" "}
-                {sample?.createdAt ? new Date(sample?.createdAt).toLocaleDateString() : "N/A"}
->>>>>>> 1c72dea739c8c211494b3966c6afe8780381b982
-              </div>
-
-              <button
-                onClick={() => setSelectedSample(sample)}
-                className="mt-2 text-emerald-400 hover:text-emerald-300 text-sm font-medium"
-              >
-                View Details
-              </button>
-            </div>
-          )})}
+            );
+          })}
         </div>
       </div>
     </div>

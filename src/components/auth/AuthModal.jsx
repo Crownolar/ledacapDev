@@ -36,14 +36,27 @@ const AuthModal = ({ theme }) => {
 
         const normalizedRole = role?.toLowerCase().replace(/[\s_]/g, "");
 
-        if (normalizedRole === "datacollector") {
-          navigate("/data-collector-welcome");
-        } else if (normalizedRole === "policymakerson") {
-          navigate("/policy-welcome");
-        } else if (normalizedRole === "superadmin") {
-          navigate("/invitecodes");
+        // if (normalizedRole === "datacollector") {
+        //   navigate("/data-collector-welcome");
+        // } else if (normalizedRole === "policymakerson") {
+        //   navigate("/policy-welcome");
+        // } else if (normalizedRole === "superadmin") {
+        //   navigate("/invitecodes");
+        // } else if (normalizedRole === "supervisor") {
+        //   navigate("/agents");
+        // } else {
+        //   navigate("/dashboard");
+        // }
+        if (normalizedRole === "policymakerson") {
+          navigate("/map"); // ONLY MAP PAGE
         } else if (normalizedRole === "supervisor") {
           navigate("/agents");
+        } else if (normalizedRole === "datacollector") {
+          navigate("/data-collector-welcome");
+        } else if (normalizedRole === "superadmin") {
+          navigate("/invitecodes");
+        } else if (normalizedRole === "headresearcher") {
+          navigate("/database");
         } else {
           navigate("/dashboard");
         }

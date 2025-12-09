@@ -1,31 +1,33 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Base URL
 const API_BASE_URL = "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+// Attach token from sessionStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("hMetalToken");
+  const token = sessionStorage.getItem("hMetalToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// -------------- TOKEN HELPER -------------- //
+// ---- TOKEN HELPER ---- //
 const getAuthToken = (getState) => {
   const tokenFromRedux = getState()?.auth?.token;
-  const tokenFromLocal = localStorage.getItem("token");
+  const tokenFromSession = sessionStorage.getItem("hMetalToken");
 
-  // Log ONLY the token from localStorage (requested)
-  console.log("HeavyMetal Slice -> Token from localStorage:", tokenFromLocal);
+  console.log(
+    "HeavyMetal Slice -> Token from sessionStorage:",
+    tokenFromSession
+  );
 
-  return tokenFromRedux || tokenFromLocal || null;
+  return tokenFromRedux || tokenFromSession || null;
 };
 
-// -------------- THUNK: Add or Update Reading -------------- //
+// ---- Add or Update Reading ---- //
 export const addOrUpdateHeavyMetal = createAsyncThunk(
   "heavyMetal/addOrUpdate",
   async (payload, { getState, rejectWithValue }) => {
@@ -51,7 +53,7 @@ export const addOrUpdateHeavyMetal = createAsyncThunk(
   }
 );
 
-// -------------- THUNK: Fetch readings for one sample -------------- //
+// ---- Fetch readings for one sample ---- //
 export const getSampleReadings = createAsyncThunk(
   "heavyMetal/getSampleReadings",
   async (sampleId, { getState, rejectWithValue }) => {
@@ -74,7 +76,7 @@ export const getSampleReadings = createAsyncThunk(
   }
 );
 
-// -------------- SLICE -------------- //
+// ---- SLICE ---- //
 const heavyMetalSlice = createSlice({
   name: "heavyMetal",
   initialState: {

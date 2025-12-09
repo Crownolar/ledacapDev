@@ -4,7 +4,7 @@ import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useEffect, useState } from "react";
-import MapSampleDetailsModal from "../modals/mapSampleDetailsModal";
+import MapSampleDetailsModal from "../modals/MapSampleDetailsModal";
 
 // coordinates for LAGOS
 const defaultPosition = [6.5244, 3.3792];
@@ -85,7 +85,7 @@ export default function Map({ samples }) {
 
   return (
     <>
-      <div className='border-2 border-red-950 relative h-[700px]  '>
+      <div className="border-2 border-red-950 relative h-[700px]  ">
         <MapContainer
           center={defaultPosition}
           zoom={13}
@@ -95,7 +95,7 @@ export default function Map({ samples }) {
           }}
         >
           <TileLayer
-            url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           ></TileLayer>
           {samples.map((s) => {

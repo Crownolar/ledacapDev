@@ -54,9 +54,9 @@ const Header = ({
                 <AlertTriangle className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className={`text-xl font-bold ${theme?.text}`}>LEDAcap</h1>
+                <h1 className={`text-xl font-bold ${theme?.text}`}>LEADcap</h1>
                 <p className={`text-xs ${theme?.textMuted}`}>
-                  Lead Exposure Detection & Capacity Platform
+                  Lead Exposure & Detection Capacity Platform
                 </p>
               </div>
             </div>

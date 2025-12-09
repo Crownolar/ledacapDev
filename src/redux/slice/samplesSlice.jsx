@@ -1,14 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// const API_BASE_URL = "/api";
 const API_BASE_URL = "https://194-146-38-237.cloud-xip.com/api/";
 
 export const api = axios.create({ baseURL: API_BASE_URL });
 
-// Attach token
+// Attach token from sessionStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -57,7 +56,7 @@ export const fetchMarkets = createAsyncThunk(
 );
 
 // ------------------------------
-// Fetch Samples w/ Filters
+// Fetch Samples with Filters
 // ------------------------------
 export const fetchSamples = createAsyncThunk(
   "samples/fetchSamples",
@@ -80,10 +79,9 @@ export const fetchSamples = createAsyncThunk(
         items: response.data.data.items || response.data.data,
         pagination: response.data.data.pagination || null,
       };
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
       return rejectWithValue(
-        extractErrorMessage(error, "Failed to fetch samples")
+        extractErrorMessage(err, "Failed to fetch samples")
       );
     }
   }
@@ -120,12 +118,11 @@ export const createSample = createAsyncThunk(
         productPhotoUrl: formData.productPhotoUrl || null,
       };
 
-      console.log("Payload being sent:", payload);
       const response = await api.post("/samples", payload);
       return response.data.data;
-    } catch (error) {
+    } catch (err) {
       return rejectWithValue(
-        extractErrorMessage(error, "Failed to create sample")
+        extractErrorMessage(err, "Failed to create sample")
       );
     }
   }
@@ -149,7 +146,7 @@ const samplesSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch Samples
+      // FETCH SAMPLES
       .addCase(fetchSamples.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -164,7 +161,7 @@ const samplesSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Create Sample
+      // CREATE SAMPLE
       .addCase(createSample.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -178,7 +175,7 @@ const samplesSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch States
+      // FETCH STATES
       .addCase(fetchStates.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -192,7 +189,7 @@ const samplesSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Markets
+      // FETCH MARKETS
       .addCase(fetchMarkets.pending, (state) => {
         state.loading = true;
         state.error = null;

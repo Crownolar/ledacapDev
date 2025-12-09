@@ -635,11 +635,11 @@ const SampleFormModal = ({ theme, onClose, samples }) => {
               </button>
             </div>
 
-            {error && (
+            {/* {error && (
               <p className="text-red-500 text-sm text-center mt-2">
                 {error?.toString()}
               </p>
-            )}
+            )} */}
           </form>
         )}
       </div>
