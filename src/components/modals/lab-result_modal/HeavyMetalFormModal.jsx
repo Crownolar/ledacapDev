@@ -1,5 +1,5 @@
 import { X, AlertTriangle, CheckCircle, Beaker } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../../utils/api";
 import { productTypes } from "../../../utils/constants";
@@ -9,16 +9,25 @@ import {
   getSampleReadings,
 } from "../../../redux/slice/heavyMetalSlice";
 
+// Global cache for thresholds to avoid redundant API calls
+let thresholdsCache = null;
+let thresholdsCacheTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 const HeavyMetalFormModal = ({
   theme,
   onClose,
   sampleId,
   existingData = null,
+  existingReadings = [],
 }) => {
   const dispatch = useDispatch();
   const { loading, error, successMessage } = useSelector(
     (state) => state.heavyMetal
   );
+
+  // Find existing reading for this sample if updating
+  const existingReading = existingReadings && existingReadings.length > 0 ? existingReadings[0] : null;
 
   const [thresholds, setThresholds] = useState([]);
   const [loadingThresholds, setLoadingThresholds] = useState(true);
@@ -43,25 +52,47 @@ const HeavyMetalFormModal = ({
   };
 
   const [formData, setFormData] = useState({
-    sampleId: sampleId || existingData?.sampleId || "",
-    heavyMetal: existingData?.heavyMetal || "",
-    xrfReading: existingData?.xrfReading || "",
-    aasReading: existingData?.aasReading || "",
-    unit: existingData?.unit || "ppm",
-    notes: existingData?.notes || "",
+    sampleId: sampleId || existingData?.sampleId || existingReading?.sampleId || "",
+    heavyMetal: existingData?.heavyMetal || existingReading?.heavyMetal || "",
+    xrfReading: existingData?.xrfReading || existingReading?.xrfReading || "",
+    xrfUnit: existingData?.xrfUnit || existingReading?.xrfUnit || "mg/kg",
+    aasReading: existingData?.aasReading || existingReading?.aasReading || "",
+    aasUnit: existingData?.aasUnit || existingReading?.aasUnit || "mg/L",
+    unit: existingData?.unit || existingReading?.unit || "ppm", // Default unit for storage
+    notes: existingData?.notes || existingReading?.notes || "",
   });
+
+  const xrfUnits = ["mg/kg", "ppm", "µg/g"];
+  const aasUnits = ["mg/L", "µg/L", "ppm"];
 
   // Fetch thresholds from backend on component mount
   useEffect(() => {
     const fetchThresholds = async () => {
       try {
         setLoadingThresholds(true);
+        
+        // Check if cache is still valid
+        const now = Date.now();
+        if (thresholdsCache && (now - thresholdsCacheTime) < CACHE_DURATION) {
+          setThresholds(thresholdsCache);
+          setLoadingThresholds(false);
+          return;
+        }
+        
+        // Fetch from API if cache is expired
         const response = await api.get("/thresholds");
         if (response.data?.success) {
-          setThresholds(response.data.data || []);
+          const data = response.data.data || [];
+          thresholdsCache = data;
+          thresholdsCacheTime = now;
+          setThresholds(data);
         }
       } catch (err) {
         console.error("Failed to fetch thresholds:", err);
+        // Use cached data if available even if request failed
+        if (thresholdsCache) {
+          setThresholds(thresholdsCache);
+        }
       } finally {
         setLoadingThresholds(false);
       }
@@ -233,8 +264,8 @@ const HeavyMetalFormModal = ({
                 >
                   <option value="">Select Heavy Metal</option>
                   {heavyMetals.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
+                    <option key={m} value={m}>
+                      {metalLabels[m]}
                     </option>
                   ))}
                 </select>
@@ -317,6 +348,8 @@ const HeavyMetalFormModal = ({
                   method === "xrfReading"
                     ? "XRF Reading (X-Ray Fluorescence)"
                     : "AAS Reading (Atomic Absorption Spectroscopy)";
+                const unitKey = method === "xrfReading" ? "xrfUnit" : "aasUnit";
+                const unitOptions = method === "xrfReading" ? xrfUnits : aasUnits;
                 const threshold = getSelectedMetalThreshold();
                 const level = getContaminationLevel(formData[method], threshold);
                 return (
@@ -342,12 +375,22 @@ const HeavyMetalFormModal = ({
                         placeholder="Enter reading value"
                         className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all"
                       />
-                      <span className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold min-w-[80px] text-center">
-                        {formData.unit}
-                      </span>
+                      <select
+                        value={formData[unitKey]}
+                        onChange={(e) =>
+                          setFormData({ ...formData, [unitKey]: e.target.value })
+                        }
+                        className="px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all"
+                      >
+                        {unitOptions.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
                       {level && (
                         <span
-                          className={`px-4 py-2 rounded-lg font-bold text-sm uppercase shadow-md ${getStatusBadgeColor(
+                          className={`px-4 py-2 rounded-lg font-bold text-sm uppercase shadow-md whitespace-nowrap ${getStatusBadgeColor(
                             level
                           )}`}
                         >

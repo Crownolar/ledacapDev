@@ -16,6 +16,7 @@ const DataCollectorDashboard = () => {
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all"); // all, pending, completed
   const [selectedSample, setSelectedSample] = useState(null);
+  const [selectedReadings, setSelectedReadings] = useState([]);
   const [showHeavyMetalModal, setShowHeavyMetalModal] = useState(false);
   const [sampleReadings, setSampleReadings] = useState({});
 
@@ -35,22 +36,46 @@ const DataCollectorDashboard = () => {
       );
       setMySamples(userSamples);
 
-      // Fetch readings for each sample
+      // Fetch readings for each sample with sequential requests to avoid rate limiting
       for (const sample of userSamples) {
         try {
+          // Add delay between requests
+          await new Promise(resolve => setTimeout(resolve, 150));
+          
           const readingsRes = await api.get(
-            `/heavy-metals/sample/${sample.id}`
+            `/heavy-metals/sample/${sample.sampleId}`
           );
           setSampleReadings((prev) => ({
             ...prev,
             [sample.id]: readingsRes.data.data || [],
           }));
         } catch (err) {
-          console.error(`Failed to fetch readings for sample ${sample.id}`);
+          // Graceful error handling - don't block on 429 errors
+          if (err.response?.status === 429) {
+            console.warn(`Rate limited fetching readings for sample ${sample.sampleId}, retrying...`);
+            // Add longer delay and retry once
+            await new Promise(resolve => setTimeout(resolve, 500));
+            try {
+              const readingsRes = await api.get(
+                `/heavy-metals/sample/${sample.sampleId}`
+              );
+              setSampleReadings((prev) => ({
+                ...prev,
+                [sample.id]: readingsRes.data.data || [],
+              }));
+            } catch (retryErr) {
+              console.error(`Failed to fetch readings for sample ${sample.sampleId} after retry`);
+            }
+          } else {
+            console.error(`Failed to fetch readings for sample ${sample.sampleId}`);
+          }
         }
       }
     } catch (err) {
-      setError("Failed to fetch your samples");
+      // Only show error if it's not a rate limit error
+      if (err.response?.status !== 429) {
+        setError("Failed to fetch your samples");
+      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -90,12 +115,14 @@ const DataCollectorDashboard = () => {
 
   const handleAddResults = (sample) => {
     setSelectedSample(sample);
+    setSelectedReadings(sampleReadings[sample.id] || []);
     setShowHeavyMetalModal(true);
   };
 
   const handleModalClose = () => {
     setShowHeavyMetalModal(false);
     setSelectedSample(null);
+    setSelectedReadings([]);
     // Refresh readings
     fetchMySamples();
   };
@@ -358,6 +385,7 @@ const DataCollectorDashboard = () => {
           theme={theme}
           onClose={handleModalClose}
           sampleId={selectedSample.id}
+          existingReadings={selectedReadings}
         />
       )}
     </div>
