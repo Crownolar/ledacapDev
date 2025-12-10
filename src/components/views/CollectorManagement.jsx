@@ -24,7 +24,7 @@ const CollectorManagement = ({ theme: propTheme }) => {
   const fetchCollectors = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/supervisors/collectors");
+      const response = await api.get("/supervisor/collectors");
 
       if (response.data.success) {
         setCollectors(response.data.data);

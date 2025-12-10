@@ -9,7 +9,7 @@ import {
   getSampleReadings,
 } from "../../../redux/slice/heavyMetalSlice";
 
-// Global cache for thresholds to avoid redundant API calls
+
 let thresholdsCache = null;
 let thresholdsCacheTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -18,6 +18,7 @@ const HeavyMetalFormModal = ({
   theme,
   onClose,
   sampleId,
+  productType,
   existingData = null,
   existingReadings = [],
 }) => {
@@ -31,7 +32,7 @@ const HeavyMetalFormModal = ({
 
   const [thresholds, setThresholds] = useState([]);
   const [loadingThresholds, setLoadingThresholds] = useState(true);
-  const [selectedProductType, setSelectedProductType] = useState("TIRO");
+  const [selectedProductType, setSelectedProductType] = useState(productType || "TIRO");
 
   const heavyMetals = [
     "LEAD",
@@ -278,7 +279,7 @@ const HeavyMetalFormModal = ({
                 <select
                   value={selectedProductType}
                   onChange={(e) => setSelectedProductType(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all cursor-pointer hover:border-blue-400"
                 >
                   {Object.entries(productTypes).map(([key, label]) => (
                     <option key={key} value={key}>

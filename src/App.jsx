@@ -80,19 +80,6 @@ const App = () => {
           }
         />
         <Route
-          path="/data-collector"
-          element={
-            <PrivateRoute allowedRoles={["datacollector"]}>
-              <DataCollectorDashboard
-                currentUser={currentUser}
-                theme={theme}
-                darkMode={darkMode}
-                handleLogout={logout}
-              />
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/invitecodes"
           element={
             <PrivateRoute isAuthenticated={isAuthenticated}>
@@ -120,10 +107,25 @@ const App = () => {
                   "superadmin",
                   "supervisor",
                   "headresearcher",
-                  "policymakerson",
+                  "policymakersson",
+                  "policymakernafdac",
+                  "policymakerresolve",
+                  "policymakeruniversity",
                 ]}
               >
-                <Dashboard />
+                {currentUser?.role?.toLowerCase() === "supervisor" ? 
+                  <SupervisorDashboard theme={theme} /> : 
+                  <Dashboard />
+                }
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/data-collector"
+            element={
+              <PrivateRoute allowedRoles={["datacollector"]}>
+                <DataCollectorDashboard />
               </PrivateRoute>
             }
           />
@@ -166,7 +168,7 @@ const App = () => {
           <Route
             path="map"
             element={
-              <PrivateRoute allowedRoles={["superadmin", "headresearcher", "supervisor", "datacollector", "policymakerson", "policymakernafdac", "policymakerresolve", "policymakeruniversity"]}>
+              <PrivateRoute allowedRoles={["superadmin", "headresearcher", "supervisor", "datacollector", "policymakersson", "policymakernafdac", "policymakerresolve", "policymakeruniversity"]}>
                 <MapView />
               </PrivateRoute>
             }

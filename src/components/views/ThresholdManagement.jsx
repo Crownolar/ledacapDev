@@ -39,6 +39,8 @@ const ThresholdManagement = ({ theme, darkMode }) => {
   const handleEdit = (threshold) => {
     setEditingId(threshold.id)
     setEditValues({
+      heavyMetal: threshold.heavyMetal,
+      productType: threshold.productType,
       safeLimit: threshold.safeLimit,
       warningLimit: threshold.warningLimit,
       dangerLimit: threshold.dangerLimit
@@ -47,12 +49,44 @@ const ThresholdManagement = ({ theme, darkMode }) => {
 
   const handleSave = async (id) => {
     try {
+      // Validate inputs
+      const safeLimit = parseFloat(editValues.safeLimit)
+      const warningLimit = editValues.warningLimit ? parseFloat(editValues.warningLimit) : null
+      const dangerLimit = parseFloat(editValues.dangerLimit)
+
+      // Check for valid numbers
+      if (isNaN(safeLimit) || isNaN(dangerLimit) || (warningLimit && isNaN(warningLimit))) {
+        setError('All limits must be valid numbers')
+        return
+      }
+
+      // Check for negative values
+      if (safeLimit < 0 || dangerLimit < 0 || (warningLimit && warningLimit < 0)) {
+        setError('Limits must be positive numbers')
+        return
+      }
+
+      // Validate order: safe < warning (if exists) < danger
+      if (safeLimit >= (warningLimit || dangerLimit)) {
+        setError('Safe limit must be less than warning limit (if provided) and danger limit')
+        return
+      }
+
+      if (warningLimit && warningLimit >= dangerLimit) {
+        setError('Warning limit must be less than danger limit')
+        return
+      }
+
       await api.patch('/thresholds', {
-        id,
-        ...editValues
+        heavyMetal: editValues.heavyMetal,
+        productType: editValues.productType,
+        safeLimit: safeLimit,
+        warningLimit: warningLimit,
+        dangerLimit: dangerLimit
       })
       fetchThresholds()
       setEditingId(null)
+      setError(null) // Clear any previous errors
     } catch (err) {
       setError('Failed to update threshold: ' + (err.response?.data?.error || err.message))
     }

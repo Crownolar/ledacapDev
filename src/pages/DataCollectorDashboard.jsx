@@ -36,7 +36,7 @@ const DataCollectorDashboard = () => {
       );
       setMySamples(userSamples);
 
-      // Fetch readings for each sample with sequential requests to avoid rate limiting
+      
       for (const sample of userSamples) {
         try {
           // Add delay between requests
@@ -385,6 +385,7 @@ const DataCollectorDashboard = () => {
           theme={theme}
           onClose={handleModalClose}
           sampleId={selectedSample.id}
+          productType={selectedSample.productType}
           existingReadings={selectedReadings}
         />
       )}

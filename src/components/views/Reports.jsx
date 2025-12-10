@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchSamples } from "../../redux/slice/samplesSlice";
 import { useTheme } from "../../hooks/useTheme";
 import api from "../../utils/api";
+import { generatePDFFromHTML, generateTablePDF } from "../../utils/pdfGenerator";
 
 const Reports = ({ theme: propTheme, samples: propSamples }) => {
   const dispatch = useDispatch();
@@ -83,68 +84,258 @@ const Reports = ({ theme: propTheme, samples: propSamples }) => {
 
     setLoading(true);
     setGenerationProgress(10);
-    
-    const timeoutId = setTimeout(() => {
-      setGenerationProgress(50);
-    }, 5000);
 
     try {
-      const endpoint = `/reports/generate/${reportType}`;
-      const payload = {
-        state: filters.state,
-        states: filters.states.length > 0 ? filters.states : undefined,
-        productTypes: filters.productTypes.length > 0 ? filters.productTypes : undefined,
-        dateFrom: filters.dateFrom || undefined,
-        dateTo: filters.dateTo || undefined,
-        minLeadLevel: filters.minLeadLevel || 10,
-      };
-
       setGenerationProgress(20);
 
-      const response = await api.post(endpoint, payload, {
-        responseType: "blob",
-        timeout: 120000, // 2 minute timeout
-      });
+      // Filter samples based on criteria
+      let filteredSamples = [...samples];
 
-      setGenerationProgress(80);
+      // Filter by state - use state.name from the included state object
+      if (filters.state) {
+        filteredSamples = filteredSamples.filter(s => {
+          const stateName = typeof s.state === 'object' ? s.state.name : s.state;
+          return stateName === filters.state;
+        });
+      }
 
-      // Create download link with optimized blob handling
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `${reportType}-report-${new Date().toISOString().split("T")[0]}.pdf`
-      );
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      // Filter by multiple states
+      if (filters.states && filters.states.length > 0) {
+        filteredSamples = filteredSamples.filter(s => {
+          const stateName = typeof s.state === 'object' ? s.state.name : s.state;
+          return filters.states.includes(stateName);
+        });
+      }
+
+      // Filter by product types
+      if (filters.productTypes && filters.productTypes.length > 0) {
+        filteredSamples = filteredSamples.filter(s => filters.productTypes.includes(s.productType));
+      }
+
+      // Filter by date range
+      if (filters.dateFrom) {
+        const fromDate = new Date(filters.dateFrom);
+        filteredSamples = filteredSamples.filter(s => new Date(s.createdAt) >= fromDate);
+      }
+      if (filters.dateTo) {
+        const toDate = new Date(filters.dateTo);
+        filteredSamples = filteredSamples.filter(s => new Date(s.createdAt) <= toDate);
+      }
+
+      // Filter by contamination level
+      if (reportType === "risk-assessment" && filters.minLeadLevel) {
+        filteredSamples = filteredSamples.filter(s => {
+          const leadLevel = getLeadLevel(s);
+          return leadLevel >= filters.minLeadLevel;
+        });
+      }
+
+      setGenerationProgress(40);
+
+      // Generate appropriate report based on type
+      const filename = `${reportType}-report-${new Date().toISOString().split("T")[0]}.pdf`;
+
+      switch (reportType) {
+        case "state-summary":
+          await generateStateSummaryReport(filteredSamples, filters, filename);
+          break;
+        case "product-type":
+          await generateProductTypeReport(filteredSamples, filters, filename);
+          break;
+        case "contamination-analysis":
+          await generateContaminationAnalysisReport(filteredSamples, filters, filename);
+          break;
+        case "risk-assessment":
+          await generateRiskAssessmentReport(filteredSamples, filters, filename);
+          break;
+        default:
+          await generateGenericReport(filteredSamples, filename);
+      }
 
       setGenerationProgress(100);
       alert("Report generated and downloaded successfully!");
       setSelectedReport(null);
     } catch (error) {
       console.error("Failed to generate report:", error);
-      
-      let errorMessage = "Failed to generate report. Please try again.";
-      if (error.code === 'ECONNABORTED') {
-        errorMessage = "Request timeout. Large reports may take longer. Please try with more specific filters.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      alert(errorMessage);
+      alert("Failed to generate report. Please try again.");
       setGenerationProgress(0);
     } finally {
       setLoading(false);
-      clearTimeout(timeoutId);
     }
+  };
+
+  // Helper function to get lead level from heavy metal readings
+  const getLeadLevel = (sample) => {
+    if (!sample.heavyMetalReadings || sample.heavyMetalReadings.length === 0) {
+      return 0;
+    }
+    const leadReading = sample.heavyMetalReadings.find(r => r.heavyMetal === 'LEAD');
+    if (!leadReading) return 0;
+    const reading = leadReading.xrfReading || leadReading.aasReading || 0;
+    return parseFloat(reading);
+  };
+
+  // Helper function to get contamination status
+  const getContaminationStatus = (sample) => {
+    if (!sample.heavyMetalReadings || sample.heavyMetalReadings.length === 0) {
+      return 'PENDING';
+    }
+    const hasContaminated = sample.heavyMetalReadings.some(r => r.status === 'CONTAMINATED');
+    if (hasContaminated) return 'CONTAMINATED';
+    const hasModeriate = sample.heavyMetalReadings.some(r => r.status === 'MODERATE');
+    if (hasModeriate) return 'MODERATE';
+    const hasSafe = sample.heavyMetalReadings.some(r => r.status === 'SAFE');
+    if (hasSafe) return 'SAFE';
+    return 'PENDING';
+  };
+
+  const generateStateSummaryReport = async (filteredSamples, filters, filename) => {
+    const columns = [
+      { key: "sampleId", label: "Sample Code" },
+      { key: "productType", label: "Product Category" },
+      { key: "leadLevel", label: "Lead Level (ppm)" },
+      { key: "contaminationStatus", label: "Status" },
+      { key: "createdAt", label: "Collection Date" },
+    ];
+
+    const reportData = filteredSamples.map(s => ({
+      sampleId: s.sampleId || "N/A",
+      productType: s.productType || "N/A",
+      leadLevel: `${getLeadLevel(s).toFixed(2)} ppm`,
+      contaminationStatus: getContaminationStatus(s),
+      createdAt: new Date(s.createdAt).toLocaleDateString() || "N/A",
+    }));
+
+    setGenerationProgress(60);
+
+    await generateTablePDF(reportData, columns, filename, {
+      title: "State Summary Report",
+      subtitle: `State: ${filters.state} | Generated: ${new Date().toLocaleDateString()}`,
+      orientation: "landscape",
+    });
+  };
+
+  const generateProductTypeReport = async (filteredSamples, filters, filename) => {
+    // Group samples by product type
+    const groupedByProduct = {};
+    filteredSamples.forEach(s => {
+      const product = s.productType || "Unknown";
+      if (!groupedByProduct[product]) {
+        groupedByProduct[product] = [];
+      }
+      groupedByProduct[product].push(s);
+    });
+
+    setGenerationProgress(60);
+
+    // Create summary data
+    const reportData = Object.entries(groupedByProduct).map(([product, items]) => ({
+      product,
+      totalSamples: items.length,
+      contaminated: items.filter(s => getContaminationStatus(s) === "CONTAMINATED").length,
+      safe: items.filter(s => getContaminationStatus(s) === "SAFE").length,
+      avgLeadLevel: `${(items.reduce((sum, s) => sum + getLeadLevel(s), 0) / items.length).toFixed(2)} ppm`,
+    }));
+
+    const columns = [
+      { key: "product", label: "Product Type" },
+      { key: "totalSamples", label: "Total Samples" },
+      { key: "contaminated", label: "Contaminated" },
+      { key: "safe", label: "Safe" },
+      { key: "avgLeadLevel", label: "Avg Lead Level" },
+    ];
+
+    await generateTablePDF(reportData, columns, filename, {
+      title: "Product Type Analysis Report",
+      subtitle: `State: ${filters.state} | Generated: ${new Date().toLocaleDateString()}`,
+      orientation: "landscape",
+    });
+  };
+
+  const generateContaminationAnalysisReport = async (filteredSamples, filters, filename) => {
+    const columns = [
+      { key: "sampleId", label: "Sample Code" },
+      { key: "state", label: "State" },
+      { key: "productType", label: "Product" },
+      { key: "leadLevel", label: "Lead Level (ppm)" },
+      { key: "contaminationStatus", label: "Status" },
+    ];
+
+    const reportData = filteredSamples.map(s => ({
+      sampleId: s.sampleId || "N/A",
+      state: typeof s.state === 'object' ? s.state.name : s.state || "N/A",
+      productType: s.productType || "N/A",
+      leadLevel: `${getLeadLevel(s).toFixed(2)}`,
+      contaminationStatus: getContaminationStatus(s),
+    }));
+
+    setGenerationProgress(60);
+
+    await generateTablePDF(reportData, columns, filename, {
+      title: "Contamination Analysis Report",
+      subtitle: `Generated: ${new Date().toLocaleDateString()} | Total Samples: ${reportData.length}`,
+      orientation: "landscape",
+    });
+  };
+
+  const generateRiskAssessmentReport = async (filteredSamples, filters, filename) => {
+    const riskyItems = filteredSamples.filter(s => getLeadLevel(s) >= filters.minLeadLevel);
+
+    const columns = [
+      { key: "sampleId", label: "Sample Code" },
+      { key: "productType", label: "Product" },
+      { key: "leadLevel", label: "Lead Level (ppm)" },
+      { key: "riskLevel", label: "Risk Level" },
+      { key: "createdAt", label: "Date" },
+    ];
+
+    const reportData = riskyItems.map(s => {
+      const leadLevel = getLeadLevel(s);
+      let riskLevel = "Low";
+      if (leadLevel >= 100) riskLevel = "Critical";
+      else if (leadLevel >= 50) riskLevel = "High";
+      else if (leadLevel >= 10) riskLevel = "Medium";
+
+      return {
+        sampleId: s.sampleId || "N/A",
+        productType: s.productType || "N/A",
+        leadLevel: `${leadLevel.toFixed(2)} ppm`,
+        riskLevel,
+        createdAt: new Date(s.createdAt).toLocaleDateString() || "N/A",
+      };
+    });
+
+    setGenerationProgress(60);
+
+    await generateTablePDF(reportData, columns, filename, {
+      title: "Risk Assessment Report",
+      subtitle: `Minimum Lead Level: ${filters.minLeadLevel} ppm | High Risk Items: ${reportData.length}`,
+      orientation: "landscape",
+    });
+  };
+
+  const generateGenericReport = async (filteredSamples, filename) => {
+    const columns = [
+      { key: "sampleId", label: "Sample Code" },
+      { key: "productType", label: "Product" },
+      { key: "leadLevel", label: "Lead Level (ppm)" },
+      { key: "contaminationStatus", label: "Status" },
+    ];
+
+    const reportData = filteredSamples.map(s => ({
+      sampleId: s.sampleId || "N/A",
+      productType: s.productType || "N/A",
+      leadLevel: `${getLeadLevel(s).toFixed(2)}`,
+      contaminationStatus: getContaminationStatus(s),
+    }));
+
+    setGenerationProgress(60);
+
+    await generateTablePDF(reportData, columns, filename, {
+      title: "General Report",
+      subtitle: `Generated: ${new Date().toLocaleDateString()} | Total Records: ${reportData.length}`,
+      orientation: "landscape",
+    });
   };
 
   const ReportModal = ({ report, onClose }) => {

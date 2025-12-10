@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
-import axios from "axios";
+import api from "../../utils/api";
 
 const SampleReview = ({ theme: propTheme }) => {
   const { theme: hookTheme } = useTheme();
@@ -37,12 +37,8 @@ const SampleReview = ({ theme: propTheme }) => {
   const fetchSamples = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
-      const response = await axios.get(
-        `/api/supervisor/samples?status=${filterStatus}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const response = await api.get(
+        `/supervisor/samples?status=${filterStatus}`
       );
 
       if (response.data.success) {

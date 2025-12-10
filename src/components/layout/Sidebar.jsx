@@ -34,9 +34,9 @@ const roleConfig = {
     navItems: ["dashboard", "collectors", "sample-review"], // Supervisor features
   },
   datacollector: {
-    sampleButton: false,
+    sampleButton: true,
     excelImport: false,
-    navItems: ["my-samples", "map"], // My Samples for lab results + Map view only
+    navItems: ["my-samples"], // My Samples for lab results only
   },
 };
 
@@ -92,11 +92,7 @@ const Sidebar = ({
   );
 
   const handleSampleButtonClick = () => {
-    if (normalizedRole === "datacollector") {
-      setShowHeavyMetalModal(true);
-    } else {
-      setShowForm(true);
-    }
+    setShowForm(true);
     setMobileMenuOpen(false);
   };
 

@@ -187,11 +187,11 @@ const SampleFormModal = ({ theme, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[1000]">
       <div
         className={`${theme.card} rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col border ${theme.border} mx-auto sm:mx-2`}
       >
-        <div className={`p-4 sm:p-6 border-b ${theme.border} sticky top-0 z-10 bg-white dark:bg-gray-800`}>
+        <div className={`p-4 sm:p-6 border-b ${theme.border} sticky top-0 z-20 ${theme.card}`}>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-xl sm:text-2xl font-bold text-center sm:text-left w-full sm:w-auto">
               New Sample Entry

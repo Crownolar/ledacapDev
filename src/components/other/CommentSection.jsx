@@ -27,10 +27,25 @@ function CommentSection({ commentSectionView, setCommentSectionView }) {
   });
   const [writtenComment, setWrittenComment] = useState("");
 
-  const handleSubmitComment = () => {
-    api.post(`/samples/${sample.id}/comments`, { commentText: writtenComment });
-    setWrittenComment("");
-    fetchComments();
+  const handleSubmitComment = async () => {
+    if (!writtenComment.trim()) return;
+    
+    try {
+      setRequestMessage((prev) => ({ ...prev, loading: true }));
+      // Wait for the POST request to complete
+      await api.post(`/samples/${sample.id}/comments`, { commentText: writtenComment });
+      // Clear the input immediately
+      setWrittenComment("");
+      // Fetch the updated comments
+      await fetchComments();
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      setRequestMessage((prev) => ({ 
+        ...prev, 
+        loading: false, 
+        error: true 
+      }));
+    }
   };
 
   const fetchComments = async () => {

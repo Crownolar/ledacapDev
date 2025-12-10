@@ -7,6 +7,7 @@ import { handleLogout } from "../redux/slice/authSlice";
 import { useTheme } from "../hooks/useTheme";
 import { useState } from "react";
 import SampleFormModal from "../components/modals/SampleFormModal";
+import HeavyMetalFormModal from "../components/modals/lab-result_modal/HeavyMetalFormModal";
 import { fetchSamples } from "../redux/slice/samplesSlice";
 import api from "../utils/api";
 
@@ -17,6 +18,7 @@ const Layout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);
+  const [showHeavyMetalModal, setShowHeavyMetalModal] = useState(false);
 
   const logout = () => {
     dispatch(handleLogout());
@@ -57,6 +59,7 @@ const Layout = () => {
           currentView={currentView}
           setCurrentView={setCurrentView}
           setShowForm={setShowForm}
+          setShowHeavyMetalModal={setShowHeavyMetalModal}
         />
         <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
@@ -67,6 +70,13 @@ const Layout = () => {
             theme={theme}
             onClose={() => setShowForm(false)}
             onSubmit={handleFormSubmit}
+          />
+        )}
+
+        {showHeavyMetalModal && (
+          <HeavyMetalFormModal
+            theme={theme}
+            onClose={() => setShowHeavyMetalModal(false)}
           />
         )}
       </div>
