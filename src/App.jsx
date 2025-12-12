@@ -107,7 +107,7 @@ const App = () => {
                   "superadmin",
                   "supervisor",
                   "headresearcher",
-                  "policymakersson",
+                  "policymakerson",
                   "policymakernafdac",
                   "policymakerresolve",
                   "policymakeruniversity",
@@ -168,7 +168,7 @@ const App = () => {
           <Route
             path="map"
             element={
-              <PrivateRoute allowedRoles={["superadmin", "headresearcher", "supervisor", "datacollector", "policymakersson", "policymakernafdac", "policymakerresolve", "policymakeruniversity"]}>
+              <PrivateRoute allowedRoles={["superadmin", "headresearcher", "supervisor", "datacollector", "policymakerson", "policymakernafdac", "policymakerresolve", "policymakeruniversity"]}>
                 <MapView />
               </PrivateRoute>
             }
