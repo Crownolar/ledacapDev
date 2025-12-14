@@ -16,7 +16,19 @@ const roleConfig = {
   superadmin: {
     sampleButton: true,
     excelImport: true,
-    navItems: ["dashboard", "database", "map", "reports", "agents", "states", "lgas", "markets", "users", "thresholds", "invites"],
+    navItems: [
+      "dashboard",
+      "database",
+      "map",
+      "reports",
+      "agents",
+      "states",
+      "lgas",
+      "markets",
+      "users",
+      "thresholds",
+      "invites",
+    ],
   },
   headresearcher: {
     sampleButton: false,
@@ -77,13 +89,28 @@ const Sidebar = ({
     { icon: Map, label: "Geographic View", route: "/map", key: "map" },
     { icon: FileText, label: "Reports", route: "/reports", key: "reports" },
     { icon: Users, label: "Field Agents", route: "/agents", key: "agents" },
-    { icon: Users, label: "Data Collectors", route: "/collectors", key: "collectors" },
-    { icon: FileText, label: "Review Samples", route: "/sample-review", key: "sample-review" },
+    {
+      icon: Users,
+      label: "Data Collectors",
+      route: "/collectors",
+      key: "collectors",
+    },
+    {
+      icon: FileText,
+      label: "Review Samples",
+      route: "/sample-review",
+      key: "sample-review",
+    },
     { icon: Settings, label: "States", route: "/states", key: "states" },
     { icon: Settings, label: "LGAs", route: "/lgas", key: "lgas" },
     { icon: Settings, label: "Markets", route: "/markets", key: "markets" },
     { icon: Users, label: "Users", route: "/users", key: "users" },
-    { icon: Settings, label: "Thresholds", route: "/thresholds", key: "thresholds" },
+    {
+      icon: Settings,
+      label: "Thresholds",
+      route: "/thresholds",
+      key: "thresholds",
+    },
     { icon: Plus, label: "Invite Codes", route: "/invites", key: "invites" },
   ];
 
@@ -107,18 +134,13 @@ const Sidebar = ({
 
       <aside
         className={`fixed lg:sticky top-16 lg:top-24 left-0 z-50
-          h-full lg:h-fit w-64 lg:w-64
-          ${theme?.card} shadow-xl lg:shadow-md border-r lg:border ${
-          theme?.border
-        }
-          p-4 lg:rounded-lg
-          transform transition-transform duration-300 ease-in-out
-          ${
-            mobileMenuOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
-          }
-        `}
+    h-[calc(100vh-4rem)] lg:h-fit w-64 lg:w-64
+    overflow-y-auto overflow-x-hidden scrollbar-hide
+    ${theme?.card} shadow-xl lg:shadow-md border-r lg:border ${theme?.border}
+    p-4 lg:rounded-lg
+    transform transition-transform duration-300 ease-in-out
+    ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+  `}
       >
         <nav className="space-y-2">
           {navItemsToRender.map((item) => (
