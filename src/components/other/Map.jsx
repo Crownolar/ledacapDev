@@ -1,26 +1,38 @@
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+  GeoJSON,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useEffect, useState } from "react";
 import MapSampleDetailsModal from "../modals/MapSampleDetailsModal";
+import nigeriaGeoLocation from "../../assets/ng.json";
 
 // coordinates for LAGOS
 const defaultPosition = [6.5244, 3.3792];
+const padding = 0.5;
+const nigeriaBounds = [
+  [3.0, 2.0],
+  [14.0, 15.0],
+];
+const nigeriaBoundsWithAllowance = [
+  [-6, -4],
+  [18.0 + padding, 20.0 + padding],
+];
 
 const FitBounds = ({ markers }) => {
   const map = useMap();
+
   useEffect(() => {
     if (markers.length > 0) {
       try {
-        const bounds = L.latLngBounds(
-          markers.map((m) => {
-            return [parseInt(m.gpsLatitude), parseInt(m.gpsLongitude)];
-          })
-        );
-
-        map.fitBounds(bounds, { padding: [50, 50] });
+        map.fitBounds(nigeriaBounds, { padding: [50, 50] });
       } catch (e) {
         console.error(e.message);
       }
@@ -28,7 +40,7 @@ const FitBounds = ({ markers }) => {
   }, []);
 };
 
-const iconObject = (samplesLength, position) => {
+const iconObject = (samplesLength) => {
   return new L.divIcon({
     className: "",
     html: ` <div class='relative '>
@@ -38,7 +50,7 @@ const iconObject = (samplesLength, position) => {
                 class='h-[50px]'
                 />
                 ${
-                  samplesLength > 1
+                  samplesLength > 0
                     ? `<span class='absolute rounded-full grid place-items-center -top-2 -left-2 w-6 h-6 bg-red-800 text-white  '>
                 ${samplesLength}
                 </span>`
@@ -48,8 +60,8 @@ const iconObject = (samplesLength, position) => {
 
     shadowUrl: markerShadow,
     iconSize: null,
-    iconAnchor: position,
-    popupAnchor: [-5, -35],
+    iconAnchor: [-5, 65],
+    popupAnchor: [0, -35],
   });
 };
 
@@ -60,8 +72,6 @@ export default function Map({ samples }) {
   });
 
   const sameLngAndLat = (samplesArray, LatAndLngArray) => {
-    // console.log(samplesArray);
-
     return samplesArray.filter(
       (s) =>
         parseInt(s.gpsLatitude) == parseInt(LatAndLngArray[0]) &&
@@ -71,7 +81,7 @@ export default function Map({ samples }) {
 
   const getDefaultIcon = (samples, position) => {
     const samplesLength = sameLngAndLat(samples, position).length;
-    return iconObject(samplesLength, position);
+    return iconObject(samplesLength);
   };
 
   const handleMarkerClick = (samplesArray, LatAndLngArray) => {
@@ -79,28 +89,44 @@ export default function Map({ samples }) {
       samplesArray,
       LatAndLngArray
     );
-    // console.log(samplesWithSameCoordinates);
+
     setMapDetails({ isOpen: true, samples: samplesWithSameCoordinates });
   };
 
   return (
     <>
-      <div className="border-2 border-red-950 relative h-[700px]  ">
+      <div className='border-2 border-red-950 relative h-[700px]  '>
         <MapContainer
           center={defaultPosition}
-          zoom={13}
+          zoom={8}
+          minZoom={6}
+          maxZoom={18}
+          maxBounds={nigeriaBoundsWithAllowance}
+          maxBoundsViscosity={1.0}
+          scrollWheelZoom={false}
           style={{
-            height: "700px",
+            height: "600px",
             width: "100%",
           }}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           ></TileLayer>
+          <GeoJSON
+            data={nigeriaGeoLocation}
+            style={{
+              color: "black",
+              weight: 3,
+              fillColor: "green",
+            }}
+          />
           {samples.map((s) => {
             if (s.gpsLatitude && s.gpsLongitude) {
-              const coord = [parseInt(s.gpsLatitude), parseInt(s.gpsLongitude)];
+              const coord = [Number(s.gpsLatitude), Number(s.gpsLongitude)];
+              const contaminationCount = sameLngAndLat(samples, coord).filter(
+                (sample) => sample.status === "contaminated"
+              ).length;
               return (
                 <Marker
                   style={{ position: "relative" }}
@@ -113,7 +139,6 @@ export default function Map({ samples }) {
                   eventHandlers={{
                     mouseover: (e) => e.target.openPopup(),
                     click: (e) => {
-                      // Prevent Leaflet default popup toggle
                       e.originalEvent.stopPropagation();
                       handleMarkerClick(samples, coord);
                     },
@@ -122,27 +147,93 @@ export default function Map({ samples }) {
                 >
                   <Popup
                     closeOnClick={false}
+                    // autoPan={false}
                     autoClose={false}
                     closeButton={false}
+                    className='custom-popup'
                   >
-                    <div>
-                      <h3>{s.state.name}</h3>
-                      <h4>
-                        Total: {sameLngAndLat(samples, coord).length}{" "}
-                        {sameLngAndLat(samples, coord).length > 1
-                          ? "samples"
-                          : "sample"}
-                      </h4>
-                      <p>👍</p>
+                    <div className='min-w-[300px] z-[5000]'>
+                      <div className='flex  justify-between '>
+                        <div className='  '>
+                          <h3 className='font-bold text-gray-900 text-base'>
+                            {s.state?.name}
+                          </h3>
+                        </div>
+
+                        <div className='flex  flex-col '>
+                          <div className='flex items-center justify-between '>
+                            <span className='text-xs text-gray-600 font-semibold'>
+                              📌 Samples:
+                            </span>
+                            <span className='text-sm font-bold text-blue-600'>
+                              {sameLngAndLat(samples, coord).length}
+                            </span>
+                          </div>
+                          {contaminationCount > 0 && (
+                            <div className='flex items-center justify-between'>
+                              <span className='text-xs text-gray-600 font-semibold'>
+                                ⚠️ Contaminated:
+                              </span>
+                              <span className='text-sm font-bold text-red-600'>
+                                {contaminationCount}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className=''>
+                        <div className='mt-1 border-t'>
+                          <p className='text-xs text-gray-600 font-semibold mb-[2px]'>
+                            Recent Product:
+                          </p>
+                          <div className=''>
+                            {sameLngAndLat(samples, coord)
+                              .slice(0, 1)
+                              .map((sample, idx) => (
+                                <p
+                                  key={idx}
+                                  className='text-xs text-gray-700 truncate'
+                                >
+                                  • {sample.productName || "Unknown"}
+                                </p>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </Popup>
                 </Marker>
               );
             }
           })}
-          {/* fit bounds makes all the markers show at once after rendering */}
-          <FitBounds markers={samples} />
+          {samples && <FitBounds markers={samples} />}
         </MapContainer>
+        {/* Map Legend */}
+        <div className='bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700'>
+          <div className='flex flex-wrap gap-6 items-center text-sm'>
+            <div className='flex items-center gap-2'>
+              <div className='w-4 h-4 bg-red-500 rounded-full border-2 border-red-600'></div>
+              <span className='text-gray-700 dark:text-gray-300 font-medium'>
+                Contaminated Samples
+              </span>
+            </div>
+            <div className='flex items-center gap-2'>
+              <div className='w-4 h-4 bg-blue-500 rounded-full border-2 border-blue-600'></div>
+              <span className='text-gray-700 dark:text-gray-300 font-medium'>
+                Safe/Pending Samples
+              </span>
+            </div>
+            <div className='flex items-center gap-2'>
+              <div className='w-6 h-6 bg-red-800 text-white text-xs flex items-center justify-center rounded-full font-bold'>
+                2
+              </div>
+              <span className='text-gray-700 dark:text-gray-300 font-medium'>
+                Multiple at Location
+              </span>
+            </div>
+          </div>
+        </div>
         {/* Overlay */}
         {mapDetails.isOpen && (
           <MapSampleDetailsModal

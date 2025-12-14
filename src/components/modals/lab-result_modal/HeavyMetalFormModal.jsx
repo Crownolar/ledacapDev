@@ -9,7 +9,6 @@ import {
   getSampleReadings,
 } from "../../../redux/slice/heavyMetalSlice";
 
-
 let thresholdsCache = null;
 let thresholdsCacheTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -28,11 +27,16 @@ const HeavyMetalFormModal = ({
   );
 
   // Find existing reading for this sample if updating
-  const existingReading = existingReadings && existingReadings.length > 0 ? existingReadings[0] : null;
+  const existingReading =
+    existingReadings && existingReadings.length > 0
+      ? existingReadings[0]
+      : null;
 
   const [thresholds, setThresholds] = useState([]);
   const [loadingThresholds, setLoadingThresholds] = useState(true);
-  const [selectedProductType, setSelectedProductType] = useState(productType || "TIRO");
+  const [selectedProductType, setSelectedProductType] = useState(
+    productType || "TIRO"
+  );
 
   const heavyMetals = [
     "LEAD",
@@ -53,7 +57,8 @@ const HeavyMetalFormModal = ({
   };
 
   const [formData, setFormData] = useState({
-    sampleId: sampleId || existingData?.sampleId || existingReading?.sampleId || "",
+    sampleId:
+      sampleId || existingData?.sampleId || existingReading?.sampleId || "",
     heavyMetal: existingData?.heavyMetal || existingReading?.heavyMetal || "",
     xrfReading: existingData?.xrfReading || existingReading?.xrfReading || "",
     xrfUnit: existingData?.xrfUnit || existingReading?.xrfUnit || "mg/kg",
@@ -71,15 +76,15 @@ const HeavyMetalFormModal = ({
     const fetchThresholds = async () => {
       try {
         setLoadingThresholds(true);
-        
+
         // Check if cache is still valid
         const now = Date.now();
-        if (thresholdsCache && (now - thresholdsCacheTime) < CACHE_DURATION) {
+        if (thresholdsCache && now - thresholdsCacheTime < CACHE_DURATION) {
           setThresholds(thresholdsCache);
           setLoadingThresholds(false);
           return;
         }
-        
+
         // Fetch from API if cache is expired
         const response = await api.get("/thresholds");
         if (response.data?.success) {
@@ -103,9 +108,13 @@ const HeavyMetalFormModal = ({
 
   // Get threshold for selected metal and product type
   const getSelectedMetalThreshold = () => {
-    return thresholds.find(
-      (t) => t.heavyMetal === formData.heavyMetal && t.productType === selectedProductType
-    ) || null;
+    return (
+      thresholds.find(
+        (t) =>
+          t.heavyMetal === formData.heavyMetal &&
+          t.productType === selectedProductType
+      ) || null
+    );
   };
 
   const getContaminationLevel = (reading, threshold) => {
@@ -188,82 +197,82 @@ const HeavyMetalFormModal = ({
   const worstLevel = getWorstContaminationLevel();
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[1000]">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border-2 border-gray-200 dark:border-gray-700">
+    <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[5000]'>
+      <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border-2 border-gray-200 dark:border-gray-700'>
         {/* Header - Sticky */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 p-6 rounded-t-2xl sticky top-0 z-10">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Beaker className="w-7 h-7 text-white" />
+        <div className='bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 p-6 rounded-t-2xl sticky top-0 z-10'>
+          <div className='flex justify-between items-start'>
+            <div className='flex items-center gap-4'>
+              <div className='w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm'>
+                <Beaker className='w-7 h-7 text-white' />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className='text-2xl font-bold text-white'>
                   {existingData ? "Update" : "Add"} Heavy Metal Analysis
                 </h2>
-                <p className="text-blue-100 text-sm mt-1">
+                <p className='text-blue-100 text-sm mt-1'>
                   Record XRF and/or AAS laboratory test results
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
+              className='p-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200'
             >
-              <X className="w-6 h-6 text-white" />
+              <X className='w-6 h-6 text-white' />
             </button>
           </div>
         </div>
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+        <div className='flex-1 overflow-y-auto p-8 space-y-6'>
           {/* Sample Information Section */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b-2 border-blue-600 flex items-center gap-2">
+            <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b-2 border-blue-600 flex items-center gap-2'>
               <svg
-                className="w-5 h-5 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                className='w-5 h-5 text-blue-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
                   strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                 />
               </svg>
               Sample Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                  Sample ID <span className="text-red-500">*</span>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='space-y-2'>
+                <label className='block text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide'>
+                  Sample ID <span className='text-red-500'>*</span>
                 </label>
                 <input
-                  type="text"
+                  type='text'
                   value={formData.sampleId}
                   disabled={!!sampleId}
                   onChange={(e) =>
                     setFormData({ ...formData, sampleId: e.target.value })
                   }
-                  placeholder="Enter sample identifier"
-                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-gray-800 font-medium transition-all"
+                  placeholder='Enter sample identifier'
+                  className='w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-gray-800 font-medium transition-all'
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                  Heavy Metal Type <span className="text-red-500">*</span>
+              <div className='space-y-2'>
+                <label className='block text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide'>
+                  Heavy Metal Type <span className='text-red-500'>*</span>
                 </label>
                 <select
                   value={formData.heavyMetal}
                   onChange={(e) =>
                     setFormData({ ...formData, heavyMetal: e.target.value })
                   }
-                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all"
+                  className='w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
                 >
-                  <option value="">Select Heavy Metal</option>
+                  <option value=''>Select Heavy Metal</option>
                   {heavyMetals.map((m) => (
                     <option key={m} value={m}>
                       {metalLabels[m]}
@@ -272,14 +281,14 @@ const HeavyMetalFormModal = ({
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+              <div className='space-y-2'>
+                <label className='block text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide'>
                   Product Type
                 </label>
                 <select
                   value={selectedProductType}
                   onChange={(e) => setSelectedProductType(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all cursor-pointer hover:border-blue-400"
+                  className='w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all cursor-pointer hover:border-blue-400'
                 >
                   {Object.entries(productTypes).map(([key, label]) => (
                     <option key={key} value={key}>
@@ -291,33 +300,45 @@ const HeavyMetalFormModal = ({
             </div>
 
             {getSelectedMetalThreshold() && (
-              <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 p-4 rounded-r-lg">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+              <div className='mt-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 p-4 rounded-r-lg'>
+                <div className='space-y-2'>
+                  <div className='flex items-center gap-2'>
                     <svg
-                      className="w-5 h-5 text-blue-600 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      className='w-5 h-5 text-blue-600 flex-shrink-0'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
                         strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                       />
                     </svg>
-                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
-                      Safe Limit: <span className="text-lg">{getSelectedMetalThreshold()?.safeLimit}</span> ppm
+                    <p className='text-sm font-semibold text-blue-900 dark:text-blue-200'>
+                      Safe Limit:{" "}
+                      <span className='text-lg'>
+                        {getSelectedMetalThreshold()?.safeLimit}
+                      </span>{" "}
+                      ppm
                     </p>
                   </div>
                   {getSelectedMetalThreshold()?.warningLimit && (
-                    <p className="text-sm text-blue-800 dark:text-blue-300 ml-7">
-                      Warning Limit: <span className="font-semibold">{getSelectedMetalThreshold()?.warningLimit}</span> ppm
+                    <p className='text-sm text-blue-800 dark:text-blue-300 ml-7'>
+                      Warning Limit:{" "}
+                      <span className='font-semibold'>
+                        {getSelectedMetalThreshold()?.warningLimit}
+                      </span>{" "}
+                      ppm
                     </p>
                   )}
-                  <p className="text-sm text-blue-800 dark:text-blue-300 ml-7">
-                    Danger Limit: <span className="font-semibold">{getSelectedMetalThreshold()?.dangerLimit}</span> ppm
+                  <p className='text-sm text-blue-800 dark:text-blue-300 ml-7'>
+                    Danger Limit:{" "}
+                    <span className='font-semibold'>
+                      {getSelectedMetalThreshold()?.dangerLimit}
+                    </span>{" "}
+                    ppm
                   </p>
                 </div>
               </div>
@@ -326,33 +347,37 @@ const HeavyMetalFormModal = ({
 
           {/* Test Readings Section */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b-2 border-blue-600 flex items-center gap-2">
+            <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b-2 border-blue-600 flex items-center gap-2'>
               <svg
-                className="w-5 h-5 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                className='w-5 h-5 text-blue-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
                   strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
                 />
               </svg>
               Laboratory Test Readings
             </h3>
 
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {["xrfReading", "aasReading"].map((method) => {
                 const label =
                   method === "xrfReading"
                     ? "XRF Reading (X-Ray Fluorescence)"
                     : "AAS Reading (Atomic Absorption Spectroscopy)";
                 const unitKey = method === "xrfReading" ? "xrfUnit" : "aasUnit";
-                const unitOptions = method === "xrfReading" ? xrfUnits : aasUnits;
+                const unitOptions =
+                  method === "xrfReading" ? xrfUnits : aasUnits;
                 const threshold = getSelectedMetalThreshold();
-                const level = getContaminationLevel(formData[method], threshold);
+                const level = getContaminationLevel(
+                  formData[method],
+                  threshold
+                );
                 return (
                   <div
                     key={method}
@@ -362,26 +387,29 @@ const HeavyMetalFormModal = ({
                         : "border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
                     }`}
                   >
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    <label className='block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3'>
                       {label}
                     </label>
-                    <div className="flex gap-3 items-center">
+                    <div className='flex gap-3 items-center'>
                       <input
-                        type="number"
-                        step="0.001"
+                        type='number'
+                        step='0.001'
                         value={formData[method]}
                         onChange={(e) =>
                           setFormData({ ...formData, [method]: e.target.value })
                         }
-                        placeholder="Enter reading value"
-                        className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all"
+                        placeholder='Enter reading value'
+                        className='flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
                       />
                       <select
                         value={formData[unitKey]}
                         onChange={(e) =>
-                          setFormData({ ...formData, [unitKey]: e.target.value })
+                          setFormData({
+                            ...formData,
+                            [unitKey]: e.target.value,
+                          })
                         }
-                        className="px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all"
+                        className='px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
                       >
                         {unitOptions.map((u) => (
                           <option key={u} value={u}>
@@ -407,18 +435,18 @@ const HeavyMetalFormModal = ({
 
           {/* Additional Notes Section */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b-2 border-blue-600 flex items-center gap-2">
+            <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b-2 border-blue-600 flex items-center gap-2'>
               <svg
-                className="w-5 h-5 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                className='w-5 h-5 text-blue-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
                   strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
                 />
               </svg>
               Additional Notes
@@ -429,8 +457,8 @@ const HeavyMetalFormModal = ({
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={4}
-              placeholder="Optional: Add any relevant observations, anomalies, or technical notes..."
-              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all resize-none"
+              placeholder='Optional: Add any relevant observations, anomalies, or technical notes...'
+              className='w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all resize-none'
             />
           </div>
 
@@ -443,7 +471,7 @@ const HeavyMetalFormModal = ({
                   : "bg-orange-50 dark:bg-orange-900/20 border-orange-600"
               }`}
             >
-              <div className="flex items-start gap-3">
+              <div className='flex items-start gap-3'>
                 <AlertTriangle
                   className={`w-6 h-6 flex-shrink-0 ${
                     worstLevel === "dangerous"
@@ -480,11 +508,11 @@ const HeavyMetalFormModal = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 bg-gray-50 dark:bg-gray-900/50 border-t-2 border-gray-200 dark:border-gray-700 rounded-b-2xl">
-          <div className="flex gap-4">
+        <div className='p-6 bg-gray-50 dark:bg-gray-900/50 border-t-2 border-gray-200 dark:border-gray-700 rounded-b-2xl'>
+          <div className='flex gap-4'>
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+              className='flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 shadow-sm hover:shadow-md'
             >
               Cancel
             </button>
@@ -504,30 +532,30 @@ const HeavyMetalFormModal = ({
               {loading ? (
                 <>
                   <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
+                    className='animate-spin h-5 w-5 text-white'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
                   >
                     <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
+                      className='opacity-25'
+                      cx='12'
+                      cy='12'
+                      r='10'
+                      stroke='currentColor'
+                      strokeWidth='4'
                     ></circle>
                     <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      className='opacity-75'
+                      fill='currentColor'
+                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
                     ></path>
                   </svg>
                   Saving...
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-5 h-5" />
+                  <CheckCircle className='w-5 h-5' />
                   {existingData ? "Update Reading" : "Save Reading"}
                 </>
               )}
