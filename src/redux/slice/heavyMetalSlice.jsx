@@ -4,10 +4,20 @@ import api from "../../utils/api";
 // ---- Add or Update Reading ---- //
 export const addOrUpdateHeavyMetal = createAsyncThunk(
   "heavyMetal/addOrUpdate",
-  async (payload, { rejectWithValue }) => {
+  async (payloads, { rejectWithValue }) => {
+    if (!Array.isArray(payloads) || payloads.length === 0) {
+      return rejectWithValue("No payloads provided");
+    }
+
     try {
-      const response = await api.post("/heavy-metals", payload);
-      return response.data;
+      const results = [];
+
+      for (const payload of payloads) {
+        const response = await api.post("/heavy-metals", payload);
+        results.push(response.data);
+      }
+      console.log(results);
+      return results;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.error ||
@@ -62,20 +72,21 @@ const heavyMetalSlice = createSlice({
       })
       .addCase(addOrUpdateHeavyMetal.fulfilled, (state, action) => {
         state.loading = false;
-        state.successMessage = action.payload.message || "Reading saved!";
-        const newReading = action.payload.data;
+        // array of responses
+        state.successMessage = action.payload[0].message || "Reading saved!";
+        action.payload.map((payload) => {
+          const index = state.readings.findIndex(
+            (r) =>
+              r.sampleId === payload.data.sampleId &&
+              r.heavyMetal === payload.data.heavyMetal
+          );
 
-        const index = state.readings.findIndex(
-          (r) =>
-            r.sampleId === newReading.sampleId &&
-            r.heavyMetal === newReading.heavyMetal
-        );
-
-        if (index !== -1) {
-          state.readings[index] = newReading;
-        } else {
-          state.readings.push(newReading);
-        }
+          if (index !== -1) {
+            state.readings[index] = payload.data;
+          } else {
+            state.readings.push(payload.data);
+          }
+        });
       })
       .addCase(addOrUpdateHeavyMetal.rejected, (state, action) => {
         state.loading = false;

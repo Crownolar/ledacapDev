@@ -209,32 +209,7 @@ export default function Map({ samples }) {
           })}
           {samples && <FitBounds markers={samples} />}
         </MapContainer>
-        {/* Map Legend */}
-        <div className='bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700'>
-          <div className='flex flex-wrap gap-6 items-center text-sm'>
-            <div className='flex items-center gap-2'>
-              <div className='w-4 h-4 bg-red-500 rounded-full border-2 border-red-600'></div>
-              <span className='text-gray-700 dark:text-gray-300 font-medium'>
-                Contaminated Samples
-              </span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <div className='w-4 h-4 bg-blue-500 rounded-full border-2 border-blue-600'></div>
-              <span className='text-gray-700 dark:text-gray-300 font-medium'>
-                Safe/Pending Samples
-              </span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <div className='w-6 h-6 bg-red-800 text-white text-xs flex items-center justify-center rounded-full font-bold'>
-                2
-              </div>
-              <span className='text-gray-700 dark:text-gray-300 font-medium'>
-                Multiple at Location
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* Overlay */}
+
         {mapDetails.isOpen && (
           <MapSampleDetailsModal
             setMapDetails={setMapDetails}

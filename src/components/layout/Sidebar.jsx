@@ -16,7 +16,19 @@ const roleConfig = {
   superadmin: {
     sampleButton: true,
     excelImport: true,
-    navItems: ["dashboard", "database", "map", "reports", "agents", "states", "lgas", "markets", "users", "thresholds", "invites"],
+    navItems: [
+      "dashboard",
+      "database",
+      "map",
+      "reports",
+      "agents",
+      "states",
+      "lgas",
+      "markets",
+      "users",
+      "thresholds",
+      "invites",
+    ],
   },
   headresearcher: {
     sampleButton: false,
@@ -77,13 +89,28 @@ const Sidebar = ({
     { icon: Map, label: "Geographic View", route: "/map", key: "map" },
     { icon: FileText, label: "Reports", route: "/reports", key: "reports" },
     { icon: Users, label: "Field Agents", route: "/agents", key: "agents" },
-    { icon: Users, label: "Data Collectors", route: "/collectors", key: "collectors" },
-    { icon: FileText, label: "Review Samples", route: "/sample-review", key: "sample-review" },
+    {
+      icon: Users,
+      label: "Data Collectors",
+      route: "/collectors",
+      key: "collectors",
+    },
+    {
+      icon: FileText,
+      label: "Review Samples",
+      route: "/sample-review",
+      key: "sample-review",
+    },
     { icon: Settings, label: "States", route: "/states", key: "states" },
     { icon: Settings, label: "LGAs", route: "/lgas", key: "lgas" },
     { icon: Settings, label: "Markets", route: "/markets", key: "markets" },
     { icon: Users, label: "Users", route: "/users", key: "users" },
-    { icon: Settings, label: "Thresholds", route: "/thresholds", key: "thresholds" },
+    {
+      icon: Settings,
+      label: "Thresholds",
+      route: "/thresholds",
+      key: "thresholds",
+    },
     { icon: Plus, label: "Invite Codes", route: "/invites", key: "invites" },
   ];
 
@@ -97,17 +124,17 @@ const Sidebar = ({
   };
 
   return (
-    <div className="pt-5 pl-6 z-[2000] lg:flex lg:gap-6">
+    <div className='pt-5 pl-6 z-[2000] lg:flex lg:gap-6 '>
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className='fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden '
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed lg:sticky top-16 lg:top-24 left-0 z-50
-          h-full lg:h-fit w-64 lg:w-64
+        className={`fixed lg:sticky top-16 lg:top-24 left-0 z-50 pt-16 md:pt-7
+          h-full lg:h-fit w-64 lg:w-64 border-4 
           ${theme?.card} shadow-xl lg:shadow-md border-r lg:border ${
           theme?.border
         }
@@ -120,7 +147,7 @@ const Sidebar = ({
           }
         `}
       >
-        <nav className="space-y-2">
+        <nav className='space-y-2  '>
           {navItemsToRender.map((item) => (
             <NavItem
               key={item.key}
@@ -134,14 +161,14 @@ const Sidebar = ({
           ))}
         </nav>
 
-        <div className="mt-6 pt-6 border-t border-gray-700 space-y-2">
+        <div className='mt-6 pt-6 border-t border-gray-700 space-y-2'>
           {/* SAMPLE BUTTON ONLY FOR roles WITH sampleButton = true */}
           {config.sampleButton && (
             <button
               onClick={handleSampleButtonClick}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              className='w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors'
             >
-              <Plus className="w-5 h-5" />
+              <Plus className='w-5 h-5' />
               New Sample
             </button>
           )}
@@ -152,7 +179,7 @@ const Sidebar = ({
               onClick={() => excelImportRef?.current?.click()}
               className={`w-full border ${theme?.border} font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 ${theme?.text} transition-colors ${theme?.hover}`}
             >
-              <Upload className="w-5 h-5" />
+              <Upload className='w-5 h-5' />
               Import Excel
             </button>
           )}

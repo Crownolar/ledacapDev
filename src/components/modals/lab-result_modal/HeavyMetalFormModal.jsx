@@ -15,10 +15,11 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const HeavyMetalFormModal = ({
   theme,
+  hasAllReadings = false,
   onClose,
   sampleId,
   productType,
-  existingData = null,
+  fetchMySamples,
   existingReadings = [],
 }) => {
   const dispatch = useDispatch();
@@ -27,12 +28,12 @@ const HeavyMetalFormModal = ({
   );
 
   // Find existing reading for this sample if updating
+
   const existingReading =
-    existingReadings && existingReadings.length > 0
-      ? existingReadings[0]
-      : null;
+    existingReadings && existingReadings.length > 0 ? existingReadings : null;
 
   const [thresholds, setThresholds] = useState([]);
+  const [metalSelected, setMetalSelected] = useState(" ");
   const [loadingThresholds, setLoadingThresholds] = useState(true);
   const [selectedProductType, setSelectedProductType] = useState(
     productType || "TIRO"
@@ -57,15 +58,19 @@ const HeavyMetalFormModal = ({
   };
 
   const [formData, setFormData] = useState({
-    sampleId:
-      sampleId || existingData?.sampleId || existingReading?.sampleId || "",
-    heavyMetal: existingData?.heavyMetal || existingReading?.heavyMetal || "",
-    xrfReading: existingData?.xrfReading || existingReading?.xrfReading || "",
-    xrfUnit: existingData?.xrfUnit || existingReading?.xrfUnit || "mg/kg",
-    aasReading: existingData?.aasReading || existingReading?.aasReading || "",
-    aasUnit: existingData?.aasUnit || existingReading?.aasUnit || "mg/L",
-    unit: existingData?.unit || existingReading?.unit || "ppm", // Default unit for storage
-    notes: existingData?.notes || existingReading?.notes || "",
+    sampleId: sampleId || existingReading?.[0].sampleId || "",
+    heavyMetalsSelected:
+      existingReading?.map((sample) => sample.heavyMetal) || [],
+    xrfReadings: existingReading?.map((sample) => sample.xrfReading) || [],
+    aasReadings: existingReading?.map((sample) => sample.aasReading) || [],
+    xrfUnits: (existingReading?.xrfUnit && [existingReading?.xrfUnit]) || [
+      "mg/kg",
+    ],
+    aasUnits: existingReading?.map((sample) => sample.aasUnit) || ["mg/L"],
+    xrfUnit: existingReading?.[0].xrfUnit || "mg/kg",
+    aasUnit: existingReading?.[0].aasUnit || "mg/L",
+    unit: existingReading?.[0].unit || "ppm", // Default unit for storage
+    notes: existingReading?.[0].notes || "",
   });
 
   const xrfUnits = ["mg/kg", "ppm", "µg/g"];
@@ -106,12 +111,13 @@ const HeavyMetalFormModal = ({
     fetchThresholds();
   }, []);
 
-  // Get threshold for selected metal and product type
-  const getSelectedMetalThreshold = () => {
+  const getSelectedMetalThreshold = (metal) => {
     return (
       thresholds.find(
         (t) =>
-          t.heavyMetal === formData.heavyMetal &&
+          (t.heavyMetal === metal
+            ? metal
+            : formData.heavyMetalsSelected[0] || "LEAD") &&
           t.productType === selectedProductType
       ) || null
     );
@@ -160,11 +166,17 @@ const HeavyMetalFormModal = ({
     }
   };
 
-  const getWorstContaminationLevel = () => {
-    const threshold = getSelectedMetalThreshold();
+  const getWorstContaminationLevel = (
+    metal = null,
+    xrfReading = null,
+    aasReading = null
+  ) => {
+    const threshold = getSelectedMetalThreshold(metal);
+
     const levels = ["safe", "acceptable", "elevated", "dangerous"];
-    const xrfLevel = getContaminationLevel(formData.xrfReading, threshold);
-    const aasLevel = getContaminationLevel(formData.aasReading, threshold);
+    const xrfLevel = getContaminationLevel(xrfReading, threshold);
+    const aasLevel = getContaminationLevel(aasReading, threshold);
+
     return levels[
       Math.max(
         levels.indexOf(xrfLevel || "safe"),
@@ -174,27 +186,59 @@ const HeavyMetalFormModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!formData.sampleId || !formData.heavyMetal)
+    formData.xrfReadings = formData.xrfReadings.map((val) =>
+      val == null || Number.isNaN(val) ? null : parseFloat(val)
+    );
+    formData.aasReadings = formData.aasReadings.map((val) =>
+      val == null || Number.isNaN(val) ? null : parseFloat(val)
+    );
+    if (!formData.sampleId || formData.heavyMetalsSelected.length === 0)
       return alert("Please provide Sample ID and Heavy Metal");
-    if (!formData.xrfReading && !formData.aasReading)
+    if (
+      (!formData.xrfReadings[0] && !formData.aasReadings[0]) ||
+      (formData.xrfReadings.length === 0 && formData.aasReadings.length === 0)
+    )
       return alert("Provide at least one reading");
+    const payloads = [];
 
-    const payload = {
-      ...formData,
-      xrfReading: formData.xrfReading
-        ? parseFloat(formData.xrfReading)
-        : undefined,
-      aasReading: formData.aasReading
-        ? parseFloat(formData.aasReading)
-        : undefined,
-    };
+    for (const [i, metals] of Object.entries(formData.heavyMetalsSelected)) {
+      const payload = {
+        sampleId: formData.sampleId,
+        heavyMetal: metals,
+        xrfReading:
+          typeof formData.xrfReadings[i] === "number" &&
+          !Number.isNaN(formData.xrfReadings[i])
+            ? formData.xrfReadings[i]
+            : null,
+        aasReading:
+          typeof formData.aasReadings[i] === "number" &&
+          !Number.isNaN(formData.aasReadings[i])
+            ? formData.aasReadings[i]
+            : null,
+        unit: formData.unit,
+        notes: formData.notes,
+      };
+      payloads.push(payload);
+    }
 
-    const result = await dispatch(addOrUpdateHeavyMetal(payload));
-    if (addOrUpdateHeavyMetal.fulfilled.match(result)) onClose();
-    else alert(result.payload || "Failed to save reading");
+    const result = await dispatch(addOrUpdateHeavyMetal(payloads));
+    if (addOrUpdateHeavyMetal.fulfilled.match(result)) {
+      fetchMySamples();
+      alert(result.payload[0].message || "Successfully saved reading");
+      onClose();
+    } else alert(result.payload || "Failed to save reading");
   };
 
-  const worstLevel = getWorstContaminationLevel();
+  const worstLevels =
+    formData.heavyMetalsSelected && formData.heavyMetalsSelected.length > 0
+      ? formData.heavyMetalsSelected?.map((metal, i) =>
+          getWorstContaminationLevel(
+            metal,
+            formData.xrfReadings[i],
+            formData.aasReadings[i]
+          )
+        )
+      : [];
 
   return (
     <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[5000]'>
@@ -208,7 +252,7 @@ const HeavyMetalFormModal = ({
               </div>
               <div>
                 <h2 className='text-2xl font-bold text-white'>
-                  {existingData ? "Update" : "Add"} Heavy Metal Analysis
+                  {hasAllReadings ? "Update" : "Add"} Heavy Metal Analysis
                 </h2>
                 <p className='text-blue-100 text-sm mt-1'>
                   Record XRF and/or AAS laboratory test results
@@ -266,10 +310,23 @@ const HeavyMetalFormModal = ({
                   Heavy Metal Type <span className='text-red-500'>*</span>
                 </label>
                 <select
-                  value={formData.heavyMetal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, heavyMetal: e.target.value })
-                  }
+                  value={metalSelected}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) return;
+
+                    // prevent duplicates
+                    setMetalSelected(value);
+                    if (formData.heavyMetalsSelected.includes(value)) return;
+
+                    setFormData({
+                      ...formData,
+                      heavyMetalsSelected: [
+                        ...formData.heavyMetalsSelected,
+                        value,
+                      ],
+                    });
+                  }}
                   className='w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
                 >
                   <option value=''>Select Heavy Metal</option>
@@ -279,6 +336,32 @@ const HeavyMetalFormModal = ({
                     </option>
                   ))}
                 </select>
+                {/* Selected metals */}
+                <div className='flex flex-wrap gap-2 mt-2'>
+                  {formData.heavyMetalsSelected.map((metal) => (
+                    <button
+                      key={metal}
+                      type='button'
+                      className='flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-xl font-medium '
+                    >
+                      {metalLabels[metal]}
+                      <span
+                        className='text-red-500 font-bold'
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            heavyMetalsSelected:
+                              formData.heavyMetalsSelected.filter(
+                                (m) => m !== metal
+                              ),
+                          });
+                        }}
+                      >
+                        X
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className='space-y-2'>
@@ -299,7 +382,7 @@ const HeavyMetalFormModal = ({
               </div>
             </div>
 
-            {getSelectedMetalThreshold() && (
+            {/* {getSelectedMetalThreshold() && (
               <div className='mt-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 p-4 rounded-r-lg'>
                 <div className='space-y-2'>
                   <div className='flex items-center gap-2'>
@@ -342,7 +425,7 @@ const HeavyMetalFormModal = ({
                   </p>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Test Readings Section */}
@@ -363,74 +446,88 @@ const HeavyMetalFormModal = ({
               </svg>
               Laboratory Test Readings
             </h3>
+            {formData.heavyMetalsSelected.map((metal, i) => (
+              <div className='space-y-4' key={metal}>
+                {["xrfReadings", "aasReadings"].map((method) => {
+                  const label =
+                    method === "xrfReadings"
+                      ? "XRF Reading (X-Ray Fluorescence)"
+                      : "AAS Reading (Atomic Absorption Spectroscopy)";
+                  const unitKey =
+                    method === "xrfReadings" ? "xrfUnit" : "aasUnit";
+                  const unitOptions =
+                    method === "xrfReadings" ? xrfUnits : aasUnits;
+                  const threshold = getSelectedMetalThreshold(metal);
+                  const level = getContaminationLevel(
+                    formData[method][i],
+                    threshold
+                  );
 
-            <div className='space-y-4'>
-              {["xrfReading", "aasReading"].map((method) => {
-                const label =
-                  method === "xrfReading"
-                    ? "XRF Reading (X-Ray Fluorescence)"
-                    : "AAS Reading (Atomic Absorption Spectroscopy)";
-                const unitKey = method === "xrfReading" ? "xrfUnit" : "aasUnit";
-                const unitOptions =
-                  method === "xrfReading" ? xrfUnits : aasUnits;
-                const threshold = getSelectedMetalThreshold();
-                const level = getContaminationLevel(
-                  formData[method],
-                  threshold
-                );
-                return (
-                  <div
-                    key={method}
-                    className={`p-5 rounded-xl transition-all ${
-                      level
-                        ? getContaminationColor(level)
-                        : "border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                    }`}
-                  >
-                    <label className='block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3'>
-                      {label}
-                    </label>
-                    <div className='flex gap-3 items-center'>
-                      <input
-                        type='number'
-                        step='0.001'
-                        value={formData[method]}
-                        onChange={(e) =>
-                          setFormData({ ...formData, [method]: e.target.value })
-                        }
-                        placeholder='Enter reading value'
-                        className='flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
-                      />
-                      <select
-                        value={formData[unitKey]}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            [unitKey]: e.target.value,
-                          })
-                        }
-                        className='px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
+                  return (
+                    <div key={method}>
+                      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        {metal && metal}
+                      </span>
+                      <div
+                        className={`p-5 rounded-xl transition-all ${
+                          level
+                            ? getContaminationColor(level)
+                            : "border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+                        }`}
                       >
-                        {unitOptions.map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
-                      </select>
-                      {level && (
-                        <span
-                          className={`px-4 py-2 rounded-lg font-bold text-sm uppercase shadow-md whitespace-nowrap ${getStatusBadgeColor(
-                            level
-                          )}`}
-                        >
-                          {level}
-                        </span>
-                      )}
+                        <label className='block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3'>
+                          {label}
+                        </label>
+                        <div className='flex  flex-row gap-3 items-center [@media(max-width:500px)]:flex-col : '>
+                          <input
+                            type='number'
+                            step='0.001'
+                            value={formData[method]?.[i] ?? ""}
+                            onChange={(e) =>
+                              setFormData((prev) => {
+                                let newArray = [...(prev[method] ?? [])];
+                                newArray[i] = e.target.value;
+
+                                return { ...prev, [method]: newArray };
+                              })
+                            }
+                            placeholder='Enter reading value'
+                            className='[@media(max-width:500px)]:w-full  flex-1 min-w-[100px]  px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
+                          />
+                          <select
+                            value={formData[unitKey]}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                [unitKey]: e.target.value,
+                              })
+                            }
+                            className='px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none font-medium transition-all'
+                          >
+                            {unitOptions.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </select>
+                          {level && (
+                            <span
+                              className={`px-4 py-2 rounded-lg font-bold text-sm uppercase shadow-md whitespace-nowrap ${getStatusBadgeColor(
+                                level
+                              )}`}
+                            >
+                              {level}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ))}
+
+            {/* end */}
           </div>
 
           {/* Additional Notes Section */}
@@ -463,10 +560,13 @@ const HeavyMetalFormModal = ({
           </div>
 
           {/* Warning for dangerous levels */}
-          {(worstLevel === "dangerous" || worstLevel === "elevated") && (
+
+          {worstLevels.some(
+            (level) => level === "dangerous" || level === "elevated"
+          ) && (
             <div
               className={`p-4 rounded-lg border-l-4 ${
-                worstLevel === "dangerous"
+                worstLevels.some((level) => level === "dangerous")
                   ? "bg-red-50 dark:bg-red-900/20 border-red-600"
                   : "bg-orange-50 dark:bg-orange-900/20 border-orange-600"
               }`}
@@ -474,7 +574,7 @@ const HeavyMetalFormModal = ({
               <div className='flex items-start gap-3'>
                 <AlertTriangle
                   className={`w-6 h-6 flex-shrink-0 ${
-                    worstLevel === "dangerous"
+                    worstLevels.some((level) => level === "dangerous")
                       ? "text-red-600"
                       : "text-orange-600"
                   }`}
@@ -482,18 +582,18 @@ const HeavyMetalFormModal = ({
                 <div>
                   <p
                     className={`font-semibold ${
-                      worstLevel === "dangerous"
+                      worstLevels.some((level) => level === "dangerous")
                         ? "text-red-800 dark:text-red-200"
                         : "text-orange-800 dark:text-orange-200"
                     }`}
                   >
-                    {worstLevel === "dangerous"
+                    {worstLevels.some((level) => level === "dangerous")
                       ? "Critical Contamination Level Detected"
                       : "Elevated Contamination Level Detected"}
                   </p>
                   <p
                     className={`text-sm mt-1 ${
-                      worstLevel === "dangerous"
+                      worstLevels.some((level) => level === "dangerous")
                         ? "text-red-700 dark:text-red-300"
                         : "text-orange-700 dark:text-orange-300"
                     }`}
@@ -522,9 +622,9 @@ const HeavyMetalFormModal = ({
               className={`flex-1 px-6 py-3 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 ${
                 loading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : worstLevel === "dangerous"
+                  : worstLevels.some((level) => level === "dangerous")
                   ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                  : worstLevel === "elevated"
+                  : worstLevels.some((level) => level === "elevated")
                   ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
                   : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
               }`}
@@ -556,7 +656,7 @@ const HeavyMetalFormModal = ({
               ) : (
                 <>
                   <CheckCircle className='w-5 h-5' />
-                  {existingData ? "Update Reading" : "Save Reading"}
+                  {hasAllReadings ? "Update Reading" : "Save Reading"}
                 </>
               )}
             </button>
