@@ -18,6 +18,7 @@ const roleConfig = {
     excelImport: true,
     navItems: [
       "dashboard",
+      "superadmin",
       "database",
       "map",
       "reports",
@@ -78,6 +79,12 @@ const Sidebar = ({
       label: "Dashboard",
       route: "/dashboard",
       key: "dashboard",
+    },
+    {
+      icon: Users,
+      label: "Admin Center",
+      route: "/superadmin",
+      key: "superadmin",
     },
     {
       icon: Beaker,

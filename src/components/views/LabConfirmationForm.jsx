@@ -100,22 +100,45 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
       setSubmitting(true);
       setError(null);
 
-      // Submit each AAS reading
-      const submissions = Object.values(formData).map(data => 
-        api.post('/lab/record-aas-reading', {
-          readingId: data.readingId,
-          aasReading: parseFloat(data.aasReading),
-          aasNotes: data.aasNotes
-        })
-      );
+      console.log("🟡 [handleSubmit] Starting submission");
+      console.log("   formData:", formData);
 
-      await Promise.all(submissions);
+      // Validate form data
+      const entries = Object.values(formData);
+      console.log(`   Found ${entries.length} readings to submit`);
+      
+      entries.forEach((data, idx) => {
+        console.log(`   Reading ${idx}:`, {
+          readingId: data.readingId,
+          aasReadingValue: parseFloat(data.aasReading),
+          aasNotes: data.aasNotes,
+          aasReadingType: typeof data.aasReading,
+          aasReadingParsed: parseFloat(data.aasReading)
+        });
+      });
+
+      // Submit each AAS reading
+      const submissions = Object.values(formData).map(data => {
+        const payload = {
+          readingId: data.readingId,
+          aasReadingValue: parseFloat(data.aasReading),
+          aasNotes: data.aasNotes
+        };
+        console.log("🔵 [handleSubmit] Submitting payload:", payload);
+        return api.post('/lab/record-aas-reading', payload);
+      });
+
+      const results = await Promise.all(submissions);
+      console.log("✅ [handleSubmit] All submissions successful:", results);
       
       // Success - navigate back
-      navigate('/lab/dashboard');
+      navigate('lab-samples');
     } catch (err) {
-      console.error("Failed to submit readings:", err);
-      setError(err.response?.data?.message || "Failed to submit AAS readings");
+      console.error("❌ [handleSubmit] Failed to submit readings:", err);
+      console.error("   Error message:", err.message);
+      console.error("   Error response data:", err.response?.data);
+      console.error("   Error status:", err.response?.status);
+      setError(err.response?.data?.message || err.response?.data?.errors?.join(', ') || "Failed to submit AAS readings");
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +171,7 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
       {/* HEADER */}
       <div className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => navigate('/lab/dashboard')}
+          onClick={() => navigate('lab-samples')}
           className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
         >
           <ArrowLeft size={20} />
@@ -181,7 +204,13 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
           </div>
           <div>
             <p className={`text-sm ${theme?.textMuted}`}>Location</p>
-            <p className="font-semibold">{sample?.lga?.name}, {sample?.state?.name}</p>
+            <p className="font-semibold">
+              {sample?.lga?.name && sample?.state?.name 
+                ? `${sample.lga.name}, ${sample.state.name}` 
+                : sample?.state?.name 
+                ? sample.state.name 
+                : "N/A"}
+            </p>
           </div>
           <div>
             <p className={`text-sm ${theme?.textMuted}`}>Sample Type</p>
@@ -274,7 +303,7 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
           <div className="flex gap-3 mt-6">
             <button
               type="button"
-              onClick={() => navigate('/lab/dashboard')}
+              onClick={() => navigate('lab-samples')}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 transition"
             >
               Cancel

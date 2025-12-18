@@ -24,6 +24,7 @@ import UserManagement from "./components/views/UserManagement";
 import ThresholdManagement from "./components/views/ThresholdManagement";
 import InviteCodeManagement from "./components/views/InviteCodeManagement";
 import SupervisorDashboard from "./components/views/SupervisorDashboard";
+import SuperAdminDashboard from "./components/views/SuperAdminDashboard";
 import CollectorManagement from "./components/views/CollectorManagement";
 import SampleReview from "./components/views/SampleReview";
 import LabAnalystDashboard from "./components/views/LabAnalystDashboard";
@@ -241,6 +242,15 @@ const App = () => {
             element={
               <PrivateRoute allowedRoles={["superadmin"]}>
                 <InviteCodeManagement theme={theme} darkMode={darkMode} />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path='superadmin'
+            element={
+              <PrivateRoute allowedRoles={["superadmin"]}>
+                <SuperAdminDashboard theme={theme} darkMode={darkMode} />
               </PrivateRoute>
             }
           />
