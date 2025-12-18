@@ -13,15 +13,15 @@ export const getContaminationStatus = (sample) => {
   }
 
   // Check for contaminated status
-  const hasContaminated = sample.heavyMetalReadings.some(r => r.status === 'CONTAMINATED')
+  const hasContaminated = sample.heavyMetalReadings.some(r => r.finalStatus === 'CONTAMINATED')
   if (hasContaminated) return 'CONTAMINATED'
 
   // Check for moderate status
-  const hasModerate = sample.heavyMetalReadings.some(r => r.status === 'MODERATE')
+  const hasModerate = sample.heavyMetalReadings.some(r => r.finalStatus === 'MODERATE')
   if (hasModerate) return 'MODERATE'
 
   // Check for safe status
-  const hasSafe = sample.heavyMetalReadings.some(r => r.status === 'SAFE')
+  const hasSafe = sample.heavyMetalReadings.some(r => r.finalStatus === 'SAFE')
   if (hasSafe) return 'SAFE'
 
   return 'PENDING'
@@ -232,7 +232,17 @@ export const generateReportPDF = async (api, reportType, data, filename) => {
     console.log('🔴 [generateReportPDF] Starting PDF generation');
     console.log('   Report Type:', reportType);
     console.log('   Filename:', filename);
-    console.log('   Data samples count:', data?.samples?.length || 0);
+    console.log('   Data structure:', {
+      isArray: Array.isArray(data),
+      type: typeof data,
+      hasDataProperty: data?.data ? true : false,
+      dataLength: Array.isArray(data) ? data.length : (data?.data?.length || 0)
+    });
+    
+    // Data can be either an array directly or an object with data property
+    const dataArray = Array.isArray(data) ? data : (data?.data || []);
+    console.log('   Data samples count:', dataArray.length);
+    console.log('   Full data object keys:', Object.keys(data || {}));
     
     // The endpoint should be specific like /reports/generate/state-summary
     const endpoint = `/reports/generate/${reportType}`;
@@ -240,6 +250,12 @@ export const generateReportPDF = async (api, reportType, data, filename) => {
     console.log('   Full URL will be:', `${api.defaults.baseURL}${endpoint}`);
     
     console.log('🟡 [generateReportPDF] Sending POST request...');
+    console.log('   Request payload:', {
+      type: reportType,
+      data: data,
+      payloadSize: JSON.stringify({ type: reportType, data }).length
+    });
+    
     const response = await api.post(endpoint, {
       type: reportType,
       data: data,
