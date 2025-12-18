@@ -16,19 +16,41 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({});
 
+  // Debug: Log sampleId from URL params
+  useEffect(() => {
+    console.log("🔵 [LabConfirmationForm] Component mounted");
+    console.log("   URL Parameters:", { sampleId });
+    console.log("   sampleId type:", typeof sampleId);
+    console.log("   sampleId value:", sampleId);
+  }, []);
+
   useEffect(() => {
     const fetchSample = async () => {
+      console.log("🟢 [fetchSample] Starting fetch");
+      console.log("   sampleId from params:", sampleId);
+      console.log("   sampleId === undefined:", sampleId === undefined);
+      
       try {
         // Check if token exists before making request
         const token = sessionStorage.getItem("accessToken");
         if (!token) {
+          console.error("❌ [fetchSample] No access token found");
           setError("Access token not found. Please log in again.");
           setLoading(false);
           return;
         }
 
+        if (!sampleId) {
+          console.error("❌ [fetchSample] sampleId is missing or undefined");
+          setError("Sample ID is missing from URL");
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
+        console.log("🔵 [fetchSample] Making API request to /lab/sample/" + sampleId);
         const res = await api.get(`/lab/sample/${sampleId}`);
+        console.log("✅ [fetchSample] Sample fetched successfully:", res.data.data);
         setSample(res.data.data);
         
         // Initialize form with readings pending AAS
@@ -44,10 +66,14 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
             };
           }
         });
+        console.log("🔵 [fetchSample] Form data initialized:", initialData);
         setFormData(initialData);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch sample:", err);
+        console.error("❌ [fetchSample] Failed to fetch sample:", err);
+        console.error("   Error message:", err.message);
+        console.error("   Error response:", err.response?.data);
+        console.error("   API URL attempted:", `/lab/sample/${sampleId}`);
         setError(err.response?.data?.message || "Failed to load sample data");
       } finally {
         setLoading(false);

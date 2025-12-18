@@ -16,10 +16,12 @@ const LabAnalystDashboard = ({ theme: propTheme }) => {
 
   useEffect(() => {
     const fetchLabData = async () => {
+      console.log("🟢 [LabAnalystDashboard] Fetching lab data");
       try {
         // Check if token exists before making request
         const token = sessionStorage.getItem("accessToken");
         if (!token) {
+          console.error("❌ [LabAnalystDashboard] No access token found");
           setError("Access token not found. Please log in again.");
           setLoading(false);
           return;
@@ -28,18 +30,27 @@ const LabAnalystDashboard = ({ theme: propTheme }) => {
         setLoading(true);
         
         // Fetch samples requiring confirmation
+        console.log("🔵 [LabAnalystDashboard] Fetching samples requiring confirmation");
         const samplesRes = await api.get("/lab/samples-requiring-confirmation", {
           params: { take: 10, skip: 0 }
+        });
+        console.log("✅ [LabAnalystDashboard] Samples fetched:", samplesRes.data.data);
+        console.log("   Sample count:", samplesRes.data.data?.length);
+        samplesRes.data.data?.forEach((sample, idx) => {
+          console.log(`   Sample ${idx}:`, { id: sample.id, sampleId: sample.sampleId });
         });
         setSamplesRequiringConfirmation(samplesRes.data.data || []);
 
         // Fetch lab workload stats
+        console.log("🔵 [LabAnalystDashboard] Fetching workload stats");
         const statsRes = await api.get("/lab/my-workload");
+        console.log("✅ [LabAnalystDashboard] Stats fetched:", statsRes.data.data);
         setLabStats(statsRes.data.data);
 
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch lab data:", err);
+        console.error("❌ [LabAnalystDashboard] Failed to fetch lab data:", err);
+        console.error("   Error message:", err.message);
         setError(err.response?.data?.message || "Failed to load lab data");
       } finally {
         setLoading(false);
@@ -125,13 +136,13 @@ const LabAnalystDashboard = ({ theme: propTheme }) => {
                 samplesRequiringConfirmation.map((sample) => (
                   <tr key={sample.id} className={theme?.hover}>
                     <td className="px-4 py-2 font-medium">{sample.sampleId}</td>
-                    <td className="px-4 py-2">{sample.productName}</td>
+                    <td className="px-4 py-2">{sample.product?.variantName || "N/A"}</td>
                     <td className="px-4 py-2">
                       <div className="flex flex-wrap gap-1">
-                        {sample.heavyMetalReadings
+                        {sample.readings
                           ?.filter(r => r.requiresLabConfirmation)
                           .map(r => (
-                            <span key={r.id} className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded">
+                            <span key={r.readingId} className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded">
                               {r.heavyMetal}
                             </span>
                           ))}
@@ -147,7 +158,13 @@ const LabAnalystDashboard = ({ theme: propTheme }) => {
                     </td>
                     <td className="px-4 py-2">
                       <a
-                        href={`/lab/record-reading/${sample.id}`}
+                        href={`/record-reading/${sample.sampleId}`}
+                        onClick={(e) => {
+                          console.log("🟡 [LabAnalystDashboard] Record AAS clicked");
+                          console.log("   sample.sampleId:", sample.sampleId);
+                          console.log("   Full sample object:", sample);
+                          console.log("   Generated URL:", `/record-reading/${sample.sampleId}`);
+                        }}
                         className="text-emerald-500 hover:text-emerald-600 font-semibold"
                       >
                         Record AAS

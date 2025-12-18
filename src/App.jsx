@@ -27,6 +27,7 @@ import SupervisorDashboard from "./components/views/SupervisorDashboard";
 import CollectorManagement from "./components/views/CollectorManagement";
 import SampleReview from "./components/views/SampleReview";
 import LabAnalystDashboard from "./components/views/LabAnalystDashboard";
+import LabConfirmationForm from "./components/views/LabConfirmationForm";
 
 const lightTheme = {
   bg: "bg-gray-100",
@@ -267,6 +268,15 @@ const App = () => {
             element={
               <PrivateRoute allowedRoles={["labanalyst"]}>
                 <LabAnalystDashboard theme={theme} darkMode={darkMode} />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path='record-reading/:sampleId'
+            element={
+              <PrivateRoute allowedRoles={["labanalyst"]}>
+                <LabConfirmationForm theme={theme} />
               </PrivateRoute>
             }
           />
