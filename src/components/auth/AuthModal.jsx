@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { handleLogin, handleSignup } from "../../redux/slice/authSlice";
 import PopupModal from "../modals/popUpModal";
+import { useTheme } from "../../context/ThemeContext";
 
-const AuthModal = ({ theme }) => {
+const AuthModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, currentUser, error, isAuthenticated } = useSelector(
@@ -24,6 +25,7 @@ const AuthModal = ({ theme }) => {
   const [popupMessage, setPopupMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [popupType, setPopupType] = useState("error");
+  const { theme } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -123,7 +125,7 @@ const AuthModal = ({ theme }) => {
                 onChange={(e) =>
                   setAuthForm({ ...authForm, name: e.target.value })
                 }
-                placeholder="John Doe"
+                placeholder="Enter your full name"
                 theme={theme}
               />
               <Input

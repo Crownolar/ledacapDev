@@ -200,7 +200,9 @@ const SampleFormModal = ({ onClose, onSubmit }) => {
         </div>
 
         {loadingData && (
-          <div className="flex items-center justify-center p-12">
+          <div
+            className={`flex items-center justify-center p-12 ${theme.text}`}
+          >
             <Loader className="animate-spin mr-2" />
             <span>Loading form data...</span>
           </div>

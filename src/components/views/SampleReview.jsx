@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useTheme } from "../../hooks/useTheme";
+import { useTheme } from "../../context/ThemeContext";
 import api from "../../utils/api";
 import { CheckCircle } from "lucide-react";
 
-const SampleReview = ({ theme: propTheme }) => {
-  const { theme: hookTheme } = useTheme();
+const SampleReview = () => {
+  const { theme } = useTheme();
   const [samples, setSamples] = useState([]);
   const [selectedSample, setSelectedSample] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,8 +19,6 @@ const SampleReview = ({ theme: propTheme }) => {
     issues: [],
     requestedChanges: "",
   });
-
-  const theme = propTheme || hookTheme;
 
   const ISSUE_OPTIONS = [
     "Incomplete GPS location",
@@ -44,8 +42,8 @@ const SampleReview = ({ theme: propTheme }) => {
 
       if (response.data.success) {
         // Filter samples by review status on frontend since backend doesn't support status param
-        const filtered = response.data.data.filter(sample => {
-          const reviewStatus = sample.review?.status || 'PENDING';
+        const filtered = response.data.data.filter((sample) => {
+          const reviewStatus = sample.review?.status || "PENDING";
           return reviewStatus === filterStatus;
         });
         setSamples(filtered);
@@ -118,7 +116,7 @@ const SampleReview = ({ theme: propTheme }) => {
     if (bulkSelection.size === samples.length) {
       setBulkSelection(new Set());
     } else {
-      setBulkSelection(new Set(samples.map(s => s.id)));
+      setBulkSelection(new Set(samples.map((s) => s.id)));
     }
   };
 
@@ -128,7 +126,11 @@ const SampleReview = ({ theme: propTheme }) => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to mark ${bulkSelection.size} sample(s) as ${status}?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to mark ${bulkSelection.size} sample(s) as ${status}?`
+      )
+    ) {
       return;
     }
 
@@ -197,10 +199,14 @@ const SampleReview = ({ theme: propTheme }) => {
 
         {/* Bulk Actions Bar */}
         {bulkSelection.size > 0 && (
-          <div className={`${theme?.card} border ${theme?.border} rounded-lg p-4 flex items-center justify-between flex-wrap gap-3`}>
+          <div
+            className={`${theme?.card} border ${theme?.border} rounded-lg p-4 flex items-center justify-between flex-wrap gap-3`}
+          >
             <div className="flex items-center gap-3">
               <CheckCircle size={20} className="text-emerald-600" />
-              <span className="font-semibold">{bulkSelection.size} sample(s) selected</span>
+              <span className="font-semibold">
+                {bulkSelection.size} sample(s) selected
+              </span>
             </div>
             <div className="flex gap-2 flex-wrap">
               <button
@@ -238,7 +244,9 @@ const SampleReview = ({ theme: propTheme }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Samples List */}
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">
               {filterStatus} Samples ({samples.length})
@@ -281,27 +289,31 @@ const SampleReview = ({ theme: propTheme }) => {
                     onClick={() => handleSelectSample(sample)}
                     className="flex-1 text-left"
                   >
-                  <p className="font-semibold text-sm">{sample.productName}</p>
-                  <p className={`text-xs ${theme?.textMuted}`}>
-                    {sample.sampleId}
-                  </p>
-                  <div className="flex gap-1 mt-2 flex-wrap">
-                    <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
-                      {sample.state?.name}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      sample.verificationStatus === "VERIFIED_ORIGINAL"
-                        ? "bg-green-100 text-green-700"
-                        : sample.verificationStatus === "VERIFIED_FAKE"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}>
-                      {sample.verificationStatus}
-                    </span>
-                  </div>
-                  <p className={`text-xs ${theme?.textMuted} mt-2`}>
-                    by {sample.creator?.fullName}
-                  </p>
+                    <p className="font-semibold text-sm">
+                      {sample.productName}
+                    </p>
+                    <p className={`text-xs ${theme?.textMuted}`}>
+                      {sample.sampleId}
+                    </p>
+                    <div className="flex gap-1 mt-2 flex-wrap">
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
+                        {sample.state?.name}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          sample.verificationStatus === "VERIFIED_ORIGINAL"
+                            ? "bg-green-100 text-green-700"
+                            : sample.verificationStatus === "VERIFIED_FAKE"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {sample.verificationStatus}
+                      </span>
+                    </div>
+                    <p className={`text-xs ${theme?.textMuted} mt-2`}>
+                      by {sample.creator?.fullName}
+                    </p>
                   </button>
                 </div>
               ))
@@ -312,7 +324,9 @@ const SampleReview = ({ theme: propTheme }) => {
         {/* Sample Details & Review Form */}
         <div className="lg:col-span-2">
           {selectedSample ? (
-            <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border} space-y-6`}>
+            <div
+              className={`${theme?.card} rounded-lg p-6 border ${theme?.border} space-y-6`}
+            >
               {/* Sample Details */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Sample Details</h3>
@@ -323,49 +337,68 @@ const SampleReview = ({ theme: propTheme }) => {
                   </div>
                   <div>
                     <p className={theme?.textMuted}>Product</p>
-                    <p className="font-semibold">{selectedSample.productName}</p>
+                    <p className="font-semibold">
+                      {selectedSample.productName}
+                    </p>
                   </div>
                   <div>
                     <p className={theme?.textMuted}>Location</p>
                     <p className="font-semibold">
-                      {selectedSample.state?.name} - {selectedSample.lga?.name} -{" "}
-                      {selectedSample.market?.name}
+                      {selectedSample.state?.name} - {selectedSample.lga?.name}{" "}
+                      - {selectedSample.market?.name}
                     </p>
                   </div>
                   <div>
                     <p className={theme?.textMuted}>Collected By</p>
-                    <p className="font-semibold">{selectedSample.creator?.fullName}</p>
+                    <p className="font-semibold">
+                      {selectedSample.creator?.fullName}
+                    </p>
                   </div>
                   <div>
                     <p className={theme?.textMuted}>Brand</p>
-                    <p className="font-semibold">{selectedSample.brandName || "-"}</p>
+                    <p className="font-semibold">
+                      {selectedSample.brandName || "-"}
+                    </p>
                   </div>
                   <div>
                     <p className={theme?.textMuted}>Batch Number</p>
-                    <p className="font-semibold">{selectedSample.batchNumber || "-"}</p>
+                    <p className="font-semibold">
+                      {selectedSample.batchNumber || "-"}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Heavy Metals Readings */}
-              {selectedSample.heavyMetalReadings && selectedSample.heavyMetalReadings.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Heavy Metal Readings</h4>
-                  <div className="space-y-2">
-                    {selectedSample.heavyMetalReadings.map((reading, idx) => (
-                      <div key={idx} className={`border ${theme?.border} rounded p-2 text-sm`}>
-                        <p className="font-semibold">{reading.heavyMetal}</p>
-                        <p className={theme?.textMuted}>
-                          XRF: {reading.xrfReading || "-"} | AAS: {reading.aasReading || "-"}
-                        </p>
-                        <p className={`text-xs ${reading.status === "SAFE" ? "text-green-600" : "text-red-600"}`}>
-                          Status: {reading.status}
-                        </p>
-                      </div>
-                    ))}
+              {selectedSample.heavyMetalReadings &&
+                selectedSample.heavyMetalReadings.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Heavy Metal Readings</h4>
+                    <div className="space-y-2">
+                      {selectedSample.heavyMetalReadings.map((reading, idx) => (
+                        <div
+                          key={idx}
+                          className={`border ${theme?.border} rounded p-2 text-sm`}
+                        >
+                          <p className="font-semibold">{reading.heavyMetal}</p>
+                          <p className={theme?.textMuted}>
+                            XRF: {reading.xrfReading || "-"} | AAS:{" "}
+                            {reading.aasReading || "-"}
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              reading.status === "SAFE"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            Status: {reading.status}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Review Form */}
               <div className={`border-t ${theme?.border} pt-4`}>
@@ -377,23 +410,26 @@ const SampleReview = ({ theme: propTheme }) => {
                     Decision
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {["APPROVED", "REJECTED", "FLAGGED", "CORRECTION_REQUESTED"].map(
-                      (status) => (
-                        <button
-                          key={status}
-                          onClick={() =>
-                            setReviewForm((prev) => ({ ...prev, status }))
-                          }
-                          className={`py-2 px-3 rounded-lg font-semibold text-sm transition-colors ${
-                            reviewForm.status === status
-                              ? "bg-emerald-600 text-white"
-                              : `border ${theme?.border} hover:bg-opacity-50`
-                          }`}
-                        >
-                          {status.replace(/_/g, " ")}
-                        </button>
-                      )
-                    )}
+                    {[
+                      "APPROVED",
+                      "REJECTED",
+                      "FLAGGED",
+                      "CORRECTION_REQUESTED",
+                    ].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() =>
+                          setReviewForm((prev) => ({ ...prev, status }))
+                        }
+                        className={`py-2 px-3 rounded-lg font-semibold text-sm transition-colors ${
+                          reviewForm.status === status
+                            ? "bg-emerald-600 text-white"
+                            : `border ${theme?.border} hover:bg-opacity-50`
+                        }`}
+                      >
+                        {status.replace(/_/g, " ")}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -474,9 +510,7 @@ const SampleReview = ({ theme: propTheme }) => {
             <div
               className={`${theme?.card} rounded-lg p-6 border ${theme?.border} text-center`}
             >
-              <p className={theme?.textMuted}>
-                Select a sample to review
-              </p>
+              <p className={theme?.textMuted}>Select a sample to review</p>
             </div>
           )}
         </div>

@@ -1,17 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { useTheme } from "../../hooks/useTheme";
+import { useTheme } from "../../context/ThemeContext";
 import api from "../../utils/api";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
-const SupervisorDashboard = ({ theme: propTheme }) => {
-  const { theme: hookTheme } = useTheme();
+const SupervisorDashboard = () => {
+  const { theme } = useTheme();
   const [stats, setStats] = useState(null);
   const [collectors, setCollectors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const theme = propTheme || hookTheme;
-  const COLORS = ["#10b981", "#ef4444", "#f59e0b", "#8b5cf6"];
+  const COLORS = ["#030a07", "#ef4444", "#f59e0b", "#8b5cf6"];
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -24,11 +35,13 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
         ]);
 
         if (statsRes.data.success) setStats(statsRes.data.data);
-        
+
         // Handle collectors response - data might be nested or be the array directly
         if (collectorsRes.data.success) {
           const collectorsData = collectorsRes.data.data || collectorsRes.data;
-          const collectorsList = Array.isArray(collectorsData) ? collectorsData : collectorsData?.data || [];
+          const collectorsList = Array.isArray(collectorsData)
+            ? collectorsData
+            : collectorsData?.data || [];
           setCollectors(collectorsList);
         }
       } catch (err) {
@@ -72,35 +85,59 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
     <div className={`${theme?.text} space-y-6`}>
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <p className={`text-sm ${theme?.textMuted} mb-2`}>Data Collectors</p>
-          <p className="text-3xl font-bold text-emerald-600">{stats?.totalCollectors || 0}</p>
+          <p className="text-3xl font-bold text-emerald-600">
+            {stats?.totalCollectors || 0}
+          </p>
           <p className={`text-xs ${theme?.textMuted} mt-2`}>Assigned to you</p>
         </div>
 
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <p className={`text-sm ${theme?.textMuted} mb-2`}>Total Samples</p>
-          <p className="text-3xl font-bold text-blue-600">{stats?.totalSamples || 0}</p>
-          <p className={`text-xs ${theme?.textMuted} mt-2`}>From all collectors</p>
+          <p className="text-3xl font-bold text-blue-600">
+            {stats?.totalSamples || 0}
+          </p>
+          <p className={`text-xs ${theme?.textMuted} mt-2`}>
+            From all collectors
+          </p>
         </div>
 
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <p className={`text-sm ${theme?.textMuted} mb-2`}>This Month</p>
-          <p className="text-3xl font-bold text-violet-600">{stats?.samplesThisMonth || 0}</p>
-          <p className={`text-xs ${theme?.textMuted} mt-2`}>Samples collected</p>
+          <p className="text-3xl font-bold text-violet-600">
+            {stats?.samplesThisMonth || 0}
+          </p>
+          <p className={`text-xs ${theme?.textMuted} mt-2`}>
+            Samples collected
+          </p>
         </div>
 
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <p className={`text-sm ${theme?.textMuted} mb-2`}>Pending Review</p>
-          <p className="text-3xl font-bold text-orange-600">{stats?.pendingReviews || 0}</p>
-          <p className={`text-xs ${theme?.textMuted} mt-2`}>Awaiting approval</p>
+          <p className="text-3xl font-bold text-orange-600">
+            {stats?.pendingReviews || 0}
+          </p>
+          <p className={`text-xs ${theme?.textMuted} mt-2`}>
+            Awaiting approval
+          </p>
         </div>
       </div>
 
       {/* Review Status Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Status Breakdown */}
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <h3 className="text-lg font-semibold mb-4">Sample Review Status</h3>
           {stats && (
             <div className="space-y-3">
@@ -108,35 +145,45 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
                 <span className={theme?.textMuted}>Pending Review</span>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span className="font-semibold">{stats.pendingReviews || 0}</span>
+                  <span className="font-semibold">
+                    {stats.pendingReviews || 0}
+                  </span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className={theme?.textMuted}>Approved</span>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="font-semibold">{stats.approvedSamples || 0}</span>
+                  <span className="font-semibold">
+                    {stats.approvedSamples || 0}
+                  </span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className={theme?.textMuted}>Rejected</span>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="font-semibold">{stats.reviewBreakdown?.rejected || 0}</span>
+                  <span className="font-semibold">
+                    {stats.reviewBreakdown?.rejected || 0}
+                  </span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className={theme?.textMuted}>Flagged</span>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <span className="font-semibold">{stats.flaggedSamples || 0}</span>
+                  <span className="font-semibold">
+                    {stats.flaggedSamples || 0}
+                  </span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className={theme?.textMuted}>Correction Requested</span>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="font-semibold">{stats.reviewBreakdown?.correction_requested || 0}</span>
+                  <span className="font-semibold">
+                    {stats.reviewBreakdown?.correction_requested || 0}
+                  </span>
                 </div>
               </div>
             </div>
@@ -144,7 +191,9 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
         </div>
 
         {/* Pie Chart */}
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <h3 className="text-lg font-semibold mb-4">Review Distribution</h3>
           {reviewChartData.length > 0 && (
             <ResponsiveContainer width="100%" height={250}>
@@ -160,7 +209,10 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
                   dataKey="value"
                 >
                   {reviewChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -172,7 +224,9 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
 
       {/* Top Collectors */}
       <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
-        <h3 className="text-lg font-semibold mb-4">Your Data Collectors ({collectors.length})</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Your Data Collectors ({collectors.length})
+        </h3>
         {collectors.length === 0 ? (
           <p className={`${theme?.textMuted} text-center py-8`}>
             No data collectors assigned yet
@@ -184,10 +238,18 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
                 <tr className={`border-b ${theme?.border}`}>
                   <th className="text-left py-3 px-4 font-semibold">Name</th>
                   <th className="text-left py-3 px-4 font-semibold">Email</th>
-                  <th className="text-center py-3 px-4 font-semibold">Total Samples</th>
-                  <th className="text-center py-3 px-4 font-semibold">This Month</th>
-                  <th className="text-center py-3 px-4 font-semibold">States Covered</th>
-                  <th className="text-center py-3 px-4 font-semibold">Status</th>
+                  <th className="text-center py-3 px-4 font-semibold">
+                    Total Samples
+                  </th>
+                  <th className="text-center py-3 px-4 font-semibold">
+                    This Month
+                  </th>
+                  <th className="text-center py-3 px-4 font-semibold">
+                    States Covered
+                  </th>
+                  <th className="text-center py-3 px-4 font-semibold">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -210,12 +272,19 @@ const SupervisorDashboard = ({ theme: propTheme }) => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span className="text-xs px-2 py-1">
-                        {collector.samplesByState ? Object.keys(collector.samplesByState).length : 0} states
+                        {collector.samplesByState
+                          ? Object.keys(collector.samplesByState).length
+                          : 0}{" "}
+                        states
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className={`font-semibold ${collector.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                        {collector.isActive ? 'Active' : 'Inactive'}
+                      <span
+                        className={`font-semibold ${
+                          collector.isActive ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {collector.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
                   </tr>

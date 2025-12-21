@@ -14,7 +14,7 @@ import api from "../utils/api";
 const Layout = () => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.auth);
-  const { theme, darkMode, toggleDarkMode } = useTheme();
+  const { theme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);
@@ -43,10 +43,7 @@ const Layout = () => {
   return (
     <div className={`min-h-screen flex flex-col ${theme.bg}`}>
       <Header
-        theme={theme}
         currentUser={currentUser}
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
         handleLogout={logout}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
@@ -54,10 +51,8 @@ const Layout = () => {
 
       <div className="flex flex-1">
         <Sidebar
-          theme={theme}
           mobileMenuOpen={mobileMenuOpen}
           setMobileMenuOpen={setMobileMenuOpen}
-          darkMode={darkMode}
           currentView={currentView}
           setCurrentView={setCurrentView}
           setShowForm={setShowForm}
@@ -69,7 +64,6 @@ const Layout = () => {
 
         {showForm && (
           <SampleFormModal
-            theme={theme}
             onClose={() => setShowForm(false)}
             onSubmit={handleFormSubmit}
           />

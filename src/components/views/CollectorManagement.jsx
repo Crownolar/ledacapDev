@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useTheme } from "../../hooks/useTheme";
+import { useTheme } from "../../context/ThemeContext";
 import api from "../../utils/api";
 
-const CollectorManagement = ({ theme: propTheme }) => {
-  const { theme: hookTheme } = useTheme();
+const CollectorManagement = () => {
+  const { theme } = useTheme();
   const [collectors, setCollectors] = useState([]);
   const [selectedCollector, setSelectedCollector] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const theme = propTheme || hookTheme;
 
   useEffect(() => {
     fetchCollectors();
@@ -53,8 +51,12 @@ const CollectorManagement = ({ theme: propTheme }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Collectors List */}
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
-          <h3 className="text-lg font-semibold mb-4">Your Data Collectors ({collectors.length})</h3>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
+          <h3 className="text-lg font-semibold mb-4">
+            Your Data Collectors ({collectors.length})
+          </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {collectors.length === 0 ? (
               <p className={theme?.textMuted}>No collectors assigned</p>
@@ -70,7 +72,9 @@ const CollectorManagement = ({ theme: propTheme }) => {
                   }`}
                 >
                   <p className="font-semibold text-sm">{collector.name}</p>
-                  <p className={`text-xs ${theme?.textMuted}`}>{collector.email}</p>
+                  <p className={`text-xs ${theme?.textMuted}`}>
+                    {collector.email}
+                  </p>
                   <div className="flex gap-2 mt-2 flex-wrap">
                     <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
                       {collector.totalSamples} samples
@@ -85,7 +89,9 @@ const CollectorManagement = ({ theme: propTheme }) => {
         {/* Collector Details */}
         <div className="lg:col-span-2">
           {selectedCollector ? (
-            <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border} space-y-4`}>
+            <div
+              className={`${theme?.card} rounded-lg p-6 border ${theme?.border} space-y-4`}
+            >
               <div>
                 <h3 className="text-lg font-semibold mb-4">
                   Collector Details: {selectedCollector.name}
@@ -103,12 +109,16 @@ const CollectorManagement = ({ theme: propTheme }) => {
                     </div>
                     <div>
                       <p className={theme?.textMuted}>Organization</p>
-                      <p className="font-semibold">{selectedCollector.organization || "N/A"}</p>
+                      <p className="font-semibold">
+                        {selectedCollector.organization || "N/A"}
+                      </p>
                     </div>
                     <div>
                       <p className={theme?.textMuted}>Joined</p>
                       <p className="font-semibold">
-                        {new Date(selectedCollector.joinedAt).toLocaleDateString()}
+                        {new Date(
+                          selectedCollector.joinedAt
+                        ).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -129,7 +139,9 @@ const CollectorManagement = ({ theme: propTheme }) => {
 
       {/* Performance Summary */}
       {selectedCollector && (
-        <div className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}>
+        <div
+          className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
+        >
           <h3 className="text-lg font-semibold mb-4">Performance Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
@@ -152,28 +164,40 @@ const CollectorManagement = ({ theme: propTheme }) => {
             </div>
             <div>
               <p className={`text-sm ${theme?.textMuted}`}>Status</p>
-              <p className={`text-2xl font-bold ${selectedCollector.isActive ? 'text-emerald-600' : 'text-red-600'}`}>
-                {selectedCollector.isActive ? 'Active' : 'Inactive'}
+              <p
+                className={`text-2xl font-bold ${
+                  selectedCollector.isActive
+                    ? "text-emerald-600"
+                    : "text-red-600"
+                }`}
+              >
+                {selectedCollector.isActive ? "Active" : "Inactive"}
               </p>
             </div>
           </div>
 
           {/* Samples by State */}
-          {selectedCollector.samplesByState && Object.keys(selectedCollector.samplesByState).length > 0 && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h4 className="font-semibold mb-4">Samples by State</h4>
-              <div className="space-y-2">
-                {Object.entries(selectedCollector.samplesByState).map(([state, count]) => (
-                  <div key={state} className="flex justify-between items-center text-sm">
-                    <span className={theme?.textMuted}>{state}</span>
-                    <span className="font-semibold bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                      {count} samples
-                    </span>
-                  </div>
-                ))}
+          {selectedCollector.samplesByState &&
+            Object.keys(selectedCollector.samplesByState).length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h4 className="font-semibold mb-4">Samples by State</h4>
+                <div className="space-y-2">
+                  {Object.entries(selectedCollector.samplesByState).map(
+                    ([state, count]) => (
+                      <div
+                        key={state}
+                        className="flex justify-between items-center text-sm"
+                      >
+                        <span className={theme?.textMuted}>{state}</span>
+                        <span className="font-semibold bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                          {count} samples
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       )}
     </div>

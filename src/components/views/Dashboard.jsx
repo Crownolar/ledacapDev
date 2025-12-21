@@ -67,7 +67,7 @@ const Dashboard = () => {
   const [filterProduct, setFilterProduct] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [states, setStates] = useState([]);
-  const { theme, darkMode } = useTheme();
+  const { theme } = useTheme();
 
   // Fetch states on mount
   useEffect(() => {

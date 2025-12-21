@@ -9,10 +9,14 @@ import {
   Trash2,
 } from "lucide-react";
 import api from "../../../utils/api";
-import { batchAddXRFReadings, getSampleReadings, clearHeavyMetalState } from "../../../redux/slice/heavyMetalSlice";
+import {
+  batchAddXRFReadings,
+  getSampleReadings,
+  clearHeavyMetalState,
+} from "../../../redux/slice/heavyMetalSlice";
+import { useTheme } from "../../../context/ThemeContext";
 
 const HeavyMetalFormModalNew = ({
-  theme,
   onClose,
   sampleId,
   fetchMySamples,
@@ -29,6 +33,7 @@ const HeavyMetalFormModalNew = ({
   const [thresholds, setThresholds] = useState([]);
   const [loadingSample, setLoadingSample] = useState(true);
   const [sampleError, setSampleError] = useState(null);
+  const { theme } = useTheme();
 
   // Heavy metals list
   const heavyMetals = [
@@ -88,7 +93,10 @@ const HeavyMetalFormModalNew = ({
         }
       } catch (err) {
         console.error("Error fetching sample:", err);
-        const errorMsg = err.response?.data?.error || err.message || "Failed to load sample information";
+        const errorMsg =
+          err.response?.data?.error ||
+          err.message ||
+          "Failed to load sample information";
         setSampleError(errorMsg);
       } finally {
         setLoadingSample(false);
@@ -143,13 +151,13 @@ const HeavyMetalFormModalNew = ({
   const getStatusColor = (status) => {
     switch (status) {
       case "SAFE":
-        return "bg-green-100 text-green-700";
+        return theme.safe;
       case "MODERATE":
-        return "bg-orange-100 text-orange-700";
+        return theme.moderate;
       case "CONTAMINATED":
-        return "bg-red-100 text-red-700";
+        return theme.danger;
       default:
-        return "bg-gray-100 text-gray-700";
+        return `${theme.card} ${theme.textMuted}`;
     }
   };
 
@@ -223,11 +231,15 @@ const HeavyMetalFormModalNew = ({
       ).unwrap();
 
       // Success - data already updated in Redux by reducer
-      console.log(`Successfully recorded ${result.data?.length || readings.length} reading(s)`);
-      
+      console.log(
+        `Successfully recorded ${
+          result.data?.length || readings.length
+        } reading(s)`
+      );
+
       // Refresh the heavy metal readings for this sample in Redux
       await dispatch(getSampleReadings(sampleId));
-      
+
       // Close modal
       onClose();
     } catch (err) {
@@ -264,7 +276,7 @@ const HeavyMetalFormModalNew = ({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[5000]">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border-2 border-gray-200 dark:border-gray-700">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 p-6 rounded-t-2xl sticky top-0 z-10">
+        <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 dark:from-emerald-700 dark:to-emerald-600 p-6 rounded-t-2xl sticky top-0 z-10">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -366,7 +378,10 @@ const HeavyMetalFormModalNew = ({
               <div className="space-y-3">
                 {readings.map((reading, index) => {
                   const threshold = getThreshold(reading.heavyMetal);
-                  const status = getStatus(reading.xrfReading, reading.heavyMetal);
+                  const status = getStatus(
+                    reading.xrfReading,
+                    reading.heavyMetal
+                  );
 
                   return (
                     <div
@@ -382,7 +397,9 @@ const HeavyMetalFormModalNew = ({
                             </label>
                             <select
                               value={reading.heavyMetal}
-                              onChange={(e) => changeMetal(index, e.target.value)}
+                              onChange={(e) =>
+                                changeMetal(index, e.target.value)
+                              }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-600 focus:outline-none"
                             >
                               <option value="">Select Metal</option>
@@ -473,8 +490,8 @@ const HeavyMetalFormModalNew = ({
                         <div className="text-xs text-gray-600 dark:text-gray-400">
                           <p>
                             Safe Limit: &lt;{threshold.safeLimit} | Warning:{" "}
-                            {threshold.warningLimit} | Danger:
-                            &gt;{threshold.dangerLimit}
+                            {threshold.warningLimit} | Danger: &gt;
+                            {threshold.dangerLimit}
                           </p>
                         </div>
                       )}
@@ -579,7 +596,8 @@ const HeavyMetalFormModalNew = ({
               ) : (
                 <>
                   <CheckCircle className="w-5 h-5" />
-                  Save {readings.length} Reading{readings.length !== 1 ? "s" : ""}
+                  Save {readings.length} Reading
+                  {readings.length !== 1 ? "s" : ""}
                 </>
               )}
             </button>

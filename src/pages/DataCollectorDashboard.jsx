@@ -8,7 +8,7 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../context/ThemeContext";
 import HeavyMetalFormModalNew from "../components/modals/lab-result_modal/HeavyMetalFormModalNew";
 import { fetchSamples } from "../redux/slice/samplesSlice";
 import {
@@ -19,7 +19,7 @@ import {
 const DataCollectorDashboard = ({ theme: propTheme }) => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.auth);
-  const { theme: hookTheme } = useTheme();
+  const { theme } = useTheme();
   const {
     samples: allSamples,
     loading: samplesLoading,
@@ -28,22 +28,6 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
   const { readingsBySample, loading: readingsLoading } = useSelector(
     (state) => state.heavyMetal
   );
-
-  // Use prop if provided, otherwise fall back to hook theme
-  const theme = propTheme || hookTheme;
-
-  // Fallback theme object if neither prop nor hook provided
-  const fallbackTheme = {
-    bg: "bg-gray-900",
-    card: "bg-gray-800",
-    text: "text-white",
-    textMuted: "text-gray-400",
-    border: "border-gray-700",
-    input: "bg-gray-700 text-white border-gray-600",
-    hover: "hover:bg-gray-700",
-  };
-
-  const activeTheme = theme || fallbackTheme;
 
   // State management
   const [filterStatus, setFilterStatus] = useState("all"); // all, pending, completed
@@ -136,21 +120,19 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
   };
 
   return (
-    <div className={`min-h-screen ${activeTheme?.bg}`}>
+    <div className={`min-h-scrtheme?.bg}`}>
       {/* Header */}
-      <div
-        className={`${activeTheme?.card} border-b ${activeTheme?.border} shadow-md`}
-      >
+      <div className={`${theme?.card} bordetheme?.border} shadow-md`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
               <Beaker className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className={`text-3xl font-bold ${activeTheme?.text}`}>
+              <h1 className={`text-3xl font-bold ${theme?.text}`}>
                 Data Collector Dashboard
               </h1>
-              <p className={activeTheme?.textMuted}>
+              <p className={theme?.textMuted}>
                 Manage your collected samples and add lab results
               </p>
             </div>
@@ -158,32 +140,28 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
 
           {/* User Info */}
           <div
-            className={`bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-emerald-900/20 dark:to-cyan-900/20 p-4 rounded-lg border ${activeTheme?.border}`}
+            className={`bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-emerald-900/20 dark:to-cyan-900/20 p-4 rounded-lg border ${theme?.border}`}
           >
             <div className="space-y-2">
-              <p className={activeTheme?.text}>
+              <p className={theme?.text}>
                 <span className="font-semibold">
                   Welcome, {currentUser?.fullName}
                 </span>
                 {currentUser?.organization && (
-                  <span className={`ml-2 ${activeTheme?.textMuted}`}>
+                  <span className={`ml-2 ${theme?.textMuted}`}>
                     • {currentUser.organization}
                   </span>
                 )}
               </p>
               {supervisor ? (
-                <p className={activeTheme?.textMuted}>
+                <p className={theme?.textMuted}>
                   <span className="font-semibold">Supervisor:</span>{" "}
                   {supervisor.fullName} ({supervisor.email})
                 </p>
               ) : loadingSupervisor ? (
-                <p className={activeTheme?.textMuted}>
-                  Loading supervisor info...
-                </p>
+                <p className={theme?.textMuted}>Loading supervisor info...</p>
               ) : (
-                <p className={activeTheme?.textMuted}>
-                  No supervisor assigned yet
-                </p>
+                <p className={theme?.textMuted}>No supervisor assigned yet</p>
               )}
             </div>
           </div>
@@ -195,14 +173,14 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Total Samples */}
           <div
-            className={`${activeTheme?.card} rounded-lg shadow-md p-6 border ${activeTheme?.border}`}
+            className={`${theme?.card} rounded-lg shadow-md p-6 border ${theme?.border}`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`${activeTheme?.textMuted} text-sm font-medium`}>
+                <p className={`${theme?.textMuted} text-sm font-medium`}>
                   Total Samples
                 </p>
-                <p className={`${activeTheme?.text} text-3xl font-bold mt-2`}>
+                <p className={`${theme?.text} text-3xl font-bold mt-2`}>
                   {!samplesLoading ? mySamples.length : "--"}
                 </p>
               </div>
@@ -214,14 +192,14 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
 
           {/* Pending Results */}
           <div
-            className={`${activeTheme?.card} rounded-lg shadow-md p-6 border ${activeTheme?.border}`}
+            className={`${theme?.card} rounded-lg shadow-md p-6 border ${theme?.border}`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`${activeTheme?.textMuted} text-sm font-medium`}>
+                <p className={`${theme?.textMuted} text-sm font-medium`}>
                   Pending Results
                 </p>
-                <p className={`${activeTheme?.text} text-3xl font-bold mt-2`}>
+                <p className={`${theme?.text} text-3xl font-bold mt-2`}>
                   {!samplesLoading && !readingsLoading
                     ? mySamples.filter((s) => !hasAllReadings(s)).length
                     : "--"}
@@ -235,14 +213,14 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
 
           {/* Completed */}
           <div
-            className={`${activeTheme?.card} rounded-lg shadow-md p-6 border ${activeTheme?.border}`}
+            className={`${theme?.card} rounded-lg shadow-md p-6 border ${theme?.border}`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`${activeTheme?.textMuted} text-sm font-medium`}>
+                <p className={`${theme?.textMuted} text-sm font-medium`}>
                   With Results
                 </p>
-                <p className={`${activeTheme?.text} text-3xl font-bold mt-2`}>
+                <p className={`${theme?.text} text-3xl font-bold mt-2`}>
                   {!samplesLoading && !readingsLoading
                     ? mySamples.filter((s) => hasAllReadings(s)).length
                     : "--"}
@@ -269,7 +247,7 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
                 ${
                   filterStatus === tab.value
                     ? "bg-emerald-600 text-white shadow-md"
-                    : `${activeTheme?.card} ${activeTheme?.text} border ${activeTheme?.border} hover:border-emerald-400`
+                    : `${theme?.card} ${theme?.text} border ${theme?.border} hover:border-emerald-400`
                 }`}
             >
               {tab.label}
@@ -297,7 +275,7 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
                 className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce"
                 style={{ animationDelay: "0.2s" }}
               ></div>
-              <p className={`ml-2 ${activeTheme?.text}`}>
+              <p className={`ml-2 ${theme?.text}`}>
                 {samplesLoading ? "Loading samples..." : "Loading readings..."}
               </p>
             </div>
@@ -309,13 +287,13 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
           !readingsLoading &&
           filteredSamples.length === 0 && (
             <div
-              className={`${activeTheme?.card} rounded-lg border ${activeTheme?.border} p-12 text-center`}
+              className={`${theme?.card} rounded-lg border ${theme?.border} p-12 text-center`}
             >
               <Beaker className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <p className={`${activeTheme?.text} font-semibold text-lg`}>
+              <p className={`${theme?.text} font-semibold text-lg`}>
                 No samples found
               </p>
-              <p className={activeTheme?.textMuted}>
+              <p className={theme?.textMuted}>
                 {filterStatus === "completed"
                   ? "You haven't added results to any samples yet"
                   : filterStatus === "pending"
@@ -337,7 +315,7 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
               return (
                 <div
                   key={sample.id}
-                  className={`${activeTheme?.card} rounded-xl shadow-md border ${activeTheme?.border} hover:shadow-lg transition-all overflow-hidden`}
+                  className={`${theme?.card} rounded-xl shadow-md border ${theme?.border} hover:shadow-lg transition-all overflow-hidden`}
                 >
                   {/* Header */}
                   <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-4">
@@ -354,29 +332,27 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
                     {/* Location Info */}
                     <div className="space-y-2">
                       <p
-                        className={`${activeTheme?.textMuted} text-xs font-semibold uppercase`}
+                        className={`${theme?.textMuted} text-xs font-semibold uppercase`}
                       >
                         Location
                       </p>
-                      <p className={`${activeTheme?.text} font-medium`}>
+                      <p className={`${theme?.text} font-medium`}>
                         {sample.market?.name || "N/A"}
                       </p>
-                      <p className={`${activeTheme?.textMuted} text-sm`}>
+                      <p className={`${theme?.textMuted} text-sm`}>
                         {sample.lga?.name}, {sample.state?.name}
                       </p>
                     </div>
 
                     {/* Product Info */}
                     <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <div>
+                      <div className={`${theme?.textMuted}`}>
                         <p
-                          className={`${activeTheme?.textMuted} text-xs font-semibold uppercase`}
+                          classNam3={`${theme?.textMuted} text-xs font-semibold uppercase`}
                         >
                           Type
                         </p>
-                        <p
-                          className={`${activeTheme?.text} font-medium text-sm`}
-                        >
+                        <p className={`${theme?.text} font-medium text-sm`}>
                           {sample.productVariant?.displayName ||
                             sample.productVariant?.name ||
                             "Unknown"}
@@ -384,13 +360,11 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
                       </div>
                       <div>
                         <p
-                          className={`${activeTheme?.textMuted} text-xs font-semibold uppercase`}
+                          className={`${theme?.textMuted} text-xs font-semibold uppercase`}
                         >
                           Price
                         </p>
-                        <p
-                          className={`${activeTheme?.text} font-medium text-sm`}
-                        >
+                        <p className={`${theme?.text} font-medium text-sm`}>
                           ₦{parseFloat(sample.price).toLocaleString()}
                         </p>
                       </div>
@@ -409,7 +383,7 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
                       {readings.length > 0 && (
                         <div className="mt-3 space-y-1">
                           <p
-                            className={`${activeTheme?.textMuted} text-xs font-semibold uppercase`}
+                            className={`${theme?.textMuted} text-xs font-semibold uppercase`}
                           >
                             Recorded Metals:
                           </p>
@@ -450,7 +424,6 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
       {/* Heavy Metal Modal */}
       {showHeavyMetalModal && selectedSample && (
         <HeavyMetalFormModalNew
-          theme={activeTheme}
           onClose={handleModalClose}
           sampleId={selectedSample.id}
           sampleData={selectedSample}
