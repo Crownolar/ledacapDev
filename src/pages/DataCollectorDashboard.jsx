@@ -33,8 +33,6 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
   const [filterStatus, setFilterStatus] = useState("all"); // all, pending, completed
   const [selectedSample, setSelectedSample] = useState(null);
   const [showHeavyMetalModal, setShowHeavyMetalModal] = useState(false);
-  const [supervisor, setSupervisor] = useState(null);
-  const [loadingSupervisor, setLoadingSupervisor] = useState(false);
 
   // Filter user's samples
   const mySamples = allSamples.filter(
@@ -46,25 +44,8 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
     if (currentUser?.id) {
       // Fetch all samples first
       dispatch(fetchSamples({ page: 1, limit: 5000 }));
-      // Fetch supervisor info
-      fetchSupervisorInfo();
     }
   }, [dispatch, currentUser?.id]);
-
-  const fetchSupervisorInfo = async () => {
-    try {
-      setLoadingSupervisor(true);
-      const api = require("../utils/api").default;
-      const response = await api.get("/data-collector/me/supervisor");
-      if (response.data.success) {
-        setSupervisor(response.data.data);
-      }
-    } catch (err) {
-      console.error("Error fetching supervisor info:", err);
-    } finally {
-      setLoadingSupervisor(false);
-    }
-  };
 
   // Fetch heavy metal readings when samples are loaded
   useEffect(() => {
@@ -153,16 +134,6 @@ const DataCollectorDashboard = ({ theme: propTheme }) => {
                   </span>
                 )}
               </p>
-              {supervisor ? (
-                <p className={theme?.textMuted}>
-                  <span className="font-semibold">Supervisor:</span>{" "}
-                  {supervisor.fullName} ({supervisor.email})
-                </p>
-              ) : loadingSupervisor ? (
-                <p className={theme?.textMuted}>Loading supervisor info...</p>
-              ) : (
-                <p className={theme?.textMuted}>No supervisor assigned yet</p>
-              )}
             </div>
           </div>
         </div>
