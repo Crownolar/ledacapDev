@@ -236,7 +236,7 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
                 {/* XRF Reading (Read-only) */}
                 <div>
                   <label className={`text-sm font-semibold ${theme?.textMuted} block mb-1`}>
-                    XRF Screening Result (mg/kg or mg/L)
+                    XRF Screening Result ({sample?.sampleType === 'LIQUID' ? 'mg/L' : 'mg/kg'})
                   </label>
                   <input
                     type="number"
@@ -249,7 +249,7 @@ const LabConfirmationForm = ({ theme: propTheme }) => {
                 {/* AAS Reading (Required) */}
                 <div>
                   <label className={`text-sm font-semibold block mb-1`}>
-                    AAS Lab Result (mg/kg or mg/L) *
+                    AAS Lab Result ({sample?.sampleType === 'LIQUID' ? 'mg/L' : 'mg/kg'}) *
                   </label>
                   <input
                     type="number"
