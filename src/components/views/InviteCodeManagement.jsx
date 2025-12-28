@@ -8,7 +8,6 @@ const InviteCodeManagement = () => {
   const { currentUser } = useSelector((state) => state.auth);
   const { theme } = useTheme();
 
-  // Role-based access control - SUPER_ADMIN only
   const normalizedRole = currentUser?.role?.toLowerCase().replace(/[\s_]/g, "");
 
   if (normalizedRole !== "superadmin") {
@@ -17,13 +16,13 @@ const InviteCodeManagement = () => {
         className={`${theme?.bg} min-h-screen flex items-center justify-center p-4`}
       >
         <div
-          className={`${theme?.card} rounded-lg border ${theme?.border} shadow-md p-8 text-center max-w-md`}
+          className={`${theme?.card} rounded-lg border ${theme?.border} shadow-md p-6 sm:p-8 text-center max-w-md`}
         >
-          <Lock className="w-16 h-16 mx-auto mb-4 text-yellow-600" />
-          <h2 className={`${theme?.text} text-2xl font-bold mb-2`}>
+          <Lock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-yellow-600" />
+          <h2 className={`${theme?.text} text-xl sm:text-2xl font-bold mb-2`}>
             Access Restricted
           </h2>
-          <p className={theme?.textMuted}>
+          <p className={`${theme?.textMuted} text-sm sm:text-base`}>
             Invite code management is only available to Super Administrators.
           </p>
         </div>
@@ -131,55 +130,60 @@ const InviteCodeManagement = () => {
   });
 
   return (
-    <div className={`p-6 ${theme?.bg}`}>
+    <div className={`p-3 sm:p-4 md:p-6 ${theme?.bg}`}>
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className={`text-3xl font-bold ${theme?.text}`}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+          <h1
+            className={`text-xl sm:text-2xl md:text-3xl font-bold ${theme?.text}`}
+          >
             Invite Code Management
           </h1>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition text-sm sm:text-base"
           >
-            <Plus size={20} /> Generate Invite
+            <Plus size={18} className="sm:w-5 sm:h-5" /> Generate Invite
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex justify-between items-center">
-            <span>{error}</span>
+          <div className="mb-4 p-3 sm:p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg flex justify-between items-start gap-2 text-sm sm:text-base">
+            <span className="break-words flex-1">{error}</span>
             <button
               onClick={() => setError(null)}
-              className="text-red-700 hover:text-red-900"
+              className="text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100 flex-shrink-0"
             >
-              <X size={20} />
+              <X size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex justify-between items-center">
-            <span>{success}</span>
+          <div className="mb-4 p-3 sm:p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 rounded-lg flex justify-between items-start gap-2 text-sm sm:text-base">
+            <span className="break-words flex-1">{success}</span>
             <button
               onClick={() => setSuccess(null)}
-              className="text-green-700 hover:text-green-900"
+              className="text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 flex-shrink-0"
             >
-              <X size={20} />
+              <X size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
         )}
 
         {showForm && (
           <div
-            className={`mb-6 p-6 ${theme?.card} border ${theme?.border} rounded-lg`}
+            className={`mb-4 sm:mb-6 p-4 sm:p-6 ${theme?.card} border ${theme?.border} rounded-lg`}
           >
-            <form onSubmit={handleGenerateInvite} className="space-y-4">
+            <form
+              onSubmit={handleGenerateInvite}
+              className="space-y-3 sm:space-y-4"
+            >
               <select
                 value={formData.role}
                 onChange={(e) =>
                   setFormData({ ...formData, role: e.target.value })
                 }
-                className={`w-full px-4 py-2 border ${theme?.border} rounded-lg ${theme?.input}`}
+                className={`w-full px-3 py-2 sm:px-4 text-sm sm:text-base border ${theme?.border} rounded-lg ${theme?.input}`}
               >
                 {roles.map((r) => (
                   <option key={r} value={r}>
@@ -196,15 +200,15 @@ const InviteCodeManagement = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, organization: e.target.value })
                   }
-                  className={`w-full px-4 py-2 border ${theme?.border} rounded-lg ${theme?.input}`}
+                  className={`w-full px-3 py-2 sm:px-4 text-sm sm:text-base border ${theme?.border} rounded-lg ${theme?.input}`}
                   required
                 />
               )}
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg transition"
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg transition text-sm sm:text-base"
                 >
                   Generate Invite Code
                 </button>
@@ -214,7 +218,7 @@ const InviteCodeManagement = () => {
                     setShowForm(false);
                     setFormData({ role: "DATA_COLLECTOR", organization: "" });
                   }}
-                  className={`flex-1 border ${theme?.border} ${theme?.text} py-2 rounded-lg hover:${theme?.hover} transition`}
+                  className={`flex-1 border ${theme?.border} ${theme?.text} py-2 rounded-lg hover:${theme?.hover} transition text-sm sm:text-base`}
                 >
                   Cancel
                 </button>
@@ -224,12 +228,12 @@ const InviteCodeManagement = () => {
         )}
 
         <div
-          className={`p-4 ${theme?.card} border ${theme?.border} rounded-lg mb-6 flex gap-4`}
+          className={`p-3 sm:p-4 ${theme?.card} border ${theme?.border} rounded-lg mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4`}
         >
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className={`flex-1 px-4 py-2 border ${theme?.border} rounded-lg ${theme?.input}`}
+            className={`flex-1 px-3 py-2 sm:px-4 text-sm sm:text-base border ${theme?.border} rounded-lg ${theme?.input}`}
           >
             <option value="all">All Roles</option>
             {roles.map((r) => (
@@ -241,7 +245,7 @@ const InviteCodeManagement = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className={`flex-1 px-4 py-2 border ${theme?.border} rounded-lg ${theme?.input}`}
+            className={`flex-1 px-3 py-2 sm:px-4 text-sm sm:text-base border ${theme?.border} rounded-lg ${theme?.input}`}
           >
             <option value="all">All Status</option>
             <option value="unused">Unused</option>
@@ -250,112 +254,254 @@ const InviteCodeManagement = () => {
         </div>
 
         {loading ? (
-          <div className={`text-center text-lg ${theme?.text}`}>
+          <div
+            className={`text-center text-base sm:text-lg ${theme?.text} py-8`}
+          >
             Loading invite codes...
           </div>
         ) : filteredCodes.length === 0 ? (
-          <div className={`text-center text-lg ${theme?.text}`}>
+          <div
+            className={`text-center text-base sm:text-lg ${theme?.text} py-8`}
+          >
             No invite codes found
           </div>
         ) : (
-          <div className={`overflow-x-auto border ${theme?.border} rounded-lg`}>
-            <table className="w-full">
-              <thead className={theme?.card}>
-                <tr className={`border-b ${theme?.border}`}>
-                  <th className={`px-6 py-3 text-left ${theme?.text}`}>Code</th>
-                  <th className={`px-6 py-3 text-left ${theme?.text}`}>Role</th>
-                  <th className={`px-6 py-3 text-left ${theme?.text}`}>
-                    Organization
-                  </th>
-                  <th className={`px-6 py-3 text-center ${theme?.text}`}>
-                    Status
-                  </th>
-                  <th className={`px-6 py-3 text-left ${theme?.text}`}>
-                    Generated By
-                  </th>
-                  <th className={`px-6 py-3 text-left ${theme?.text}`}>
-                    Created
-                  </th>
-                  <th className={`px-6 py-3 text-center ${theme?.text}`}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCodes.map((ic) => (
-                  <tr
-                    key={ic.id}
-                    className={`border-b ${theme?.border} hover:${theme?.hover}`}
-                  >
-                    <td
-                      className={`px-6 py-3 ${theme?.text} font-mono text-sm`}
+          <>
+            {/* Desktop Table View */}
+            <div
+              className={`hidden lg:block overflow-x-auto border ${theme?.border} rounded-lg`}
+            >
+              <table className="w-full">
+                <thead className={theme?.card}>
+                  <tr className={`border-b ${theme?.border}`}>
+                    <th
+                      className={`px-4 py-3 text-left text-sm ${theme?.text}`}
                     >
-                      <div className="flex items-center gap-2">
-                        {ic.code}
+                      Code
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-left text-sm ${theme?.text}`}
+                    >
+                      Role
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-left text-sm ${theme?.text}`}
+                    >
+                      Organization
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-center text-sm ${theme?.text}`}
+                    >
+                      Status
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-left text-sm ${theme?.text}`}
+                    >
+                      Generated By
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-left text-sm ${theme?.text}`}
+                    >
+                      Created
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-center text-sm ${theme?.text}`}
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCodes.map((ic) => (
+                    <tr
+                      key={ic.id}
+                      className={`border-b ${theme?.border} hover:${theme?.hover}`}
+                    >
+                      <td
+                        className={`px-4 py-3 ${theme?.text} font-mono text-sm`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {ic.code}
+                          <button
+                            onClick={() => handleCopyCode(ic.code)}
+                            className={`p-1 rounded ${
+                              copiedCode === ic.code
+                                ? "bg-green-100 dark:bg-green-900/30"
+                                : theme?.hover
+                            }`}
+                            title="Copy to clipboard"
+                          >
+                            <Copy
+                              size={16}
+                              className={
+                                copiedCode === ic.code
+                                  ? "text-green-600 dark:text-green-400"
+                                  : ""
+                              }
+                            />
+                          </button>
+                        </div>
+                      </td>
+                      <td className={`px-4 py-3`}>
+                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
+                          {ic.role}
+                        </span>
+                      </td>
+                      <td className={`px-4 py-3 text-sm ${theme?.textMuted}`}>
+                        {ic.organization || "-"}
+                      </td>
+                      <td className={`px-4 py-3 text-center`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            ic.isUsed
+                              ? "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                              : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                          }`}
+                        >
+                          {ic.isUsed ? "Used" : "Unused"}
+                        </span>
+                      </td>
+                      <td className={`px-4 py-3 text-sm ${theme?.textMuted}`}>
+                        {ic.createdBy?.fullName || "Unknown"}
+                      </td>
+                      <td className={`px-4 py-3 text-sm ${theme?.textMuted}`}>
+                        {new Date(ic.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className={`px-4 py-3 text-center`}>
+                        <button
+                          onClick={() => handleDeleteInvite(ic.id)}
+                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile/Tablet Card View */}
+            <div className="lg:hidden space-y-3 sm:space-y-4">
+              {filteredCodes.map((ic) => (
+                <div
+                  key={ic.id}
+                  className={`${theme?.card} border ${theme?.border} rounded-lg p-4 space-y-3`}
+                >
+                  {/* Code and Status */}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code
+                          className={`${theme?.text} font-mono text-sm truncate`}
+                        >
+                          {ic.code}
+                        </code>
                         <button
                           onClick={() => handleCopyCode(ic.code)}
-                          className={`p-1 rounded ${
-                            copiedCode === ic.code
-                              ? "bg-green-100"
-                              : theme?.hover
+                          className={`p-1 rounded flex-shrink-0 ${
+                            copiedCode === ic.code ? theme.bg : theme?.hover
                           }`}
                           title="Copy to clipboard"
                         >
                           <Copy
-                            size={16}
+                            size={14}
                             className={
-                              copiedCode === ic.code ? "text-green-600" : ""
+                              copiedCode === ic.code
+                                ? "text-green-600 dark:text-green-400"
+                                : ""
                             }
                           />
                         </button>
                       </div>
-                    </td>
-                    <td className={`px-6 py-3 ${theme?.text}`}>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                        {ic.role}
-                      </span>
-                    </td>
-                    <td className={`px-6 py-3 ${theme?.textMuted}`}>
-                      {ic.organization || "-"}
-                    </td>
-                    <td className={`px-6 py-3 text-center`}>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          ic.isUsed
-                            ? "bg-red-100 text-red-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${
+                        ic.isUsed
+                          ? "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                          : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                      }`}
+                    >
+                      {ic.isUsed ? "Used" : "Unused"}
+                    </span>
+                  </div>
+
+                  {/* Role */}
+                  <div>
+                    <p
+                      className={`${theme?.textMuted} text-xs font-semibold uppercase mb-1`}
+                    >
+                      Role
+                    </p>
+                    <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
+                      {ic.role}
+                    </span>
+                  </div>
+
+                  {/* Organization */}
+                  {ic.organization && (
+                    <div>
+                      <p
+                        className={`${theme?.textMuted} text-xs font-semibold uppercase mb-1`}
                       >
-                        {ic.isUsed ? "Used" : "Unused"}
-                      </span>
-                    </td>
-                    <td className={`px-6 py-3 ${theme?.textMuted}`}>
-                      {ic.createdBy?.fullName || "Unknown"}
-                    </td>
-                    <td className={`px-6 py-3 ${theme?.textMuted}`}>
-                      {new Date(ic.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className={`px-6 py-3 text-center`}>
-                      <button
-                        onClick={() => handleDeleteInvite(ic.id)}
-                        className="text-red-500 hover:text-red-700 transition"
+                        Organization
+                      </p>
+                      <p className={`${theme?.text} text-sm`}>
+                        {ic.organization}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Generated By and Date */}
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                      <p
+                        className={`${theme?.textMuted} text-xs font-semibold uppercase mb-1`}
                       >
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        Generated By
+                      </p>
+                      <p className={`${theme?.text} text-xs truncate`}>
+                        {ic.createdBy?.fullName || "Unknown"}
+                      </p>
+                    </div>
+                    <div>
+                      <p
+                        className={`${theme?.textMuted} text-xs font-semibold uppercase mb-1`}
+                      >
+                        Created
+                      </p>
+                      <p className={`${theme?.text} text-xs`}>
+                        {new Date(ic.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={() => handleDeleteInvite(ic.id)}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
+                    >
+                      <Trash2 size={16} />
+                      Delete Invite Code
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         <div
-          className={`mt-6 p-4 ${theme?.card} border ${theme?.border} rounded-lg`}
+          className={`mt-4 sm:mt-6 p-3 sm:p-4 ${theme?.card} border ${theme?.border} rounded-lg`}
         >
-          <h3 className={`font-semibold ${theme?.text} mb-2`}>How to use:</h3>
+          <h3
+            className={`font-semibold ${theme?.text} mb-2 text-sm sm:text-base`}
+          >
+            How to use:
+          </h3>
           <ol
-            className={`space-y-1 ${theme?.textMuted} list-decimal list-inside`}
+            className={`space-y-1 ${theme?.textMuted} list-decimal list-inside text-xs sm:text-sm`}
           >
             <li>Generate a unique invite code for the desired role</li>
             <li>Share the code with the person who needs to register</li>
