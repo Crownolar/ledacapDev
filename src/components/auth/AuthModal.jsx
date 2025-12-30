@@ -103,9 +103,9 @@ const AuthModal = () => {
           <div className="bg-emerald-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mb-2 text-white">LEDAcap</h1>
+          <h1 className="text-2xl font-bold mb-2 text-white">LEADcap</h1>
           <p className={`text-sm ${theme.textMuted}`}>
-            Lead Exposure Detection & Capacity Platform
+            Lead Exposure & Detection Capacity Platform
           </p>
         </div>
 

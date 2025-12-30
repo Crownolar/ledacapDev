@@ -139,7 +139,7 @@ const LabConfirmationForm = () => {
       console.log("✅ [handleSubmit] All submissions successful:", results);
 
       // Success - navigate back
-      navigate("lab-samples");
+      navigate("/lab-samples");
     } catch (err) {
       console.error("❌ [handleSubmit] Failed to submit readings:", err);
       console.error("   Error message:", err.message);
