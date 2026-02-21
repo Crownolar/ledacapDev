@@ -29,6 +29,7 @@ import CollectorManagement from "./components/views/CollectorManagement";
 import SampleReview from "./components/views/SampleReview";
 import LabAnalystDashboard from "./components/views/LabAnalystDashboard";
 import LabConfirmationForm from "./components/views/LabConfirmationForm";
+import { EnumsProvider } from "./context/EnumsContext";
 
 const lightTheme = {
   bg: "bg-gray-100",
@@ -63,6 +64,7 @@ const App = () => {
   const navigate = useNavigate();
 
   return (
+    <EnumsProvider isAuthenticated={isAuthenticated}>
     <div>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -287,6 +289,7 @@ const App = () => {
         </Route>
       </Routes>
     </div>
+    </EnumsProvider>
   );
 };
 

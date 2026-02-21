@@ -3,10 +3,13 @@ import { Edit2, Trash2, Plus, Search, X, Lock } from "lucide-react";
 import api from "../../utils/api";
 import { useSelector } from "react-redux";
 import { useTheme } from "../../context/ThemeContext";
+import { useEnums } from "../../context/EnumsContext";
 
 const UserManagement = () => {
   const { currentUser } = useSelector((state) => state.auth);
   const { theme } = useTheme();
+  const { userRoles, userRoleLabels } = useEnums();
+  const roles = userRoles.length ? userRoles : ["SUPER_ADMIN", "HEAD_RESEARCHER", "DATA_COLLECTOR", "SUPERVISOR", "POLICY_MAKER_SON", "POLICY_MAKER_NAFDAC", "POLICY_MAKER_RESOLVE", "POLICY_MAKER_UNIVERSITY"];
 
   const normalizedRole = currentUser?.role?.toLowerCase().replace(/[\s_]/g, "");
 
@@ -44,17 +47,6 @@ const UserManagement = () => {
     organization: "",
     isActive: true,
   });
-
-  const roles = [
-    "SUPER_ADMIN",
-    "HEAD_RESEARCHER",
-    "DATA_COLLECTOR",
-    "SUPERVISOR",
-    "POLICY_MAKER_SON",
-    "POLICY_MAKER_NAFDAC",
-    "POLICY_MAKER_RESOLVE",
-    "POLICY_MAKER_UNIVERSITY",
-  ];
 
   useEffect(() => {
     fetchUsers();
@@ -225,7 +217,7 @@ const UserManagement = () => {
               >
                 {roles.map((r) => (
                   <option key={r} value={r}>
-                    {r}
+                    {userRoleLabels[r] || r.replace(/_/g, ' ')}
                   </option>
                 ))}
               </select>
@@ -299,7 +291,7 @@ const UserManagement = () => {
             <option value="all">All Roles</option>
             {roles.map((r) => (
               <option key={r} value={r}>
-                {r}
+                {userRoleLabels[r] || r.replace(/_/g, ' ')}
               </option>
             ))}
           </select>

@@ -14,6 +14,7 @@ import {
   getMultipleSampleReadings,
   getSampleReadings,
 } from "../redux/slice/heavyMetalSlice";
+import api from "../utils/api";
 
 const DataCollectorDashboard = () => {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const DataCollectorDashboard = () => {
     const fetchSupervisorInfo = async () => {
       try {
         setLoadingSupervisor(true);
-        const res = await api.get("/data-collector/me/supervisor");
+        const res = await api.get("/data-collectors/me/supervisor");
         if (res.data?.success) {
           setSupervisor(res.data.data);
         }
