@@ -637,40 +637,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                   </select>
                 </div>
 
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-2 ${theme.text}`}
-                  >
-                    NAFDAC Number
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nafdacNumber}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nafdacNumber: e.target.value })
-                    }
-                    className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
-                    placeholder="e.g., A7-0001-2023"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-2 ${theme.text}`}
-                  >
-                    SON Number
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.sonNumber}
-                    onChange={(e) =>
-                      setFormData({ ...formData, sonNumber: e.target.value })
-                    }
-                    className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
-                    placeholder="e.g., SON/CL/2023-0001"
-                  />
-                </div>
-
                 <div className="flex items-center mt-2">
                   <input
                     type="checkbox"
@@ -691,6 +657,44 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                     Registered Product (NAFDAC/SON)
                   </label>
                 </div>
+
+                {formData.isRegistered && (
+                  <>
+                    <div>
+                      <label
+                        className={`block text-sm font-medium mb-2 ${theme.text}`}
+                      >
+                        NAFDAC Number
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.nafdacNumber}
+                        onChange={(e) =>
+                          setFormData({ ...formData, nafdacNumber: e.target.value })
+                        }
+                        className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
+                        placeholder="e.g., A7-0001-2023"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        className={`block text-sm font-medium mb-2 ${theme.text}`}
+                      >
+                        SON Number
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.sonNumber}
+                        onChange={(e) =>
+                          setFormData({ ...formData, sonNumber: e.target.value })
+                        }
+                        className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
+                        placeholder="e.g., SON/CL/2023-0001"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </section>
 

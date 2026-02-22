@@ -123,8 +123,12 @@ const SampleDetailModal = ({ theme, sample, onClose, onEditRequest }) => {
                       "Registered:",
                       sample?.isRegistered ? "Yes (NAFDAC/SON)" : "No",
                     ],
-                    ["NAFDAC Number:", sample?.nafdacNumber || "N/A"],
-                    ["SON Number:", sample?.sonNumber || "N/A"],
+                    ...(sample?.isRegistered
+                      ? [
+                          ["NAFDAC Number:", sample?.nafdacNumber || "N/A"],
+                          ["SON Number:", sample?.sonNumber || "N/A"],
+                        ]
+                      : []),
                     [
                       "Price:",
                       sample?.price
