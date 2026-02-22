@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import api from "../../utils/api";
+import toast from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
+
+const STATUS_TABS = ["PENDING", "APPROVED", "REJECTED", "FLAGGED"];
 
 const SampleReview = () => {
   const { theme } = useTheme();
-  const [samples, setSamples] = useState([]);
+  const [allSamples, setAllSamples] = useState([]);
   const [selectedSample, setSelectedSample] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +23,40 @@ const SampleReview = () => {
     requestedChanges: "",
   });
 
+  const getReviewStatus = (s) => s.review?.status ?? "PENDING";
+
+  const filteredSamples = useMemo(
+    () => allSamples.filter((s) => getReviewStatus(s) === filterStatus),
+    [allSamples, filterStatus]
+  );
+
+  const statusCounts = useMemo(() => {
+    const counts = { PENDING: 0, APPROVED: 0, REJECTED: 0, FLAGGED: 0 };
+    allSamples.forEach((s) => {
+      const status = getReviewStatus(s);
+      if (counts[status] !== undefined) counts[status]++;
+    });
+    return counts;
+  }, [allSamples]);
+
+  const fetchSamples = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.get("/supervisor/samples", { params: { status: "ALL" } });
+      if (res.data.success) setAllSamples(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching samples:", err);
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSamples();
+  }, [fetchSamples]);
+
   const ISSUE_OPTIONS = [
     "Incomplete GPS location",
     "Missing product photo",
@@ -30,30 +67,6 @@ const SampleReview = () => {
     "Missing heavy metal readings",
     "Other",
   ];
-
-  useEffect(() => {
-    fetchSamples();
-  }, [filterStatus]);
-
-  const fetchSamples = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/supervisor/samples`);
-
-      if (response.data.success) {
-        const filtered = response.data.data.filter((sample) => {
-          const reviewStatus = sample.review?.status || "PENDING";
-          return reviewStatus === filterStatus;
-        });
-        setSamples(filtered);
-      }
-    } catch (err) {
-      console.error("Error fetching samples:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSelectSample = (sample) => {
     setSelectedSample(sample);
@@ -89,13 +102,13 @@ const SampleReview = () => {
       );
 
       if (response.data.success) {
-        alert(`Sample ${reviewForm.status.toLowerCase()}!`);
+        toast.success(`Sample ${reviewForm.status.toLowerCase()}!`);
         fetchSamples();
         setSelectedSample(null);
       }
     } catch (err) {
       console.error("Error submitting review:", err);
-      alert("Failed to submit review: " + err.message);
+      toast.error("Failed to submit review: " + (err.response?.data?.message || err.message));
     } finally {
       setReviewing(false);
     }
@@ -112,16 +125,16 @@ const SampleReview = () => {
   };
 
   const handleSelectAll = () => {
-    if (bulkSelection.size === samples.length) {
+    if (bulkSelection.size === filteredSamples.length) {
       setBulkSelection(new Set());
     } else {
-      setBulkSelection(new Set(samples.map((s) => s.id)));
+      setBulkSelection(new Set(filteredSamples.map((s) => s.id)));
     }
   };
 
   const handleBulkAction = async (status) => {
     if (bulkSelection.size === 0) {
-      alert("Please select at least one sample");
+      toast.error("Please select at least one sample");
       return;
     }
 
@@ -151,12 +164,24 @@ const SampleReview = () => {
         }
       }
 
-      alert(`Completed: ${successCount} approved, ${errorCount} failed`);
+      const total = bulkSelection.size;
+      if (errorCount === 0) {
+        toast.success(
+          total === 1 ? "1 sample marked successfully." : `${total} samples marked successfully.`
+        );
+      } else if (successCount > 0) {
+        toast(
+          `Updated ${successCount} of ${total} samples. ${errorCount} could not be updated.`,
+          { icon: "⚠️" }
+        );
+      } else {
+        toast.error("Could not update the selected samples. Please try again.");
+      }
       setBulkSelection(new Set());
       fetchSamples();
     } catch (err) {
       console.error("Error in bulk action:", err);
-      alert("Error processing bulk action");
+      toast.error("Error processing bulk action");
     } finally {
       setBulkProcessing(false);
     }
@@ -172,6 +197,12 @@ const SampleReview = () => {
 
   return (
     <div className={`${theme?.text} space-y-4 sm:space-y-6`}>
+      <div className="mb-2">
+        <h1 className="text-xl sm:text-2xl font-bold">Review samples</h1>
+        <p className={`text-sm ${theme?.textMuted} mt-1`}>
+          Review and approve samples from your collectors
+        </p>
+      </div>
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-sm">
           Error: {error}
@@ -181,7 +212,7 @@ const SampleReview = () => {
       {/* Filter Tabs & Bulk Actions */}
       <div className="space-y-3 sm:space-y-4">
         <div className="flex gap-2 flex-wrap">
-          {["PENDING", "APPROVED", "REJECTED", "FLAGGED"].map((status) => (
+          {STATUS_TABS.map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
@@ -191,7 +222,7 @@ const SampleReview = () => {
                   : `${theme?.card} border ${theme?.border} hover:bg-opacity-50`
               }`}
             >
-              {status}
+              {status} ({statusCounts[status] ?? 0})
             </button>
           ))}
         </div>
@@ -248,13 +279,13 @@ const SampleReview = () => {
         >
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-base sm:text-lg font-semibold">
-              {filterStatus} ({samples.length})
+              {filterStatus} ({filteredSamples.length})
             </h3>
-            {samples.length > 0 && (
+            {filteredSamples.length > 0 && (
               <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={bulkSelection.size === samples.length}
+                  checked={bulkSelection.size === filteredSamples.length}
                   onChange={handleSelectAll}
                   className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded text-emerald-600"
                 />
@@ -263,12 +294,12 @@ const SampleReview = () => {
             )}
           </div>
           <div className="space-y-2 max-h-[400px] sm:max-h-96 overflow-y-auto">
-            {samples.length === 0 ? (
+            {filteredSamples.length === 0 ? (
               <p className={`${theme?.textMuted} text-center py-6 sm:py-8 text-sm`}>
                 No {filterStatus.toLowerCase()} samples
               </p>
             ) : (
-              samples.map((sample) => (
+              filteredSamples.map((sample) => (
                 <div
                   key={sample.id}
                   className={`flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg border transition-colors ${
@@ -374,27 +405,30 @@ const SampleReview = () => {
                   <div>
                     <h4 className="text-sm sm:text-base font-semibold mb-2">Heavy Metal Readings</h4>
                     <div className="space-y-2">
-                      {selectedSample.heavyMetalReadings.map((reading, idx) => (
-                        <div
-                          key={idx}
-                          className={`border ${theme?.border} rounded p-2 sm:p-3 text-xs sm:text-sm`}
-                        >
-                          <p className="font-semibold">{reading.heavyMetal}</p>
-                          <p className={theme?.textMuted}>
-                            XRF: {reading.xrfReading || "-"} | AAS:{" "}
-                            {reading.aasReading || "-"}
-                          </p>
-                          <p
-                            className={`text-xs ${
-                              reading.status === "SAFE"
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }`}
+                      {selectedSample.heavyMetalReadings.map((reading, idx) => {
+                        const status = reading.finalStatus ?? reading.status;
+                        return (
+                          <div
+                            key={reading.id ?? idx}
+                            className={`border ${theme?.border} rounded p-2 sm:p-3 text-xs sm:text-sm`}
                           >
-                            Status: {reading.status}
-                          </p>
-                        </div>
-                      ))}
+                            <p className="font-semibold">{reading.heavyMetal}</p>
+                            <p className={theme?.textMuted}>
+                              XRF: {reading.xrfReading ?? "-"} | AAS:{" "}
+                              {reading.aasReading ?? "-"}
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                status === "SAFE"
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                              }`}
+                            >
+                              Status: {status ?? "PENDING"}
+                            </p>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -509,7 +543,11 @@ const SampleReview = () => {
             <div
               className={`${theme?.card} rounded-lg p-6 sm:p-8 border ${theme?.border} text-center`}
             >
-              <p className={`text-sm sm:text-base ${theme?.textMuted}`}>Select a sample to review</p>
+              <p className={`text-sm sm:text-base ${theme?.textMuted}`}>
+                {filteredSamples.length === 0
+                  ? `No ${filterStatus.toLowerCase()} samples`
+                  : "Select a sample to review"}
+              </p>
             </div>
           )}
         </div>

@@ -24,6 +24,7 @@ import SampleReview from "./components/views/SampleReview";
 import LabAnalystDashboard from "./components/views/LabAnalystDashboard";
 import LabConfirmationForm from "./components/views/LabConfirmationForm";
 import { EnumsProvider } from "./context/EnumsContext";
+import { Toaster } from "react-hot-toast";
 
 const lightTheme = {
   bg: "bg-gray-100",
@@ -60,6 +61,7 @@ const App = () => {
   return (
     <EnumsProvider isAuthenticated={isAuthenticated}>
     <div>
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<AuthModal theme={theme} />} />{" "}

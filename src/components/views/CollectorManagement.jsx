@@ -10,24 +10,23 @@ const CollectorManagement = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const fetchCollectors = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/supervisor/collectors");
+        if (res.data.success) {
+          const data = res.data.data || res.data;
+          setCollectors(Array.isArray(data) ? data : data?.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching collectors:", err);
+        setError(err.response?.data?.message || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCollectors();
   }, []);
-
-  const fetchCollectors = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/supervisor/collectors");
-
-      if (response.data.success) {
-        setCollectors(response.data.data);
-      }
-    } catch (err) {
-      console.error("Error fetching collectors:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSelectCollector = (collector) => {
     setSelectedCollector(collector);
@@ -130,7 +129,9 @@ const CollectorManagement = () => {
               className={`${theme?.card} rounded-lg p-6 border ${theme?.border} text-center`}
             >
               <p className={theme?.textMuted}>
-                Select a collector to view their details
+                {collectors.length === 0
+                  ? "No collectors assigned"
+                  : "Select a collector to view their details"}
               </p>
             </div>
           )}

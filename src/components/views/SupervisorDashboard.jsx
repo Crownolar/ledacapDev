@@ -22,27 +22,18 @@ const SupervisorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const COLORS = ["#030a07", "#ef4444", "#f59e0b", "#8b5cf6"];
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-
         const [statsRes, collectorsRes] = await Promise.all([
           api.get("/supervisor/stats"),
           api.get("/supervisor/collectors"),
         ]);
-
         if (statsRes.data.success) setStats(statsRes.data.data);
-
-        // Handle collectors response - data might be nested or be the array directly
         if (collectorsRes.data.success) {
-          const collectorsData = collectorsRes.data.data || collectorsRes.data;
-          const collectorsList = Array.isArray(collectorsData)
-            ? collectorsData
-            : collectorsData?.data || [];
-          setCollectors(collectorsList);
+          const data = collectorsRes.data.data || collectorsRes.data;
+          setCollectors(Array.isArray(data) ? data : data?.data || []);
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -51,9 +42,10 @@ const SupervisorDashboard = () => {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, []);
+
+  const COLORS = ["#030a07", "#ef4444", "#f59e0b", "#8b5cf6"];
 
   if (loading) {
     return (
@@ -190,7 +182,7 @@ const SupervisorDashboard = () => {
           )}
         </div>
 
-        {/* Pie Chart */}
+        {/* Pie Chart - Legend only (no slice labels) to avoid overlap when values are 0 */}
         <div
           className={`${theme?.card} rounded-lg p-6 border ${theme?.border}`}
         >
@@ -202,11 +194,11 @@ const SupervisorDashboard = () => {
                   data={reviewChartData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
                   outerRadius={80}
-                  fill="#8884d8"
+                  innerRadius={40}
+                  paddingAngle={2}
                   dataKey="value"
+                  nameKey="name"
                 >
                   {reviewChartData.map((entry, index) => (
                     <Cell
@@ -215,7 +207,27 @@ const SupervisorDashboard = () => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  content={({ active, payload }) =>
+                    active && payload?.[0] ? (
+                      <div
+                        className={`rounded px-2 py-1 text-sm ${theme?.card ?? "bg-white"} border ${theme?.border ?? "border-gray-200"}`}
+                      >
+                        {payload[0].name}: {payload[0].value}
+                      </div>
+                    ) : null
+                  }
+                />
+                <Legend
+                  layout="vertical"
+                  align="right"
+                  verticalAlign="middle"
+                  formatter={(value, entry) => (
+                    <span className={theme?.text ?? "text-gray-700"}>
+                      {value}: {entry.payload?.value ?? 0}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           )}
