@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
@@ -8,6 +9,8 @@ const STATUS_TABS = ["PENDING", "APPROVED", "REJECTED", "FLAGGED"];
 
 const SampleReview = () => {
   const { theme } = useTheme();
+  const [searchParams] = useSearchParams();
+  const collectorIdFromUrl = searchParams.get("collectorId") || null;
   const [allSamples, setAllSamples] = useState([]);
   const [selectedSample, setSelectedSample] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +46,9 @@ const SampleReview = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.get("/supervisor/samples", { params: { status: "ALL" } });
+      const params = { status: "ALL" };
+      if (collectorIdFromUrl) params.collectorId = collectorIdFromUrl;
+      const res = await api.get("/supervisor/samples", { params });
       if (res.data.success) setAllSamples(res.data.data || []);
     } catch (err) {
       console.error("Error fetching samples:", err);
@@ -51,7 +56,7 @@ const SampleReview = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [collectorIdFromUrl]);
 
   useEffect(() => {
     fetchSamples();
@@ -90,6 +95,18 @@ const SampleReview = () => {
   const handleSubmitReview = async () => {
     if (!selectedSample) return;
 
+    // Decision friction: reject requires a reason (comments or at least one issue)
+    if (reviewForm.status === "REJECTED") {
+      const hasReason =
+        (reviewForm.comments && reviewForm.comments.trim()) ||
+        (reviewForm.requestedChanges && reviewForm.requestedChanges.trim()) ||
+        (reviewForm.issues && reviewForm.issues.length > 0);
+      if (!hasReason) {
+        toast.error("Rejection reason is required. Add comments or select at least one issue.");
+        return;
+      }
+    }
+
     try {
       setReviewing(true);
       const response = await api.post(
@@ -103,14 +120,45 @@ const SampleReview = () => {
 
       if (response.data.success) {
         toast.success(`Sample ${reviewForm.status.toLowerCase()}!`);
-        fetchSamples();
+        await fetchSamples();
+        const currentIndex = filteredSamples.findIndex((s) => s.id === selectedSample.id);
+        const nextSample =
+          currentIndex >= 0 && currentIndex < filteredSamples.length - 1
+            ? filteredSamples[currentIndex + 1]
+            : null;
         setSelectedSample(null);
+        setReviewForm({ status: "APPROVED", comments: "", issues: [], requestedChanges: "" });
+        if (nextSample) {
+          setSelectedSample(nextSample);
+          setReviewForm({
+            status: nextSample.review?.status || "APPROVED",
+            comments: nextSample.review?.comments || "",
+            issues: nextSample.review?.issues || [],
+            requestedChanges: nextSample.review?.requestedChanges || "",
+          });
+        }
       }
     } catch (err) {
       console.error("Error submitting review:", err);
       toast.error("Failed to submit review: " + (err.response?.data?.message || err.message));
     } finally {
       setReviewing(false);
+    }
+  };
+
+  const currentSampleIndex =
+    selectedSample && filteredSamples.length
+      ? filteredSamples.findIndex((s) => s.id === selectedSample.id) + 1
+      : 0;
+  const totalInFilter = filteredSamples.length;
+  const goToNextSample = () => {
+    if (!selectedSample || totalInFilter === 0) return;
+    const idx = filteredSamples.findIndex((s) => s.id === selectedSample.id);
+    if (idx >= 0 && idx < totalInFilter - 1) {
+      const next = filteredSamples[idx + 1];
+      handleSelectSample(next);
+    } else {
+      setSelectedSample(null);
     }
   };
 
@@ -135,6 +183,11 @@ const SampleReview = () => {
   const handleBulkAction = async (status) => {
     if (bulkSelection.size === 0) {
       toast.error("Please select at least one sample");
+      return;
+    }
+
+    if (status === "REJECTED") {
+      toast.error("Rejection requires a reason. Please review and reject samples individually.");
       return;
     }
 
@@ -209,22 +262,35 @@ const SampleReview = () => {
         </div>
       )}
 
-      {/* Filter Tabs & Bulk Actions */}
+      {/* Filter Tabs with badge counts & Bulk Actions */}
       <div className="space-y-3 sm:space-y-4">
         <div className="flex gap-2 flex-wrap">
-          {STATUS_TABS.map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg font-semibold transition-colors ${
-                filterStatus === status
-                  ? "bg-emerald-600 text-white"
-                  : `${theme?.card} border ${theme?.border} hover:bg-opacity-50`
-              }`}
-            >
-              {status} ({statusCounts[status] ?? 0})
-            </button>
-          ))}
+          {STATUS_TABS.map((status) => {
+            const count = statusCounts[status] ?? 0;
+            const isActive = filterStatus === status;
+            return (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg font-semibold transition-colors ${
+                  isActive
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : `${theme?.card} border ${theme?.border} hover:bg-opacity-50`
+                }`}
+              >
+                <span>{status}</span>
+                <span
+                  className={`inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-xs font-bold ${
+                    isActive
+                      ? "bg-white/25 text-white"
+                      : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Bulk Actions Bar */}
@@ -278,8 +344,11 @@ const SampleReview = () => {
           className={`${theme?.card} rounded-lg p-4 sm:p-6 border ${theme?.border}`}
         >
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-base sm:text-lg font-semibold">
-              {filterStatus} ({filteredSamples.length})
+            <h3 className="text-base sm:text-lg font-semibold inline-flex items-center gap-2">
+              {filterStatus}
+              <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                {filteredSamples.length}
+              </span>
             </h3>
             {filteredSamples.length > 0 && (
               <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm cursor-pointer">
@@ -295,9 +364,14 @@ const SampleReview = () => {
           </div>
           <div className="space-y-2 max-h-[400px] sm:max-h-96 overflow-y-auto">
             {filteredSamples.length === 0 ? (
-              <p className={`${theme?.textMuted} text-center py-6 sm:py-8 text-sm`}>
-                No {filterStatus.toLowerCase()} samples
-              </p>
+              <div className="flex flex-col items-center justify-center py-10 sm:py-12 text-center">
+                <p className={`text-sm font-medium ${theme?.text} mb-1`}>
+                  No {filterStatus.toLowerCase()} samples
+                </p>
+                <p className={`text-xs ${theme?.textMuted}`}>
+                  Switch to another tab or wait for new submissions
+                </p>
+              </div>
             ) : (
               filteredSamples.map((sample) => (
                 <div
@@ -357,6 +431,12 @@ const SampleReview = () => {
             <div
               className={`${theme?.card} rounded-lg p-4 sm:p-6 border ${theme?.border} space-y-4 sm:space-y-6`}
             >
+              {/* Progress: "Sample 3 of 12" */}
+              {totalInFilter > 0 && (
+                <p className={`text-sm ${theme?.textMuted}`}>
+                  Sample {currentSampleIndex} of {totalInFilter}
+                </p>
+              )}
               {/* Sample Details */}
               <div>
                 <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Sample Details</h3>
@@ -489,10 +569,15 @@ const SampleReview = () => {
                   </div>
                 </div>
 
-                {/* Comments */}
+                {/* Comments - required when rejecting */}
                 <div className="mb-4">
                   <label className="block text-xs sm:text-sm font-semibold mb-2">
                     Comments
+                    {reviewForm.status === "REJECTED" && (
+                      <span className="text-red-600 dark:text-red-400 ml-1" title="Required for rejection">
+                        (required for reject)
+                      </span>
+                    )}
                   </label>
                   <textarea
                     value={reviewForm.comments}
@@ -503,7 +588,11 @@ const SampleReview = () => {
                       }))
                     }
                     rows="3"
-                    placeholder="Add notes or observations..."
+                    placeholder={
+                      reviewForm.status === "REJECTED"
+                        ? "Provide a reason for rejection..."
+                        : "Add notes or observations..."
+                    }
                     className={`w-full px-3 py-2 text-sm sm:text-base border ${theme?.border} rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${theme?.card}`}
                   />
                 </div>
@@ -529,23 +618,38 @@ const SampleReview = () => {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <button
-                  onClick={handleSubmitReview}
-                  disabled={reviewing}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-2 sm:py-2.5 px-4 rounded-lg transition-colors text-sm sm:text-base"
-                >
-                  {reviewing ? "Submitting..." : "Submit Review"}
-                </button>
+                {/* Submit and Next */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={reviewing}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-2 sm:py-2.5 px-4 rounded-lg transition-colors text-sm sm:text-base"
+                  >
+                    {reviewing ? "Submitting..." : "Submit Review"}
+                  </button>
+                  {totalInFilter > 1 && (
+                    <button
+                      type="button"
+                      onClick={goToNextSample}
+                      className="px-4 py-2 sm:py-2.5 border border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg font-semibold text-sm sm:text-base transition-colors"
+                    >
+                      Next sample
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
             <div
-              className={`${theme?.card} rounded-lg p-6 sm:p-8 border ${theme?.border} text-center`}
+              className={`rounded-lg p-6 sm:p-8 border ${theme?.border} text-center min-h-[200px] flex flex-col items-center justify-center ${
+                filteredSamples.length === 0
+                  ? "bg-transparent border-dashed"
+                  : theme?.card
+              }`}
             >
               <p className={`text-sm sm:text-base ${theme?.textMuted}`}>
                 {filteredSamples.length === 0
-                  ? `No ${filterStatus.toLowerCase()} samples`
+                  ? "Select a status tab to see samples"
                   : "Select a sample to review"}
               </p>
             </div>
