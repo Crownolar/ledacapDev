@@ -44,8 +44,12 @@ export const sampleToFormState = (sample) => {
   return {
     stateId: sample.stateId || "",
     lgaId: sample.lgaId || "",
-    productCategoryId: sample.productVariant?.category?.id || sample.productVariant?.categoryId || "",
-    productVariantId: sample.productVariantId || sample.productVariant?.id || "",
+    productCategoryId:
+      sample.productVariant?.category?.id ||
+      sample.productVariant?.categoryId ||
+      "",
+    productVariantId:
+      sample.productVariantId || sample.productVariant?.id || "",
     productName: sample.productName || "",
     brandName: sample.brandName || "",
     batchNumber: sample.batchNumber || "",
@@ -58,7 +62,8 @@ export const sampleToFormState = (sample) => {
     vendorTypeOther: sample.vendorTypeOther || "",
     isRegistered: Boolean(sample.isRegistered),
     gpsLatitude: sample.gpsLatitude != null ? String(sample.gpsLatitude) : "",
-    gpsLongitude: sample.gpsLongitude != null ? String(sample.gpsLongitude) : "",
+    gpsLongitude:
+      sample.gpsLongitude != null ? String(sample.gpsLongitude) : "",
     productOrigin: sample.productOrigin || "LOCAL",
     nafdacNumber: sample.nafdacNumber || "",
     sonNumber: sample.sonNumber || "",
@@ -91,7 +96,12 @@ export const fetchFormData = async () => {
     const allMarkets = marketsRes.data?.data || marketsRes.data || [];
     const categories = categoriesRes.data?.data || categoriesRes.data || [];
 
-    console.log("Processed data:", { states: states?.length, allLgas: allLgas?.length, allMarkets: allMarkets?.length, categories: categories?.length });
+    console.log("Processed data:", {
+      states: states?.length,
+      allLgas: allLgas?.length,
+      allMarkets: allMarkets?.length,
+      categories: categories?.length,
+    });
 
     return {
       states: Array.isArray(states) ? states : [],
@@ -104,7 +114,7 @@ export const fetchFormData = async () => {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status,
-      config: error.config?.url
+      config: error.config?.url,
     });
     return {
       states: [],
@@ -120,23 +130,25 @@ export const fetchFormData = async () => {
  */
 export const fetchVariantsForCategory = async (categoryId) => {
   try {
-    const response = await api.get(`/products/categories/${categoryId}/variants`);
+    const response = await api.get(
+      `/products/categories/${categoryId}/variants`,
+    );
     const variants = response.data?.data || response.data || [];
-    
+
     console.log(`Fetched variants for category ${categoryId}:`, variants);
-    
+
     if (!Array.isArray(variants)) {
       console.warn("Variants response is not an array:", variants);
       return [];
     }
-    
+
     return variants;
   } catch (error) {
     console.error("Error fetching variants:", {
       categoryId,
       message: error.message,
       response: error.response?.data,
-      status: error.response?.status
+      status: error.response?.status,
     });
     throw error;
   }
@@ -168,7 +180,7 @@ export const getVariantsForCategory = (categoryId) => {
   if (!category) return [];
   return Object.entries(category.variants).map(([key, value]) => ({
     id: key,
-    name: value
+    name: value,
   }));
 };
 
@@ -183,7 +195,7 @@ export const handleStateChange = (stateId, formData, setFormData) => {
     stateId,
     lgaId: "",
     marketId: "",
-    marketName: ""
+    marketName: "",
   });
 };
 
@@ -195,7 +207,7 @@ export const handleLGAChange = (lgaId, formData, setFormData) => {
     ...formData,
     lgaId,
     marketId: "",
-    marketName: ""
+    marketName: "",
   });
 };
 
@@ -207,13 +219,13 @@ export const handleMarketChange = (marketId, formData, setFormData) => {
     setFormData({
       ...formData,
       marketId: "OTHER",
-      marketName: ""
+      marketName: "",
     });
   } else {
     setFormData({
       ...formData,
       marketId,
-      marketName: ""
+      marketName: "",
     });
   }
 };
@@ -225,7 +237,7 @@ export const handleCategoryChange = (categoryId, formData, setFormData) => {
   setFormData({
     ...formData,
     productCategoryId: categoryId,
-    productVariantId: ""
+    productVariantId: "",
   });
 };
 
@@ -237,13 +249,13 @@ export const handleVendorTypeChange = (vendorType, formData, setFormData) => {
     setFormData({
       ...formData,
       vendorType,
-      vendorTypeOther: ""
+      vendorTypeOther: "",
     });
   } else {
     setFormData({
       ...formData,
       vendorType,
-      vendorTypeOther: ""
+      vendorTypeOther: "",
     });
   }
 };
@@ -255,6 +267,7 @@ export const handleVendorTypeChange = (vendorType, formData, setFormData) => {
  */
 export const handleFileUpload = (e, field, setFormData) => {
   const file = e.target.files?.[0];
+  console.log(file);
   if (!file) return;
 
   const reader = new FileReader();
@@ -291,7 +304,7 @@ export const getCurrentLocation = () => {
         resolve({
           gpsLatitude: latitude.toFixed(6),
           gpsLongitude: longitude.toFixed(6),
-          error: null
+          error: null,
         });
       },
       (error) => {
@@ -311,7 +324,7 @@ export const getCurrentLocation = () => {
             errorMessage = "An error occurred while getting your location.";
         }
         reject(new Error(errorMessage));
-      }
+      },
     );
   });
 };
@@ -336,12 +349,14 @@ export const buildSamplePayload = (formData) => {
     batchNumber: formData.batchNumber || null,
     brandName: formData.brandName || null,
     gpsLatitude: formData.gpsLatitude ? parseFloat(formData.gpsLatitude) : null,
-    gpsLongitude: formData.gpsLongitude ? parseFloat(formData.gpsLongitude) : null,
+    gpsLongitude: formData.gpsLongitude
+      ? parseFloat(formData.gpsLongitude)
+      : null,
     isRegistered: formData.isRegistered,
     productOrigin: formData.productOrigin,
     nafdacNumber: formData.nafdacNumber || null,
     sonNumber: formData.sonNumber || null,
-    productPhotoUrl: formData.productPhotoUrl || null,
+    productPhotoUrl: formData.productPhoto || null,
   };
 };
 
@@ -355,16 +370,19 @@ export const validateSampleForm = (formData) => {
 
   if (!formData.stateId) errors.stateId = "State is required";
   if (!formData.lgaId) errors.lgaId = "LGA is required";
-  
+
   // Market validation: either select from dropdown OR enter manual name
   if (!formData.marketId && !formData.marketName) {
-    errors.marketId = "Either select a market from the list or enter a custom market name";
+    errors.marketId =
+      "Either select a market from the list or enter a custom market name";
   }
   if (formData.marketId === "OTHER" && !formData.marketName) {
     errors.marketName = "Market name is required when selecting 'Other'";
   }
-  if (!formData.productCategoryId) errors.productCategoryId = "Product category is required";
-  if (!formData.productVariantId) errors.productVariantId = "Product variant is required";
+  if (!formData.productCategoryId)
+    errors.productCategoryId = "Product category is required";
+  if (!formData.productVariantId)
+    errors.productVariantId = "Product variant is required";
   if (!formData.productName) errors.productName = "Product name is required";
   if (!formData.sampleType) errors.sampleType = "Sample type is required";
   if (!formData.vendorType) errors.vendorType = "Vendor type is required";
@@ -372,10 +390,11 @@ export const validateSampleForm = (formData) => {
     errors.vendorTypeOther = "Vendor type specification is required";
   }
   if (!formData.price) errors.price = "Price is required";
-  if (isNaN(parseFloat(formData.price))) errors.price = "Price must be a number";
+  if (isNaN(parseFloat(formData.price)))
+    errors.price = "Price must be a number";
 
   return {
     valid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
 };
