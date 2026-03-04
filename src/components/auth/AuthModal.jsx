@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { AlertTriangle, Eye, EyeOff, KeyRound } from "lucide-react";
+import React, { useState } from "react";
+import { AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import { useDispatch, useSelector } from "react-redux";
 import { handleLogin, handleSignup } from "../../redux/slice/authSlice";
 import PopupModal from "../modals/PopupModal";
@@ -10,87 +9,135 @@ import { useTheme } from "../../context/ThemeContext";
 const AuthModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector(
-    (state) => state.auth
-  );
+  const { loading } = useSelector((state) => state.auth);
+  const { theme } = useTheme();
+
+  const [authMode, setAuthMode] = useState("login");
+  const [showPassword, setShowPassword] = useState(false);
+
   const [authForm, setAuthForm] = useState({
     email: "",
     password: "",
     name: "",
     inviteCode: "",
   });
-  const [authMode, setAuthMode] = useState("login");
-  const [showPassword, setShowPassword] = useState(false);
-  // const [message, setMessage] = useState("");
+
+  const [fieldErrors, setFieldErrors] = useState({});
   const [popupMessage, setPopupMessage] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
   const [popupType, setPopupType] = useState("error");
-  const { theme } = useTheme();
+  const [showPopup, setShowPopup] = useState(false);
+
+  const validateFields = () => {
+    const errors = {};
+
+    if (!authForm.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^\S+@\S+\.\S+$/.test(authForm.email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!authForm.password.trim()) {
+      errors.password = "Password is required.";
+    } else if (authForm.password.length < 6) {
+      errors.password = "Password must be at least 6 characters.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBackendFieldErrors = (message) => {
+    if (!message) return;
+
+    const lower = message.toLowerCase();
+
+    if (lower.includes("email")) {
+      setFieldErrors({ email: message });
+    } else if (lower.includes("password")) {
+      setFieldErrors({ password: message });
+    } else {
+      setPopupMessage(message);
+      setPopupType("error");
+      setShowPopup(true);
+    }
+  };
+
+  const handleChange = (field, value) => {
+    setAuthForm({ ...authForm, [field]: value });
+
+    if (fieldErrors[field]) {
+      setFieldErrors({ ...fieldErrors, [field]: "" });
+    }
+  };
+
+  const navigateBasedOnRole = (user) => {
+    const normalizedRole = user.role
+      ?.toLowerCase()
+      .replace(/[\s_]/g, "");
+
+    if (normalizedRole?.startsWith("policymaker")) {
+      navigate("/map");
+    } else if (normalizedRole === "supervisor") {
+      navigate("/collectors");
+    } else if (normalizedRole === "datacollector") {
+      navigate("/data-collector-welcome");
+    } else if (normalizedRole === "superadmin") {
+      navigate("/invitecodes");
+    } else if (normalizedRole === "headresearcher") {
+      navigate("/database");
+    } else if (normalizedRole === "labanalyst") {
+      navigate("/lab-samples");
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (authMode === "login") {
-      const result = await dispatch(
-        handleLogin({ email: authForm.email, password: authForm.password })
-      );
+    if (!validateFields()) return;
 
-      if (handleLogin.fulfilled.match(result)) {
+    if (authMode === "login") {
+      try {
+        const data = await dispatch(
+          handleLogin({
+            email: authForm.email,
+            password: authForm.password,
+          })
+        ).unwrap();
+
         setPopupMessage(
-          `Welcome back, ${result.payload.user.fullName || "User"}!`
+          `Welcome back, ${data.user.fullName || "User"}!`
         );
         setPopupType("success");
         setShowPopup(true);
 
-        // Navigate based on role
-        const normalizedRole = result.payload.user.role
-          ?.toLowerCase()
-          .replace(/[\s_]/g, "");
-        if (normalizedRole?.startsWith("policymaker")) navigate("/map");
-        else if (normalizedRole === "supervisor") {
-          setTimeout(() => {
-            setShowPopup(false);
-            navigate("/collectors");
-          }, 800);
-        } else if (normalizedRole === "datacollector")
-          navigate("/data-collector-welcome");
-        else if (normalizedRole === "superadmin") navigate("/invitecodes");
-        else if (normalizedRole === "headresearcher") navigate("/database");
-        else if (normalizedRole === "labanalyst") navigate("/lab-samples");
-        else navigate("/dashboard");
-      } else {
-        // Display exact error from API
-        setPopupMessage(result.payload || "Login failed. Please try again.");
-        setPopupType("error");
-        setShowPopup(true);
+        setTimeout(() => {
+          setShowPopup(false);
+          navigateBasedOnRole(data.user);
+        }, 800);
+
+      } catch (errMessage) {
+        handleBackendFieldErrors(errMessage);
       }
     } else {
-      // Signup
-      const result = await dispatch(handleSignup(authForm));
-      if (handleSignup.fulfilled.match(result)) {
-        setPopupMessage(result.payload.message || "Signup successful!");
+      try {
+        const data = await dispatch(handleSignup(authForm)).unwrap();
+
+        setPopupMessage(data.message || "Signup successful!");
         setPopupType("success");
         setShowPopup(true);
-        setAuthMode("login");
-      } else {
-        setPopupMessage(
-          result.payload?.message ||
-            result.payload ||
-            "Signup failed. Please try again."
-        );
-        setPopupType("error");
-        setShowPopup(true);
+
+        setTimeout(() => {
+          setShowPopup(false);
+          setAuthMode("login");
+        }, 1200);
+
+      } catch (errMessage) {
+        handleBackendFieldErrors(errMessage);
       }
     }
   };
-
-  useEffect(() => {
-    if (error) {
-      setPopupMessage(error);
-      setPopupType("error");
-      setShowPopup(true);
-    }
-  }, [error]);
 
   return (
     <div
@@ -113,11 +160,14 @@ const AuthModal = () => {
           {["login", "signup"].map((mode) => (
             <button
               key={mode}
-              onClick={() => setAuthMode(mode)}
+              onClick={() => {
+                setAuthMode(mode);
+                setFieldErrors({});
+              }}
               className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
                 authMode === mode
                   ? "bg-emerald-500 text-white"
-                  : `${theme.hover}`
+                  : theme.hover
               }`}
             >
               {mode === "login" ? "Login" : "Sign Up"}
@@ -130,18 +180,19 @@ const AuthModal = () => {
             <>
               <Input
                 label="Full Name"
-                value={authForm.name || ""}
+                value={authForm.name}
                 onChange={(e) =>
-                  setAuthForm({ ...authForm, name: e.target.value })
+                  handleChange("name", e.target.value)
                 }
                 placeholder="Enter your full name"
                 theme={theme}
               />
+
               <Input
                 label="Invite Code"
-                value={authForm.inviteCode || ""}
+                value={authForm.inviteCode}
                 onChange={(e) =>
-                  setAuthForm({ ...authForm, inviteCode: e.target.value })
+                  handleChange("inviteCode", e.target.value)
                 }
                 placeholder="Enter invite code"
                 theme={theme}
@@ -154,10 +205,11 @@ const AuthModal = () => {
             type="email"
             value={authForm.email}
             onChange={(e) =>
-              setAuthForm({ ...authForm, email: e.target.value })
+              handleChange("email", e.target.value)
             }
             placeholder="user@ledacap.ng"
             theme={theme}
+            error={fieldErrors.email}
           />
 
           <div>
@@ -169,11 +221,14 @@ const AuthModal = () => {
                 type={showPassword ? "text" : "password"}
                 value={authForm.password}
                 onChange={(e) =>
-                  setAuthForm({ ...authForm, password: e.target.value })
+                  handleChange("password", e.target.value)
                 }
-                className={`w-full px-4 py-2 border rounded-lg ${theme.input}`}
+                className={`w-full px-4 py-2 border rounded-lg ${
+                  fieldErrors.password
+                    ? "border-red-500"
+                    : theme.input
+                }`}
                 placeholder="••••••••"
-                required
               />
               <button
                 type="button"
@@ -187,12 +242,17 @@ const AuthModal = () => {
                 )}
               </button>
             </div>
+            {fieldErrors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {fieldErrors.password}
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-lg transition-colors ${
+            className={`w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-lg ${
               loading && "opacity-60 cursor-not-allowed"
             }`}
           >
@@ -205,15 +265,8 @@ const AuthModal = () => {
               : "Sign Up"}
           </button>
         </form>
-
-        {/* {message && (
-          <p className="text-sm text-center mt-3 text-emerald-400">
-            {typeof message === "string"
-              ? message
-              : message?.message || "Something went wrong"}
-          </p>
-        )} */}
       </div>
+
       <PopupModal
         show={showPopup}
         message={popupMessage}
@@ -231,6 +284,7 @@ const Input = ({
   onChange,
   placeholder,
   theme,
+  error,
 }) => (
   <div>
     <label className={`block text-sm font-medium mb-2 ${theme.text}`}>
@@ -241,9 +295,15 @@ const Input = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`w-full px-4 py-2 border rounded-lg ${theme.input}`}
-      required
+      className={`w-full px-4 py-2 border rounded-lg ${
+        error ? "border-red-500" : theme.input
+      }`}
     />
+    {error && (
+      <p className="text-red-500 text-sm mt-1">
+        {error}
+      </p>
+    )}
   </div>
 );
 

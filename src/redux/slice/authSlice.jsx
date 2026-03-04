@@ -18,28 +18,38 @@ export const handleLogin = createAsyncThunk(
         return { user };
       }
 
-      // Frontend-defined error
-      return rejectWithValue("Incorrect email or password.");
+      return rejectWithValue(
+        res.data?.message || "Login failed. Please try again.",
+      );
+
     } catch (err) {
-      // You can create your own error messages based on status codes
       if (!err.response) {
         return rejectWithValue("Network error. Please check your connection.");
       }
 
+      // If backend sends a message, use it
+      const backendMessage =
+        err.response?.data?.message || err.response?.data?.error || null;
+
+      if (backendMessage) {
+        return rejectWithValue(backendMessage);
+      }
+
+      // Fallback messages if backend sends nothing meaningful
       switch (err.response.status) {
         case 400:
-          return rejectWithValue("Invalid request. Please check your inputs.");
+          return rejectWithValue("Invalid request.");
         case 401:
-          return rejectWithValue("Incorrect email or password.");
+          return rejectWithValue("Authentication failed.");
         case 403:
-          return rejectWithValue("Your account is not authorized.");
+          return rejectWithValue("You are not authorized.");
         case 404:
           return rejectWithValue("User not found.");
         default:
           return rejectWithValue("Something went wrong. Please try again.");
       }
     }
-  }
+  },
 );
 
 // --- SIGNUP ---
@@ -60,12 +70,17 @@ export const handleSignup = createAsyncThunk(
 
       return rejectWithValue(res.data?.message || "Signup failed");
     } catch (err) {
-      console.log("Signup error:", err.response?.data);
+      if (!err.response) {
+        return rejectWithValue("Network error. Please check your connection.");
+      }
+
       return rejectWithValue(
-        err.response?.data?.message || "Signup failed. Try again."
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Signup failed. Please try again.",
       );
     }
-  }
+  },
 );
 
 // --- LOGOUT ---
@@ -78,7 +93,7 @@ export const handleLogout = createAsyncThunk("auth/logout", async () => {
       await api.post(
         `/auth/logout`,
         { refreshToken },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
     }
   } catch (err) {
