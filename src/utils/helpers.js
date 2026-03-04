@@ -7,7 +7,7 @@ export const filterSamples = (
   filterState,
   filterCategory,
   filterProduct,
-  filterStatus
+  filterStatus 
 ) => {
   return samples.filter((sample) => {
     // Search by sample ID, product name, market, or brand

@@ -8,7 +8,6 @@ import { filterSamples } from "../../utils/helpers";
 import { getContaminationStatus } from "../../utils/chartDataHelpers";
 import SampleDetailModal from "../modals/SampleDetailModal";
 
-// Helper to get max heavy metal reading for display
 const getMaxReading = (heavyMetalReadings) => {
   if (!heavyMetalReadings || heavyMetalReadings.length === 0) return null;
 
@@ -39,7 +38,69 @@ const Database = ({
   const { samples: reduxSamples } = useSelector((state) => state.samples);
   const { currentUser } = useSelector((state) => state.auth);
 
-  // Block DATA_COLLECTOR from accessing this view
+  const [localSearchTerm, setLocalSearchTerm] = useState("");
+  const [localFilterState, setLocalFilterState] = useState("all");
+  const [localFilterCategory, setLocalFilterCategory] = useState("all");
+  const [localFilterProduct, setLocalFilterProduct] = useState("all");
+  const [localFilterStatus, setLocalFilterStatus] = useState("all");
+  const [localSelectedSample, setLocalSelectedSample] = useState(null);
+  const [localStates, setLocalStates] = useState([]);
+  console.log("Selected Sample:", localSelectedSample);
+  
+  useEffect(() => {
+    if (!propFilteredSamples) {
+      dispatch(fetchSamples());
+    }
+  }, [dispatch, propFilteredSamples]);
+  
+  const searchTerm = propSearchTerm ?? localSearchTerm;
+  const setSearchTerm = propSetSearchTerm || setLocalSearchTerm;
+  const filterState = propFilterState ?? localFilterState;
+  const setFilterState = propSetFilterState || setLocalFilterState;
+  const filterCategory = localFilterCategory; 
+  const setFilterCategory = setLocalFilterCategory;
+  const filterProduct = propFilterProduct ?? localFilterProduct;
+  const setFilterProduct = propSetFilterProduct || setLocalFilterProduct;
+  const filterStatus = propFilterStatus ?? localFilterStatus;
+  const setFilterStatus = propSetFilterStatus || setLocalFilterStatus;
+  const setSelectedSample = propSetSelectedSample || setLocalSelectedSample;
+  const states = propStates || localStates;
+  
+  const computedFilteredSamples = useMemo(() => {
+    if (propFilteredSamples) return propFilteredSamples;
+    return filterSamples(
+      reduxSamples || [],
+      searchTerm,
+      filterState,
+      filterCategory,
+      filterProduct,
+      filterStatus
+    );
+  }, [
+    propFilteredSamples,
+    reduxSamples,
+    searchTerm,
+    filterState,
+    filterCategory,
+    filterProduct,
+    filterStatus,
+  ]);
+
+  const filteredSamples = computedFilteredSamples;
+  useEffect(() => {
+    if (!propStates) {
+      const fetchStates = async () => {
+        try {
+          const response = await api.get("/management/states", { params: { activeOnly: "true" } });
+          setLocalStates(response.data.data || []);
+        } catch (err) {
+          console.error("Failed to fetch states:", err);
+        }
+      };
+      fetchStates();
+    }
+  }, [propStates]);
+
   const isDataCollector =
     currentUser?.role?.toLowerCase().replace(/[\s_]/g, "") === "datacollector";
   if (isDataCollector) {
@@ -69,72 +130,6 @@ const Database = ({
   const isSuperAdmin = normalizedRole === "superadmin";
   const canSeeCollector = isSuperAdmin || isHeadResearcher;
 
-  // Local state for standalone mode
-  const [localSearchTerm, setLocalSearchTerm] = useState("");
-  const [localFilterState, setLocalFilterState] = useState("all");
-  const [localFilterCategory, setLocalFilterCategory] = useState("all");
-  const [localFilterProduct, setLocalFilterProduct] = useState("all");
-  const [localFilterStatus, setLocalFilterStatus] = useState("all");
-  const [localSelectedSample, setLocalSelectedSample] = useState(null);
-  const [localStates, setLocalStates] = useState([]);
-
-  // Use props if provided, otherwise fall back to local/Redux values
-  const searchTerm = propSearchTerm ?? localSearchTerm;
-  const setSearchTerm = propSetSearchTerm || setLocalSearchTerm;
-  const filterState = propFilterState ?? localFilterState;
-  const setFilterState = propSetFilterState || setLocalFilterState;
-  const filterCategory = localFilterCategory; // Category is local only for now
-  const setFilterCategory = setLocalFilterCategory;
-  const filterProduct = propFilterProduct ?? localFilterProduct;
-  const setFilterProduct = propSetFilterProduct || setLocalFilterProduct;
-  const filterStatus = propFilterStatus ?? localFilterStatus;
-  const setFilterStatus = propSetFilterStatus || setLocalFilterStatus;
-  const setSelectedSample = propSetSelectedSample || setLocalSelectedSample;
-  const states = propStates || localStates;
-
-  // Compute filtered samples if not provided via props
-  const computedFilteredSamples = useMemo(() => {
-    if (propFilteredSamples) return propFilteredSamples;
-    return filterSamples(
-      reduxSamples || [],
-      searchTerm,
-      filterState,
-      filterCategory,
-      filterProduct,
-      filterStatus
-    );
-  }, [
-    propFilteredSamples,
-    reduxSamples,
-    searchTerm,
-    filterState,
-    filterCategory,
-    filterProduct,
-    filterStatus,
-  ]);
-
-  const filteredSamples = computedFilteredSamples;
-
-  // Fetch samples and states on mount if standalone
-  useEffect(() => {
-    if (!propFilteredSamples) {
-      dispatch(fetchSamples());
-    }
-  }, [dispatch, propFilteredSamples]);
-
-  useEffect(() => {
-    if (!propStates) {
-      const fetchStates = async () => {
-        try {
-          const response = await api.get("/management/states", { params: { activeOnly: "true" } });
-          setLocalStates(response.data.data || []);
-        } catch (err) {
-          console.error("Failed to fetch states:", err);
-        }
-      };
-      fetchStates();
-    }
-  }, [propStates]);
   const handleExcelExportClick = async () => {
     try {
       const response = await api.get("/samples/export/data", {
@@ -142,7 +137,6 @@ const Database = ({
         responseType: "blob",
       });
 
-      // Create a download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -483,7 +477,6 @@ const Database = ({
         </div>
       </div>
 
-      {/* Show modal for standalone mode */}
       {localSelectedSample && !propSetSelectedSample && (
         <SampleDetailModal
           theme={theme}

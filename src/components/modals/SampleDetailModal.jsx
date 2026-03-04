@@ -6,7 +6,7 @@ const formatVendorType = (vendorType, vendorTypeOther) => {
     return vendorTypeOther;
   }
   return vendorType?.replace(/_/g, " ") || "N/A";
-};
+}; 
 
 // Helper to get contamination info from heavy metal readings
 const getContaminationInfo = (heavyMetalReadings) => {
