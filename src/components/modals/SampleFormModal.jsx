@@ -1,5 +1,5 @@
 import { X, Camera, Trash2, Loader, MapPin, File } from "lucide-react";
-import { vendorTypes, sampleTypes } from "../../utils/constants";
+import { vendorTypes } from "../../utils/constants";
 import { useRef, useState, useEffect } from "react";
 import {
   getInitialSampleFormState,
@@ -7,12 +7,12 @@ import {
   fetchFormData,
   filterLGAsByState,
   filterMarketsByLGA,
-  getVariantsForCategory,
+  // getVariantsForCategory,
   fetchVariantsForCategory,
-  handleStateChange,
-  handleLGAChange,
-  handleMarketChange,
-  handleCategoryChange,
+  // handleStateChange,
+  // handleLGAChange,
+  // handleMarketChange,
+  // handleCategoryChange,
   handleVendorTypeChange,
   handleFileUpload,
   removeFile,
