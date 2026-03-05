@@ -180,6 +180,7 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
     setError(null);
 
     const validation = validateSampleForm(formData);
+
     if (!validation.valid) {
       setError(Object.values(validation.errors).join(", "));
       setLoading(false);
@@ -188,6 +189,7 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
 
     try {
       const payload = buildSamplePayload(formData);
+
       await onSubmit(payload);
       alert(
         isEdit
@@ -742,12 +744,9 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                   label='Calibration Curve Photo'
                   file={formData.calibrationCurveFile}
                   refInput={calibrationCurveRef}
-                  onUpload={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData({ ...formData, calibrationCurveFile: file });
-                    }
-                  }}
+                  onUpload={(e) =>
+                    handleFileUpload(e, "calibrationCurveFile", setFormData)
+                  }
                   onRemove={() =>
                     setFormData({ ...formData, calibrationCurveFile: null })
                   }

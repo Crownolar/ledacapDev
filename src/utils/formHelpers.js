@@ -267,15 +267,27 @@ export const handleVendorTypeChange = (vendorType, formData, setFormData) => {
  */
 export const handleFileUpload = (e, field, setFormData) => {
   const file = e.target.files?.[0];
-
+  console.log(file);
   if (!file) throw new Error("No file selected");
 
   const reader = new FileReader();
+  if (field == "calibrationCurveFile") {
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: {
+          name: file.name,
+          size: file.size,
+          data: reader.result,
+        },
+      }));
+    };
+  } else {
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, [field]: reader.result }));
+    };
+  }
 
-  reader.onloadend = () => {
-    console.log(reader.result);
-    setFormData((prev) => ({ ...prev, [field]: reader.result }));
-  };
   reader.readAsDataURL(file);
 };
 
@@ -360,6 +372,7 @@ export const buildSamplePayload = (formData) => {
     nafdacNumber: formData.nafdacNumber || null,
     sonNumber: formData.sonNumber || null,
     productPhotoUrl: formData.productPhoto || null,
+    calibrationCurveFile: formData.calibrationCurveFile?.data || null,
   };
 };
 
