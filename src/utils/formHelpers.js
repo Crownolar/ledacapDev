@@ -267,12 +267,15 @@ export const handleVendorTypeChange = (vendorType, formData, setFormData) => {
  */
 export const handleFileUpload = (e, field, setFormData) => {
   const file = e.target.files?.[0];
-  console.log(file);
-  if (!file) return;
+
+  if (!file) throw new Error("No file selected");
 
   const reader = new FileReader();
-  reader.onloadend = () =>
+
+  reader.onloadend = () => {
+    console.log(reader.result);
     setFormData((prev) => ({ ...prev, [field]: reader.result }));
+  };
   reader.readAsDataURL(file);
 };
 
