@@ -5,8 +5,10 @@ import {
   TileLayer,
   useMap,
   Polyline,
+  GeoJSON,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import nigeriaGeoLocation from "../../assets/ng.json";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -14,74 +16,12 @@ import { useEffect, useState } from "react";
 import MapSampleDetailsModal from "../modals/MapSampleDetailsModal";
 
 // Nigeria's precise center and bounds
-const nigeriaCenter = [9.0820, 8.6753];
+const nigeriaCenter = [9.082, 8.6753];
 const defaultPosition = nigeriaCenter;
 const nigeriaBounds = L.latLngBounds(
-  [3.5, 2.3],   // Southwest corner
-  [13.9, 14.7]  // Northeast corner
+  [3.5, 2.3], // Southwest corner
+  [13.9, 14.7], // Northeast corner
 );
-
-// Major state boundary lines
-const nigeriaStateBoundaries = [
-  // Northern boundary (international border with Niger)
-  {
-    coordinates: [[13.5, 2.5], [13.8, 14.6]],
-    name: "Northern Border",
-  },
-  // Southern boundary (Gulf of Guinea coast)
-  {
-    coordinates: [[3.5, 2.3], [3.5, 14.7]],
-    name: "Southern Border",
-  },
-  // Western boundary (Benin)
-  {
-    coordinates: [[3.5, 2.3], [13.5, 2.5]],
-    name: "Western Border",
-  },
-  // Eastern boundary (Cameroon)
-  {
-    coordinates: [[3.5, 14.7], [13.8, 14.6]],
-    name: "Eastern Border",
-  },
-  // Major internal state demarcation lines (North-South)
-  {
-    coordinates: [[3.6, 5.5], [13.7, 5.6]],
-    name: "State Line 1",
-  },
-  {
-    coordinates: [[3.6, 7.0], [13.7, 7.2]],
-    name: "State Line 2",
-  },
-  {
-    coordinates: [[3.6, 8.8], [13.7, 9.0]],
-    name: "State Line 3",
-  },
-  {
-    coordinates: [[3.6, 10.5], [13.7, 10.7]],
-    name: "State Line 4",
-  },
-  // Major internal state demarcation lines (East-West)
-  {
-    coordinates: [[4.5, 2.3], [4.5, 14.7]],
-    name: "State Line 5",
-  },
-  {
-    coordinates: [[6.5, 2.3], [6.5, 14.7]],
-    name: "State Line 6",
-  },
-  {
-    coordinates: [[8.5, 2.3], [8.5, 14.7]],
-    name: "State Line 7",
-  },
-  {
-    coordinates: [[10.5, 2.3], [10.5, 14.7]],
-    name: "State Line 8",
-  },
-  {
-    coordinates: [[12.0, 2.3], [12.0, 14.7]],
-    name: "State Line 9",
-  },
-];
 
 const FitBounds = ({ markers }) => {
   const map = useMap();
@@ -98,7 +38,7 @@ const FitBounds = ({ markers }) => {
     }
     // Restrict panning/zooming to Nigeria bounds
     map.setMaxBounds(nigeriaBounds);
-    map.on('drag', function() {
+    map.on("drag", function () {
       map.panInsideBounds(nigeriaBounds, { animate: false });
     });
   }, [map, markers.length]);
@@ -110,8 +50,8 @@ const iconObject = (samplesLength) => {
   // Responsive marker size
   const isSmallScreen = window.innerWidth < 640;
   const markerHeight = isSmallScreen ? 35 : 50;
-  const badgeSize = isSmallScreen ? 'w-5 h-5 text-xs' : 'w-6 h-6 text-sm';
-  const badgePosition = isSmallScreen ? '-top-1 -left-1' : '-top-2 -left-2';
+  const badgeSize = isSmallScreen ? "w-5 h-5 text-xs" : "w-6 h-6 text-sm";
+  const badgePosition = isSmallScreen ? "-top-1 -left-1" : "-top-2 -left-2";
 
   return new L.divIcon({
     className: "",
@@ -146,7 +86,7 @@ export default function Map({ samples }) {
     return samplesArray.filter(
       (s) =>
         parseInt(s.gpsLatitude) == parseInt(LatAndLngArray[0]) &&
-        parseInt(s.gpsLongitude) == parseInt(LatAndLngArray[1])
+        parseInt(s.gpsLongitude) == parseInt(LatAndLngArray[1]),
     );
   };
 
@@ -158,7 +98,7 @@ export default function Map({ samples }) {
   const handleMarkerClick = (samplesArray, LatAndLngArray) => {
     const samplesWithSameCoordinates = sameLngAndLat(
       samplesArray,
-      LatAndLngArray
+      LatAndLngArray,
     );
 
     setMapDetails({ isOpen: true, samples: samplesWithSameCoordinates });
@@ -177,34 +117,27 @@ export default function Map({ samples }) {
             height: "100%",
             width: "100%",
           }}
-          className="rounded-lg sm:rounded-xl"
+          className='rounded-lg sm:rounded-xl'
         >
           <TileLayer
             url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           />
-          
-          {/* State Boundary Lines */}
-          {nigeriaStateBoundaries.map((boundary, idx) => (
-            <Polyline
-              key={idx}
-              positions={boundary.coordinates}
-              pathOptions={{
-                color: idx < 4 ? "#d32f2f" : "#1976d2",
-                weight: idx < 4 ? 3 : 2,
-                opacity: 0.7,
-                dashArray: idx < 4 ? "5,5" : "3,3",
-                lineCap: "round",
-              }}
-            />
-          ))}
-          
+          <GeoJSON
+            data={nigeriaGeoLocation}
+            style={{
+              color: "black",
+              weight: 3,
+              fillColor: "green",
+            }}
+          />
+
           {/* Sample Markers */}
           {samples.map((s) => {
             if (s.gpsLatitude && s.gpsLongitude) {
               const coord = [Number(s.gpsLatitude), Number(s.gpsLongitude)];
               const contaminationCount = sameLngAndLat(samples, coord).filter(
-                (sample) => sample.status === "CONTAMINATED"
+                (sample) => sample.status === "CONTAMINATED",
               ).length;
               return (
                 <Marker
