@@ -162,7 +162,9 @@ export default function Map({ samples }) {
                     autoPan={false}
                     autoClose={false}
                     closeButton={false}
+                    pointerEvents={false}
                     className='custom-popup'
+                    offset={[0, -20]}
                   >
                     <div className='min-w-[200px] sm:min-w-[250px] md:min-w-[300px] max-w-[280px] sm:max-w-[320px] z-[5000]'>
                       <div className='flex flex-col sm:flex-row justify-between gap-2 sm:gap-3'>
@@ -220,7 +222,7 @@ export default function Map({ samples }) {
             }
             return null;
           })}
-          {samples && <FitBounds markers={samples} />}
+          {/* {samples && <FitBounds markers={samples} />} */}
         </MapContainer>
 
         {mapDetails.isOpen && (
