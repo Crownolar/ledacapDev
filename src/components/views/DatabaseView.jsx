@@ -220,102 +220,210 @@ const DatabaseView = ({
         </div>
       )}
       {!loading && (
-        <div
-          className={`${theme?.card} rounded-lg shadow-md border ${theme?.border}`}
-        >
-          <div className='hidden sm:block overflow-x-auto'>
-            <table className='w-full min-w-[800px] text-sm'>
-              <thead
-                className={
-                  theme?.card === "bg-gray-800" ? "bg-gray-700" : "bg-gray-100"
-                }
-              >
-                <tr>
-                  {[
-                    "Sample ID",
-                    "Product",
-                    "Location",
-                    ...(canSeeCollector ? ["Collector"] : []),
-                    "Max Reading (ppm)",
-                    "Status",
-                    "Date",
-                    "Actions",
-                  ].map((header) => (
-                    <th
-                      key={header}
-                      className={`px-4 py-3 text-left font-semibold ${theme?.textMuted}`}
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+        <>
+          <div
+            className={`${theme?.card} rounded-lg shadow-md border ${theme?.border}`}
+          >
+            <div className='hidden sm:block overflow-x-auto'>
+              <table className='w-full min-w-[800px] text-sm'>
+                <thead
+                  className={
+                    theme?.card === "bg-gray-800"
+                      ? "bg-gray-700"
+                      : "bg-gray-100"
+                  }
+                >
+                  <tr>
+                    {[
+                      "Sample ID",
+                      "Product",
+                      "Location",
+                      ...(canSeeCollector ? ["Collector"] : []),
+                      "Max Reading (ppm)",
+                      "Status",
+                      "Date",
+                      "Actions",
+                    ].map((header) => (
+                      <th
+                        key={header}
+                        className={`px-4 py-3 text-left font-semibold ${theme?.textMuted}`}
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
 
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
-                {filteredSamples?.map((sample) => {
+                <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+                  {filteredSamples?.map((sample) => {
+                    const maxReading = getMaxReading(
+                      sample?.heavyMetalReadings,
+                    );
+                    const sampleStatus =
+                      getContaminationStatus(sample).toLowerCase();
+                    return (
+                      <tr key={sample?.id} className={theme?.hover}>
+                        <td className='px-4 py-3 whitespace-nowrap font-medium'>
+                          {sample?.sampleId}
+                        </td>
+                        <td className='px-4 py-3 whitespace-nowrap'>
+                          <div>
+                            <div className='font-medium'>
+                              {sample?.productName}
+                            </div>
+                            <div className={`text-xs ${theme?.textMuted}`}>
+                              {sample?.brandName || "N/A"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className='px-4 py-3 whitespace-nowrap'>
+                          <div>
+                            <div>
+                              {sample?.lga?.name}, {sample?.state?.name}
+                            </div>
+                            <div className={`text-xs ${theme.textMuted}`}>
+                              {sample?.marketName ||
+                                sample?.market?.name ||
+                                "N/A"}
+                            </div>
+                          </div>
+                        </td>
+                        {canSeeCollector && (
+                          <td className='px-4 py-3 whitespace-nowrap'>
+                            <div className='font-medium text-sm'>
+                              {sample?.creator?.fullName ||
+                                sample?.creator?.email ||
+                                "Unknown"}
+                            </div>
+                            <div className={`text-xs ${theme?.textMuted}`}>
+                              {sample?.creator?.role?.replace(/_/g, " ") ||
+                                "N/A"}
+                            </div>
+                          </td>
+                        )}
+                        <td className='px-4 py-3 whitespace-nowrap font-semibold'>
+                          {maxReading !== null ? (
+                            <span
+                              className={
+                                sampleStatus === "contaminated"
+                                  ? "text-red-500"
+                                  : sampleStatus === "moderate"
+                                    ? "text-amber-500"
+                                    : "text-green-500"
+                              }
+                            >
+                              {maxReading.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className='text-gray-400'>—</span>
+                          )}
+                        </td>
+
+                        <td className='px-4 py-3'>
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              sampleStatus === "safe"
+                                ? "bg-green-100 text-green-800"
+                                : sampleStatus === "moderate"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : sampleStatus === "contaminated"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {sampleStatus?.toUpperCase() || "PENDING"}
+                          </span>
+                        </td>
+                        <td className='px-4 py-3 whitespace-nowrap'>
+                          {sample?.createdAt
+                            ? new Date(sample?.createdAt).toLocaleDateString()
+                            : "N/A"}
+                        </td>
+                        <td className='px-4 py-3 whitespace-nowrap'>
+                          <button
+                            onClick={() => setSelectedSample(sample)}
+                            className='text-emerald-400 hover:text-emerald-300 font-medium'
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className='block sm:hidden space-y-4 p-2 '>
+              {filteredSamples.length > 0 &&
+                filteredSamples?.map((sample) => {
                   const maxReading = getMaxReading(sample?.heavyMetalReadings);
                   const sampleStatus =
                     getContaminationStatus(sample).toLowerCase();
                   return (
-                    <tr key={sample?.id} className={theme?.hover}>
-                      <td className='px-4 py-3 whitespace-nowrap font-medium'>
-                        {sample?.sampleId}
-                      </td>
-                      <td className='px-4 py-3 whitespace-nowrap'>
-                        <div>
-                          <div className='font-medium'>
-                            {sample?.productName}
-                          </div>
-                          <div className={`text-xs ${theme?.textMuted}`}>
-                            {sample?.brandName || "N/A"}
-                          </div>
+                    <div
+                      key={sample.id}
+                      className={`${theme?.card} border ${theme?.border} rounded-lg p-4 shadow`}
+                    >
+                      <div className='flex justify-between items-center mb-1'>
+                        <span className='text-xs font-semibold text-gray-500'>
+                          Sample ID
+                        </span>
+                        <span className='text-sm font-medium'>
+                          {sample?.sampleId}
+                        </span>
+                      </div>
+
+                      <div className='text-sm mb-1'>
+                        <span className='font-semibold'>Product:</span>{" "}
+                        {sample?.productName}{" "}
+                        <span className={`block text-xs ${theme?.textMuted}`}>
+                          {sample?.brandName || "N/A"}
+                        </span>
+                      </div>
+
+                      <div className='text-sm mb-1'>
+                        <span className='font-semibold'>Location:</span>{" "}
+                        {sample?.lga?.name}, {sample?.state?.name}
+                        <div className={`text-xs ${theme?.textMuted}`}>
+                          {sample?.marketName || sample?.market?.name || "N/A"}
                         </div>
-                      </td>
-                      <td className='px-4 py-3 whitespace-nowrap'>
-                        <div>
-                          <div>
-                            {sample?.lga?.name}, {sample?.state?.name}
-                          </div>
-                          <div className={`text-xs ${theme.textMuted}`}>
-                            {sample?.marketName ||
-                              sample?.market?.name ||
-                              "N/A"}
-                          </div>
-                        </div>
-                      </td>
+                      </div>
+
                       {canSeeCollector && (
-                        <td className='px-4 py-3 whitespace-nowrap'>
-                          <div className='font-medium text-sm'>
-                            {sample?.creator?.fullName ||
-                              sample?.creator?.email ||
-                              "Unknown"}
-                          </div>
+                        <div className='text-sm mb-1'>
+                          <span className='font-semibold'>Collector:</span>{" "}
+                          {sample?.creator?.fullName ||
+                            sample?.creator?.email ||
+                            "Unknown"}
                           <div className={`text-xs ${theme?.textMuted}`}>
                             {sample?.creator?.role?.replace(/_/g, " ") || "N/A"}
                           </div>
-                        </td>
+                        </div>
                       )}
-                      <td className='px-4 py-3 whitespace-nowrap font-semibold'>
+
+                      <div className='text-sm mb-1'>
+                        <span className='font-semibold'>Max Reading:</span>{" "}
                         {maxReading !== null ? (
                           <span
-                            className={
+                            className={`font-semibold ${
                               sampleStatus === "contaminated"
                                 ? "text-red-500"
                                 : sampleStatus === "moderate"
                                   ? "text-amber-500"
                                   : "text-green-500"
-                            }
+                            }`}
                           >
-                            {maxReading.toLocaleString()}
+                            {maxReading.toLocaleString()} ppm
                           </span>
                         ) : (
-                          <span className='text-gray-400'>—</span>
+                          <span className='text-gray-400'>No readings</span>
                         )}
-                      </td>
+                      </div>
 
-                      <td className='px-4 py-3'>
+                      <div className='text-sm mb-1'>
+                        <span className='font-semibold'>Status:</span>{" "}
                         <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          className={`px-2 py-[2px] text-xs font-semibold rounded-full ${
                             sampleStatus === "safe"
                               ? "bg-green-100 text-green-800"
                               : sampleStatus === "moderate"
@@ -327,127 +435,32 @@ const DatabaseView = ({
                         >
                           {sampleStatus?.toUpperCase() || "PENDING"}
                         </span>
-                      </td>
-                      <td className='px-4 py-3 whitespace-nowrap'>
+                      </div>
+
+                      <div className='text-sm mb-1'>
+                        <span className='font-semibold'>Date:</span>{" "}
                         {sample?.createdAt
                           ? new Date(sample?.createdAt).toLocaleDateString()
                           : "N/A"}
-                      </td>
-                      <td className='px-4 py-3 whitespace-nowrap'>
-                        <button
-                          onClick={() => setSelectedSample(sample)}
-                          className='text-emerald-400 hover:text-emerald-300 font-medium'
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedSample(sample)}
+                        className='mt-2 text-emerald-400 hover:text-emerald-300 text-sm font-medium'
+                      >
+                        View Details
+                      </button>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+            </div>
           </div>
-
-          <div className='block sm:hidden space-y-4 p-2'>
-            {filteredSamples?.map((sample) => {
-              const maxReading = getMaxReading(sample?.heavyMetalReadings);
-              const sampleStatus = getContaminationStatus(sample).toLowerCase();
-              return (
-                <div
-                  key={sample.id}
-                  className={`${theme?.card} border ${theme?.border} rounded-lg p-4 shadow`}
-                >
-                  <div className='flex justify-between items-center mb-1'>
-                    <span className='text-xs font-semibold text-gray-500'>
-                      Sample ID
-                    </span>
-                    <span className='text-sm font-medium'>
-                      {sample?.sampleId}
-                    </span>
-                  </div>
-
-                  <div className='text-sm mb-1'>
-                    <span className='font-semibold'>Product:</span>{" "}
-                    {sample?.productName}{" "}
-                    <span className={`block text-xs ${theme?.textMuted}`}>
-                      {sample?.brandName || "N/A"}
-                    </span>
-                  </div>
-
-                  <div className='text-sm mb-1'>
-                    <span className='font-semibold'>Location:</span>{" "}
-                    {sample?.lga?.name}, {sample?.state?.name}
-                    <div className={`text-xs ${theme?.textMuted}`}>
-                      {sample?.marketName || sample?.market?.name || "N/A"}
-                    </div>
-                  </div>
-
-                  {canSeeCollector && (
-                    <div className='text-sm mb-1'>
-                      <span className='font-semibold'>Collector:</span>{" "}
-                      {sample?.creator?.fullName ||
-                        sample?.creator?.email ||
-                        "Unknown"}
-                      <div className={`text-xs ${theme?.textMuted}`}>
-                        {sample?.creator?.role?.replace(/_/g, " ") || "N/A"}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className='text-sm mb-1'>
-                    <span className='font-semibold'>Max Reading:</span>{" "}
-                    {maxReading !== null ? (
-                      <span
-                        className={`font-semibold ${
-                          sampleStatus === "contaminated"
-                            ? "text-red-500"
-                            : sampleStatus === "moderate"
-                              ? "text-amber-500"
-                              : "text-green-500"
-                        }`}
-                      >
-                        {maxReading.toLocaleString()} ppm
-                      </span>
-                    ) : (
-                      <span className='text-gray-400'>No readings</span>
-                    )}
-                  </div>
-
-                  <div className='text-sm mb-1'>
-                    <span className='font-semibold'>Status:</span>{" "}
-                    <span
-                      className={`px-2 py-[2px] text-xs font-semibold rounded-full ${
-                        sampleStatus === "safe"
-                          ? "bg-green-100 text-green-800"
-                          : sampleStatus === "moderate"
-                            ? "bg-amber-100 text-amber-800"
-                            : sampleStatus === "contaminated"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {sampleStatus?.toUpperCase() || "PENDING"}
-                    </span>
-                  </div>
-
-                  <div className='text-sm mb-1'>
-                    <span className='font-semibold'>Date:</span>{" "}
-                    {sample?.createdAt
-                      ? new Date(sample?.createdAt).toLocaleDateString()
-                      : "N/A"}
-                  </div>
-
-                  <button
-                    onClick={() => setSelectedSample(sample)}
-                    className='mt-2 text-emerald-400 hover:text-emerald-300 text-sm font-medium'
-                  >
-                    View Details
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          {filteredSamples?.length === 0 && (
+            <h2 className='text-center text-gray-500'>
+              No samples found matching the criteria.
+            </h2>
+          )}
+        </>
       )}
 
       {selectedSample && (
