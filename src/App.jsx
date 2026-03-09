@@ -1,11 +1,11 @@
 import Dashboard from "./components/views/Dashboard";
 import Home from "./pages/Home";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import PrivateRoute from "./Route/PrivateRoute";
 import Layout from "./Route/Layout";
 import AuthModal from "./components/auth/AuthModal";
 import InviteCodeGenerate from "./pages/InviteCodeGenerate";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { handleLogout } from "./redux/slice/authSlice";
 import MapView from "./components/views/MapView";
@@ -25,6 +25,8 @@ import LabAnalystDashboard from "./components/views/LabAnalystDashboard";
 import LabConfirmationForm from "./components/views/LabConfirmationForm";
 import { EnumsProvider } from "./context/EnumsContext";
 import { Toaster } from "react-hot-toast";
+import LabWorkloadAnalytics from "./components/views/LabWorkloadAnalytics";
+import { useState } from "react";
 
 const lightTheme = {
   bg: "bg-gray-100",
@@ -56,7 +58,6 @@ const App = () => {
   const theme = darkMode ? darkTheme : lightTheme;
 
   const logout = () => dispatch(handleLogout());
-  const navigate = useNavigate();
 
   return (
     <EnumsProvider isAuthenticated={isAuthenticated}>
@@ -194,44 +195,34 @@ const App = () => {
               }
             />
 
-            <Route
-              path='collectors'
-              element={
-                <PrivateRoute allowedRoles={["supervisor"]}>
-                  <CollectorManagement theme={theme} darkMode={darkMode} />
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="lab-samples"
+            element={
+              <PrivateRoute allowedRoles={["labanalyst"]}>
+                <LabAnalystDashboard theme={theme} darkMode={darkMode} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="lab-recording"
+            element={
+              <PrivateRoute allowedRoles={["labanalyst"]}>
+                <LabWorkloadAnalytics theme={theme} darkMode={darkMode} />
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path='sample-review'
-              element={
-                <PrivateRoute allowedRoles={["supervisor"]}>
-                  <SampleReview theme={theme} darkMode={darkMode} />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path='lab-samples'
-              element={
-                <PrivateRoute allowedRoles={["labanalyst"]}>
-                  <LabAnalystDashboard theme={theme} darkMode={darkMode} />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path='record-reading/:sampleId'
-              element={
-                <PrivateRoute allowedRoles={["labanalyst"]}>
-                  <LabConfirmationForm theme={theme} />
-                </PrivateRoute>
-              }
-            />
-          </Route>
-        </Routes>
-      </div>
+          <Route
+            path="record-reading/:sampleId"
+            element={
+              <PrivateRoute allowedRoles={["labanalyst"]}>
+                <LabConfirmationForm theme={theme} darkMode={darkMode} />
+              </PrivateRoute>
+            }
+          />
+        </Route>
+      </Routes>
+    </div>
     </EnumsProvider>
   );
 };

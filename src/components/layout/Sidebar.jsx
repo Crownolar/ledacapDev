@@ -8,6 +8,8 @@ import {
   Upload,
   Beaker,
   Settings,
+  FlaskConical,
+  Microscope,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useTheme } from "../../context/ThemeContext";
@@ -54,7 +56,7 @@ const roleConfig = {
   labanalyst: {
     sampleButton: false,
     excelImport: false,
-    navItems: ["lab-samples"], // Lab analyst - view and confirm AAS; record-reading/:id from dashboard
+    navItems: ["lab-samples", "lab-recording"], // Lab analyst - view and confirm AAS; record-reading/:id from dashboard
   },
 };
 
@@ -62,7 +64,7 @@ const Sidebar = ({
   mobileMenuOpen,
   setMobileMenuOpen,
   setShowForm,
-  setShowHeavyMetalModal,
+  // setShowHeavyMetalModal,
   excelImportRef,
 }) => {
   const { currentUser } = useSelector((state) => state.auth);
@@ -89,6 +91,12 @@ const Sidebar = ({
       label: "Lab Samples",
       route: "/lab-samples",
       key: "lab-samples",
+    },
+    {
+      icon: Microscope,
+      label: "Lab Recording",
+      route: "/lab-recording",
+      key: "lab-recording",
     },
     {
       icon: Database,
