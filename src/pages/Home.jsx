@@ -3,7 +3,7 @@ import { useSamples } from "../hooks/useSamples";
 import { useTheme } from "../hooks/useTheme";
 import AuthModal from "../components/auth/AuthModal";
 import Dashboard from "../components/views/Dashboard";
-import Database from "../components/views/Database";
+import Database from "../components/views/DatabaseView";
 import MapView from "../components/views/MapView";
 import Reports from "../components/views/Reports";
 import SampleFormModal from "../components/modals/SampleFormModal";
@@ -49,10 +49,13 @@ const Home = () => {
   // Calculate analytics from samples
   const analytics = useMemo(() => {
     const total = filteredSamples?.length || 0;
-    const safe = filteredSamples?.filter(s => s.status === "safe").length || 0;
-    const contaminated = filteredSamples?.filter(s => s.status === "contaminated").length || 0;
-    const pending = filteredSamples?.filter(s => s.status === "pending").length || 0;
-    
+    const safe =
+      filteredSamples?.filter((s) => s.status === "safe").length || 0;
+    const contaminated =
+      filteredSamples?.filter((s) => s.status === "contaminated").length || 0;
+    const pending =
+      filteredSamples?.filter((s) => s.status === "pending").length || 0;
+
     return {
       total,
       safe,
@@ -105,8 +108,12 @@ const Home = () => {
           states={states}
         />
       )}
-      {currentView === "map" && <MapView theme={theme} samples={filteredSamples} />}
-      {currentView === "reports" && <Reports theme={theme} samples={filteredSamples} />}
+      {currentView === "map" && (
+        <MapView theme={theme} samples={filteredSamples} />
+      )}
+      {currentView === "reports" && (
+        <Reports theme={theme} samples={filteredSamples} />
+      )}
       {showForm && (
         <SampleFormModal
           theme={theme}

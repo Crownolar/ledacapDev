@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { handleLogout } from "./redux/slice/authSlice";
 import MapView from "./components/views/MapView";
 import Reports from "./components/views/Reports";
-import Database from "./components/views/Database";
+import Database from "./pages/Database";
 // import { fetchSamples } from "./redux/slice/samplesSlice";
 import PolicyWelcome from "./pages/PolicyWelcome";
 import HeavyMetalFormModalNew from "./components/modals/lab-result_modal/HeavyMetalFormModalNew";
