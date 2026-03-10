@@ -10,8 +10,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { handleLogout } from "./redux/slice/authSlice";
 import MapView from "./components/views/MapView";
 import Reports from "./components/views/Reports";
-import Database from "./components/views/Database";
-// import { fetchSamples } from "./redux/slice/samplesSlice";
+import Database from "./pages/Database";
+import { fetchSamples } from "./redux/slice/samplesSlice";
 import PolicyWelcome from "./pages/PolicyWelcome";
 import HeavyMetalFormModalNew from "./components/modals/lab-result_modal/HeavyMetalFormModalNew";
 import DataCollectorDashboard from "./pages/DataCollectorDashboard";
@@ -61,157 +61,139 @@ const App = () => {
 
   return (
     <EnumsProvider isAuthenticated={isAuthenticated}>
-    <div>
-      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<AuthModal theme={theme} />} />{" "}
-        <Route path="/policy-welcome" element={<PolicyWelcome />} />
-        <Route
-          path="/data-collector-welcome"
-          element={
-            <PrivateRoute allowedRoles={["datacollector"]}>
-              <DataCollectorWelcome />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          element={
-            <Layout
-              theme={theme}
-              currentUser={currentUser}
-              darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
-              handleLogout={logout}
+      <div>
+        <Toaster position='top-center' toastOptions={{ duration: 3000 }} />
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/auth' element={<AuthModal theme={theme} />} />{" "}
+          <Route path='/policy-welcome' element={<PolicyWelcome />} />
+          <Route
+            path='/data-collector-welcome'
+            element={
+              <PrivateRoute allowedRoles={["datacollector"]}>
+                <DataCollectorWelcome />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            element={
+              <Layout
+                theme={theme}
+                currentUser={currentUser}
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+                handleLogout={logout}
+              />
+            }
+          >
+            <Route
+              path='/dashboard'
+              element={
+                <PrivateRoute
+                  isAuthenticated={isAuthenticated}
+                  allowedRoles={[
+                    "superadmin",
+                    "supervisor",
+                    "headresearcher",
+                    "policymakerson",
+                    "policymakernafdac",
+                    "policymakerresolve",
+                    "policymakeruniversity",
+                    "labanalyst",
+                  ]}
+                >
+                  {currentUser?.role?.toLowerCase() === "supervisor" ? (
+                    <SupervisorDashboard theme={theme} />
+                  ) : (
+                    <Dashboard theme={theme} />
+                  )}
+                </PrivateRoute>
+              }
             />
-          }
-        >
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute
-                isAuthenticated={isAuthenticated}
-                allowedRoles={[
-                  "superadmin",
-                  "supervisor",
-                  "headresearcher",
-                  "policymakerson",
-                  "policymakernafdac",
-                  "policymakerresolve",
-                  "policymakeruniversity",
-                  "labanalyst",
-                ]}
-              >
-                {currentUser?.role?.toLowerCase() === "supervisor" ? (
-                  <SupervisorDashboard theme={theme} />
-                ) : (
-                  <Dashboard theme={theme} />
-                )}
-              </PrivateRoute>
-            }
-          />
 
-          <Route
-            path="/data-collector"
-            element={
-              <PrivateRoute allowedRoles={["datacollector"]}>
-                <DataCollectorDashboard theme={theme} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='/data-collector'
+              element={
+                <PrivateRoute allowedRoles={["datacollector"]}>
+                  <DataCollectorDashboard theme={theme} />
+                </PrivateRoute>
+              }
+            />
 
-          <Route
-            path="/heavy-metal"
-            element={
-              <PrivateRoute allowedRoles={["datacollector"]}>
-                <HeavyMetalFormModalNew />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="database"
-            element={
-              <PrivateRoute
-                allowedRoles={["superadmin", "headresearcher", "supervisor"]}
-              >
-                <Database theme={theme} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='/heavy-metal'
+              element={
+                <PrivateRoute allowedRoles={["datacollector"]}>
+                  <HeavyMetalFormModalNew />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path='database'
+              element={
+                <PrivateRoute
+                  allowedRoles={["superadmin", "headresearcher", "supervisor"]}
+                >
+                  <Database theme={theme} />
+                </PrivateRoute>
+              }
+            />
 
-          <Route
-            path="reports"
-            element={
-              <PrivateRoute allowedRoles={["superadmin", "headresearcher"]}>
-                <Reports theme={theme} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='reports'
+              element={
+                <PrivateRoute allowedRoles={["superadmin", "headresearcher"]}>
+                  <Reports theme={theme} />
+                </PrivateRoute>
+              }
+            />
 
-          <Route
-            path="map"
-            element={
-              <PrivateRoute
-                allowedRoles={[
-                  "superadmin",
-                  "headresearcher",
-                  "supervisor",
-                  "datacollector",
-                  "policymakerson",
-                  "policymakernafdac",
-                  "policymakerresolve",
-                  "policymakeruniversity",
-                ]}
-              >
-                <MapView theme={theme} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='map'
+              element={
+                <PrivateRoute
+                  allowedRoles={[
+                    "superadmin",
+                    "headresearcher",
+                    "supervisor",
+                    "datacollector",
+                    "policymakerson",
+                    "policymakernafdac",
+                    "policymakerresolve",
+                    "policymakeruniversity",
+                  ]}
+                >
+                  <MapView theme={theme} />
+                </PrivateRoute>
+              }
+            />
 
-          <Route
-            path="thresholds"
-            element={
-              <PrivateRoute allowedRoles={["superadmin"]}>
-                <ThresholdManagement theme={theme} darkMode={darkMode} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='thresholds'
+              element={
+                <PrivateRoute allowedRoles={["superadmin"]}>
+                  <ThresholdManagement theme={theme} darkMode={darkMode} />
+                </PrivateRoute>
+              }
+            />
 
-          <Route
-            path="invitecodes"
-            element={
-              <PrivateRoute allowedRoles={["superadmin"]}>
-                <InviteCodeGenerate theme={theme} darkMode={darkMode} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='invitecodes'
+              element={
+                <PrivateRoute allowedRoles={["superadmin"]}>
+                  <InviteCodeGenerate theme={theme} darkMode={darkMode} />
+                </PrivateRoute>
+              }
+            />
 
-          <Route
-            path="invites"
-            element={
-              <PrivateRoute allowedRoles={["superadmin"]}>
-                <InviteCodeManagement theme={theme} darkMode={darkMode} />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="collectors"
-            element={
-              <PrivateRoute allowedRoles={["supervisor"]}>
-                <CollectorManagement theme={theme} darkMode={darkMode} />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="sample-review"
-            element={
-              <PrivateRoute allowedRoles={["supervisor"]}>
-                <SampleReview theme={theme} darkMode={darkMode} />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path='invites'
+              element={
+                <PrivateRoute allowedRoles={["superadmin"]}>
+                  <InviteCodeManagement theme={theme} darkMode={darkMode} />
+                </PrivateRoute>
+              }
+            />
 
           <Route
             path="lab-samples"
