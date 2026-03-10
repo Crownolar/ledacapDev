@@ -22,7 +22,7 @@ import api from "../utils/api";
 
 const DataCollectorDashboard = () => {
   const dispatch = useDispatch();
-  const { currentUser, isAuthenticated } = useSelector((state) => state.auth);
+  const { currentUser } = useSelector((state) => state.auth);
   const { theme } = useTheme();
   const {
     samples: allSamples,
@@ -165,28 +165,28 @@ const DataCollectorDashboard = () => {
           >
             <div className="space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                <p className="text-gray-800 dark:text-gray-100 text-sm sm:text-base">
+                <p className={`${theme?.text} text-sm sm:text-base`}>
                   <span className="font-semibold">
                     Welcome, {currentUser?.fullName}
                   </span>
                 </p>
                 {currentUser?.organization && (
-                  <span className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+                  <span className={`${theme?.text} text-xs sm:text-sm`}>
                     • {currentUser.organization}
                   </span>
                 )}
               </div>
               {supervisor ? (
-                <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+                <p className={`${theme?.text} text-xs sm:text-sm`}>
                   <span className="font-semibold">Supervisor:</span>{" "}
                   {supervisor.fullName} ({supervisor.email})
                 </p>
               ) : loadingSupervisor ? (
-                <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+                <p className={`${theme?.textMuted} text-xs sm:text-sm`}>
                   Loading supervisor info...
                 </p>
               ) : (
-                <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+                <p className={`${theme?.textMuted} text-xs sm:text-sm`}>
                   No supervisor assigned yet
                 </p>
               )}

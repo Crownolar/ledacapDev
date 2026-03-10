@@ -1,4 +1,5 @@
 import { X, AlertTriangle, Pencil } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 
 // Helper to format vendor type for display
 const formatVendorType = (vendorType, vendorTypeOther) => {
@@ -38,8 +39,9 @@ const getContaminationInfo = (heavyMetalReadings) => {
   };
 };
 
-const SampleDetailModal = ({ theme, sample, onClose, onEditRequest }) => {
+const SampleDetailModal = ({ sample, onClose, onEditRequest }) => {
   const contaminationInfo = getContaminationInfo(sample?.heavyMetalReadings);
+  const theme = useTheme();
 
   const handleEdit = () => {
     if (onEditRequest && sample) {
@@ -50,7 +52,7 @@ const SampleDetailModal = ({ theme, sample, onClose, onEditRequest }) => {
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[5000] ${theme.text}`}
+      className={`fixed inset-0 ${theme.bg} flex items-center justify-center p-4 z-[5000] ${theme.text}`}
     >
       <div
         className={`${theme.card} rounded-xl shadow-2xl w-full max-w-3xl max-h-[100vh] flex flex-col overflow-hidden`}
