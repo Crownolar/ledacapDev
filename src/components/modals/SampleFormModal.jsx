@@ -7,12 +7,7 @@ import {
   fetchFormData,
   filterLGAsByState,
   filterMarketsByLGA,
-  // getVariantsForCategory,
   fetchVariantsForCategory,
-  // handleStateChange,
-  // handleLGAChange,
-  // handleMarketChange,
-  // handleCategoryChange,
   handleVendorTypeChange,
   handleFileUpload,
   removeFile,
@@ -21,6 +16,7 @@ import {
   validateSampleForm,
 } from "../../utils/formHelpers";
 import { useTheme } from "../../context/ThemeContext";
+import toast from "react-hot-toast";
 
 const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   const isEdit = mode === "edit";
@@ -40,7 +36,7 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   const [variants, setVariants] = useState([]);
   const [allLgas, setAllLgas] = useState([]);
   const [allMarkets, setAllMarkets] = useState([]);
-  const [categories, setCategories] = useState([]); // Add categories state
+  const [categories, setCategories] = useState([]);
   const [loadingData, setLoadingData] = useState(false);
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
@@ -49,10 +45,8 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   const productPhotoRef = useRef(null);
   const calibrationCurveRef = useRef(null);
 
-  // Initialize form data
   useEffect(() => {
     const initFormData = async () => {
-      // Check if user is authenticated
       const token = sessionStorage.getItem("accessToken");
       if (!token) {
         console.warn("No authentication token found. User must be logged in.");
@@ -67,7 +61,7 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
         setStates(data.states || []);
         setAllLgas(data.allLgas || []);
         setAllMarkets(data.allMarkets || []);
-        setCategories(data.categories || []); // Store categories from API
+        setCategories(data.categories || []); 
       } catch (err) {
         console.error("Error fetching form data:", err);
         setError(
@@ -87,7 +81,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
     initFormData();
   }, []);
 
-  // Prefill form when in edit mode and initialSample is set (after form data loaded)
   useEffect(() => {
     if (
       isEdit &&
@@ -105,7 +98,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
     categories.length,
   ]);
 
-  // Handle state change
   useEffect(() => {
     if (formData.stateId) {
       const filtered = filterLGAsByState(formData.stateId, allLgas);
@@ -116,7 +108,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
     }
   }, [formData.stateId, allLgas]);
 
-  // Handle LGA change
   useEffect(() => {
     if (formData.lgaId) {
       const filtered = filterMarketsByLGA(formData.lgaId, allMarkets);
@@ -126,7 +117,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
     }
   }, [formData.lgaId, allMarkets]);
 
-  // Handle category change - fetch variants from API
   useEffect(() => {
     const loadVariants = async () => {
       if (formData.productCategoryId) {
@@ -175,39 +165,43 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
 
-    const validation = validateSampleForm(formData);
+  const validation = validateSampleForm(formData);
 
-    if (!validation.valid) {
-      setError(Object.values(validation.errors).join(", "));
-      setLoading(false);
-      return;
-    }
+  if (!validation.valid) {
+    setError(Object.values(validation.errors).join(", "));
+    toast.error(Object.values(validation.errors).join(", "));
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const payload = buildSamplePayload(formData);
+  try {
+    const payload = buildSamplePayload(formData);
 
-      await onSubmit(payload);
-      alert(
-        isEdit
-          ? "Sample updated successfully!"
-          : "Sample created successfully!",
-      );
-      onClose();
-    } catch (err) {
-      const errorMsg =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        (isEdit ? "Failed to update sample" : "Failed to create sample");
-      setError(errorMsg);
-      alert(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    await onSubmit(payload);
+
+    toast.success(
+      isEdit
+        ? "Sample updated successfully!"
+        : "Sample created successfully!"
+    );
+
+    onClose();
+  } catch (err) {
+    const errorMsg =
+      err.response?.data?.error ||
+      err.response?.data?.message ||
+      (isEdit ? "Failed to update sample" : "Failed to create sample");
+
+    setError(errorMsg);
+    toast.error(errorMsg);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[5000]">
