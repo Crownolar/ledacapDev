@@ -4,6 +4,8 @@ import api from "../../utils/api";
 import { getContaminationStatus } from "../../utils/chartDataHelpers";
 import SampleDetailModal from "../modals/SampleDetailModal";
 import { useTheme } from "../../context/ThemeContext";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 
 const getMaxReading = (heavyMetalReadings) => {
   if (!heavyMetalReadings || heavyMetalReadings.length === 0) return null;
@@ -91,7 +93,62 @@ const DatabaseView = ({
       alert("Failed to export samples. Please try again.");
     }
   };
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    isOpen: false,
+    sample: null,
+  });
+  const navigate = useNavigate();
+  const handleDeleteSample = (sample) => {
+    console.log(sample);
+    api
+      .delete(`samples/${sample.id}`)
+      .then((res) => {
+        console.log(res.data);
+        setTimeout(() => {
+          setDeleteConfirmModal({ isOpen: false, sample: null });
+          navigate(0);
+        }, 1000);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
 
+  const DeleteConfirmModalComp = ({
+    show,
+    action,
+    onConfirm,
+    onCancel,
+    theme,
+  }) => {
+    if (!show) return null;
+
+    return (
+      <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50'>
+        <div
+          className={`${theme?.card} border ${theme?.border} ${theme?.text} rounded-xl p-6 shadow-xl max-w-sm w-full`}
+        >
+          <h2 className='text-lg font-semibold mb-3 text-center'>
+            {`Are you sure you want to ${action}`}?
+          </h2>
+          <div className='flex justify-center gap-3 mt-4'>
+            <button
+              onClick={onConfirm}
+              className='bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg'
+            >
+              {`Yes, ${action}`}
+            </button>
+            <button
+              onClick={onCancel}
+              className='bg-gray-300 hover:bg-gray-400 text-black py-2 px-4 rounded-lg'
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className={`space-y-4 ${theme?.text} text-base`}>
       <div
@@ -215,6 +272,18 @@ const DatabaseView = ({
         )}
       </div>
       {/* samples */}
+      {deleteConfirmModal.isOpen && (
+        <DeleteConfirmModalComp
+          show={deleteConfirmModal.isOpen}
+          action={"delete"}
+          onConfirm={() => handleDeleteSample(deleteConfirmModal.sample)}
+          onCancel={() =>
+            setDeleteConfirmModal({ isOpen: false, sample: null })
+          }
+          theme={theme}
+        />
+      )}
+
       {loading && (
         <div className='flex items-center justify-center h-48'>
           <Loader className='animate-spin mr-2  size-10' />
@@ -342,6 +411,22 @@ const DatabaseView = ({
                             View
                           </button>
                         </td>
+                        {/* delete */}
+                        <td className='px-4 py-3 whitespace-nowrap'>
+                          {isSuperAdmin && (
+                            <button
+                              onClick={() =>
+                                setDeleteConfirmModal({
+                                  isOpen: true,
+                                  sample: sample,
+                                })
+                              }
+                              className='mt-2 text-red-400 hover:text-red-300 text-sm font-medium'
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -445,6 +530,21 @@ const DatabaseView = ({
                       >
                         View Details
                       </button>
+                      {/* delete */}
+
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() =>
+                            setDeleteConfirmModal({
+                              isOpen: true,
+                              sample: sample,
+                            })
+                          }
+                          className='mt-2 text-red-400 hover:text-red-300 text-sm font-medium'
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   );
                 })}
