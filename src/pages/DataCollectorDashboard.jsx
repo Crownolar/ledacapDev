@@ -108,6 +108,8 @@ const DataCollectorDashboard = () => {
     return true;
   });
 
+  console.log("Filtered Samples:", filteredSamples);
+
   const handleAddResults = (sample) => {
     setSelectedSample(sample);
     setShowHeavyMetalModal(true);
