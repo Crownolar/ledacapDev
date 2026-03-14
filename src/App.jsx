@@ -218,6 +218,14 @@ const App = () => {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="sample-review"
+              element={
+                <PrivateRoute allowedRoles={["supervisor"]}>
+                  <SampleReview theme={theme} darkMode={darkMode} />
+                </PrivateRoute>
+              }
+            />
 
             <Route
               path="lab-samples"
