@@ -591,7 +591,10 @@ const SampleReview = () => {
                   {selectedSample.productPhotoUrl ? (
                     <div className="flex justify-center p-3">
                       <img
-                        src={`${import.meta.env.VITE_BACKEND_URL}${selectedSample.productPhotoUrl}`}
+                        src={`${
+                          import.meta.env.VITE_BACKEND_URL ||
+                          "https://api.leadcap.ng"
+                        }${selectedSample.productPhotoUrl}`}
                         alt="Product Photo"
                         className="max-h-56 w-auto rounded object-contain"
                         id="productPhotoImage"
