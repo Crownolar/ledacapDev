@@ -33,7 +33,7 @@ import VerificationLogs from "./modules/nafdac/pages/VerificationLogs";
 import ProductSearch from "./modules/nafdac/pages/ProductSearch";
 import RegistryHistory from "./modules/nafdac/pages/RegistryHistory";
 import RegistryUpload from "./modules/nafdac/pages/RegistryUpload";
-import MohDashboard from "./modules/modulesMoh/pages/MohDashboard";
+import MohDashboard from "./modules/modulesMoh/pages/dashboard/MohDashboard";
 import MohSamples from "./modules/modulesMoh/pages/MohSamples";
 import MohReports from "./modules/modulesMoh/pages/MohReports";
 import MohVerification from "./modules/modulesMoh/pages/MohVerification";
