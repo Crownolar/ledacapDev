@@ -27,7 +27,7 @@ const RegistryUpload = () => {
   const [loading, setLoading] = useState(false);
   const [clickedVersion, setClickedVersion] = useState(null);
   const [activating, setActivating] = useState(false);
-  const [uploadResult, setUploadResult] = useState({ recordsProcessed: 12 });
+  const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
@@ -90,7 +90,6 @@ const RegistryUpload = () => {
   useEffect(() => {
     async function fetch() {
       await getRegistryVersions().then((versions) => {
-        if (versions.length == 0) return setVersions(mockVersions);
         setVersions(versions);
       });
     }
@@ -347,14 +346,23 @@ const RegistryUpload = () => {
               >
                 <div className='flex items-center gap-3'>
                   <div className='text-sm text-slate-700'>
-                    {version ? (
+                    {!versions ||
+                      (versions.length < 0 && (
+                        <span className='text-slate-400'>No versions</span>
+                      ))}
+                    {loading && (
+                      <Icon
+                        d={icons.refresh}
+                        size={16}
+                        className='text-slate-400 animate-spin'
+                      />
+                    )}
+                    {version && !loading && (
                       <>
                         <span className='font-semibold'>
                           {version.versionLabel}
                         </span>
                       </>
-                    ) : (
-                      <span className='text-slate-400'>No versions</span>
                     )}
                   </div>
                 </div>
@@ -399,7 +407,7 @@ const RegistryUpload = () => {
                         )}
                         {clickedVersion == v.id && (
                           <Icon
-                            d={icons.refresh}
+                            d={icons.loader}
                             size={16}
                             className='text-slate-400 animate-spin'
                           />

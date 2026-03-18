@@ -34,50 +34,55 @@ export async function activateRegistryVersion(id) {
     .then((r) => r.data);
 }
 
-export function searchRegistryProducts(params = {}) {
-  return api.get(`${REGISTRY}/search`, { params }).then((r) => r.data);
+// Search Products-------------------------------------
+export async function searchRegistryProducts(params = {}) {
+  return await api.get(`${REGISTRY}/search`, { params }).then((r) => r.data);
 }
 
-export function getProductByNafdacNumber(nafdacNumber) {
-  return api
+export async function getProductByNafdacNumber(nafdacNumber) {
+  return await api
     .get(`${REGISTRY}/products/${encodeURIComponent(nafdacNumber)}`)
     .then((r) => r.data);
 }
 
 // ─── Verification ─────────────────────────────────────────────────────────
-export function getVerificationSummary(params = {}) {
-  return api.get(`${VERIFICATION}/summary`, { params }).then((r) => r.data);
+export async function getVerificationSummary(params = {}) {
+  return await api
+    .get(`${VERIFICATION}/summary`, { params })
+    .then((r) => r.data);
 }
 
-export function getVerificationLogs(params = {}) {
-  return api.get(`${VERIFICATION}/logs`, { params }).then((r) => r.data);
+export async function getVerificationLogs(params = {}) {
+  return await api.get(`${VERIFICATION}/logs`, { params }).then((r) => r.data);
 }
 
-export function verifySample(sampleId) {
-  return api
+export async function verifySample(sampleId) {
+  return await api
     .post(`${VERIFICATION}/samples/${sampleId}/verify`)
     .then((r) => r.data);
 }
 
-export function bulkVerifySamplesForVersion(versionId) {
-  return api
+export async function bulkVerifySamplesForVersion(versionId) {
+  return await api
     .post(`${VERIFICATION}/registry/${versionId}/verify-samples`)
     .then((r) => r.data);
 }
 
 // ─── Risk intelligence ───────────────────────────────────────────────────
-export function getHighRiskRegions(params = {}) {
-  return api.get(`${RISK}/high-risk-regions`, { params }).then((r) => r.data);
+export async function getHighRiskRegions(params = {}) {
+  return await api
+    .get(`${RISK}/high-risk-regions`, { params })
+    .then((r) => r.data);
 }
 
-export function getReusedNafdacNumbers(params = {}) {
-  return api
+export async function getReusedNafdacNumbers(params = {}) {
+  return await api
     .get(`${RISK}/reused-nafdac-numbers`, { params })
     .then((r) => r.data);
 }
 
-export function getFakeProductsSummary(params = {}) {
-  return api
+export async function getFakeProductsSummary(params = {}) {
+  return await api
     .get(`${RISK}/fake-products-summary`, { params })
     .then((r) => r.data);
 }
