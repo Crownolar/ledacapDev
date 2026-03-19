@@ -25,6 +25,10 @@ const SampleReview = () => {
     issues: [],
     requestedChanges: "",
   });
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => {
+    setImageFailed(false);
+  }, [selectedSample]);
 
   const getReviewStatus = (s) => s.review?.status ?? "PENDING";
 
@@ -74,6 +78,9 @@ const SampleReview = () => {
   ];
 
   const handleSelectSample = (sample) => {
+    console.log("clicked sample:", sample);
+    console.log("photo url from sample:", sample?.productPhotoUrl);
+
     setSelectedSample(sample);
     setReviewForm({
       status: sample.review?.status || "APPROVED",
@@ -82,6 +89,26 @@ const SampleReview = () => {
       requestedChanges: sample.review?.requestedChanges || "",
     });
   };
+
+  const getProductPhotoSrc = (photoUrl) => {
+    if (!photoUrl) return null;
+
+    const baseUrl =
+      import.meta.env.VITE_BACKEND_URL || "https://api.leadcap.ng";
+
+    // Fix malformed full URL like "https//example.com/..."
+    if (photoUrl.startsWith("https//")) {
+      return photoUrl.replace("https//", "https://");
+    }
+
+    if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
+      return photoUrl;
+    }
+
+    return `${baseUrl.replace(/\/$/, "")}/${photoUrl.replace(/^\/+/, "")}`;
+  };
+
+  const productPhotoSrc = getProductPhotoSrc(selectedSample?.productPhotoUrl);
 
   const handleIssueToggle = (issue) => {
     setReviewForm((prev) => ({
@@ -583,32 +610,27 @@ const SampleReview = () => {
                   </div>
 
                   {/* Photo Body */}
-                  {selectedSample.productPhotoUrl ? (
-                    <div className='flex justify-center p-3'>
+                  {productPhotoSrc && !imageFailed ? (
+                    <div className="flex justify-center p-3">
                       <img
-                        src={`${selectedSample.productPhotoUrl}`}
-                        alt='Product Photo'
-                        className='max-h-56 w-auto rounded object-contain'
-                        id='productPhotoImage'
+                        src={productPhotoSrc}
+                        alt="Product Photo"
+                        className="max-h-56 w-auto rounded object-contain"
+                        onError={() => {
+                          console.error(
+                            "Failed to load image:",
+                            productPhotoSrc,
+                          );
+                          setImageFailed(true);
+                        }}
                       />
                     </div>
                   ) : (
-                    <div className='flex flex-col items-center justify-center h-36 gap-2 text-gray-500'>
-                      <svg
-                        className='w-8 h-8 opacity-30'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={1.5}
-                          d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
-                        />
-                      </svg>
-                      <p className='text-xs text-gray-500'>
-                        No product photo captured
+                    <div className="flex flex-col items-center justify-center h-36 gap-2 text-gray-500">
+                      <p className="text-xs text-gray-500">
+                        {selectedSample?.productPhotoUrl
+                          ? "Product photo could not be loaded"
+                          : "No product photo captured"}
                       </p>
                     </div>
                   )}

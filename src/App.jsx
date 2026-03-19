@@ -35,7 +35,7 @@ import RegistryHistory from "./modules/nafdac/pages/RegistryHistory";
 import RegistryUpload from "./modules/nafdac/pages/RegistryUpload";
 import MohDashboard from "./modules/modulesMoh/pages/dashboard/MohDashboard";
 import MohSamples from "./modules/modulesMoh/pages/MohSamples";
-import MohReports from "./modules/modulesMoh/pages/MohReports";
+import MohReports from "./modules/modulesMoh/pages/reports/MohReports";
 import MohVerification from "./modules/modulesMoh/pages/MohVerification";
 import MohContamination from "./modules/modulesMoh/pages/MohContamination";
 
