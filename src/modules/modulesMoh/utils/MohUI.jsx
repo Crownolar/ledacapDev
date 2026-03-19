@@ -2,11 +2,16 @@ export function FilterSep() {
   return <div className="w-px h-6 bg-gray-200" />;
 }
 
-export function BtnPrimary({ children, onClick }) {
+export function BtnPrimary({ children, onClick, disabled = false }) {
   return (
     <button
       onClick={onClick}
-      className="bg-green-700 hover:bg-green-800 text-white px-4 py-1.5 rounded-md text-xs font-medium cursor-pointer whitespace-nowrap border-0"
+      disabled={disabled}
+      className={`px-4 py-1.5 rounded-md text-xs font-medium whitespace-nowrap border-0 ${
+        disabled
+          ? "bg-green-400 text-white cursor-not-allowed"
+          : "bg-green-700 hover:bg-green-800 text-white cursor-pointer"
+      }`}
     >
       {children}
     </button>
