@@ -12,8 +12,8 @@ export const getInitialSampleFormState = () => ({
   productCategoryId: "",
   productVariantId: "",
 
-  productCode: "",
-  sampleNumber: "",
+  // productCode: "",
+  // sampleNumber: "",
 
   productName: "",
   brandName: "",
@@ -88,13 +88,6 @@ export const fetchFormData = async () => {
     const allMarkets = marketsRes.data?.data || marketsRes.data || [];
     const categories = categoriesRes.data?.data || categoriesRes.data || [];
 
-    console.log("Processed data:", {
-      states: states?.length,
-      allLgas: allLgas?.length,
-      allMarkets: allMarkets?.length,
-      categories: categories?.length,
-    });
-
     return {
       states: Array.isArray(states) ? states : [],
       allLgas: Array.isArray(allLgas) ? allLgas : [],
@@ -108,12 +101,12 @@ export const fetchFormData = async () => {
       status: error.response?.status,
       config: error.config?.url,
     });
-    return {
-      states: [],
-      allLgas: [],
-      allMarkets: [],
-      categories: [],
-    };
+    throw new Error({
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config?.url,
+    });
   }
 };
 
@@ -314,8 +307,8 @@ export const buildSamplePayload = (formData) => {
     sonNumber: formData.sonNumber || null,
     productPhotoUrl: formData.productPhoto || null,
     calibrationCurveFile: formData.calibrationCurveFile?.data || null,
-    productCode: formData.productCode,
-    sampleNumber: formData.sampleNumber,
+    // productCode: formData.productCode,
+    // sampleNumber: formData.sampleNumber,
   };
 };
 
@@ -359,13 +352,13 @@ export const validateSampleForm = (formData) => {
   if (isNaN(parseFloat(formData.price)))
     errors.price = "Price must be a number";
 
-  if (!formData.productCode) {
-    errors.productCode = "Product code is required";
-  }
+  // if (!formData.productCode) {
+  //   errors.productCode = "Product code is required";
+  // }
 
-  if (!formData.sampleNumber) {
-    errors.sampleNumber = "Sample number is required";
-  }
+  // if (!formData.sampleNumber) {
+  //   errors.sampleNumber = "Sample number is required";
+  // }
 
   return {
     valid: Object.keys(errors).length === 0,

@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   const isEdit = mode === "edit";
   const [loading, setLoading] = useState(false);
+  const [variantError, setVariantError] = useState(null);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState(() =>
     isEdit && initialSample
@@ -45,39 +46,38 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   const productPhotoRef = useRef(null);
   const calibrationCurveRef = useRef(null);
 
+  const initFormData = async () => {
+    const token = sessionStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("No authentication token found. User must be logged in.");
+      setError("Please log in first to create a sample.");
+      setLoadingData(false);
+      return;
+    }
+
+    setLoadingData(true);
+    try {
+      const data = await fetchFormData();
+      setStates(data?.states || []);
+      setAllLgas(data?.allLgas || []);
+      setAllMarkets(data?.allMarkets || []);
+      setCategories(data?.categories || []);
+    } catch (err) {
+      console.error("Error fetching form data:");
+
+      setError(
+        `Failed to load form data. Please check your internet connection`,
+      );
+      setStates([]);
+      setAllLgas([]);
+      setAllMarkets([]);
+      setCategories([]);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
   useEffect(() => {
-    const initFormData = async () => {
-      const token = sessionStorage.getItem("accessToken");
-      if (!token) {
-        console.warn("No authentication token found. User must be logged in.");
-        setError("Please log in first to create a sample.");
-        setLoadingData(false);
-        return;
-      }
-
-      setLoadingData(true);
-      try {
-        const data = await fetchFormData();
-        setStates(data.states || []);
-        setAllLgas(data.allLgas || []);
-        setAllMarkets(data.allMarkets || []);
-        setCategories(data.categories || []);
-      } catch (err) {
-        console.error("Error fetching form data:", err);
-        setError(
-          `Failed to load form data: ${
-            err.message || "Please check your internet connection"
-          }`,
-        );
-        setStates([]);
-        setAllLgas([]);
-        setAllMarkets([]);
-        setCategories([]);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
     initFormData();
   }, []);
 
@@ -121,20 +121,20 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
     const loadVariants = async () => {
       if (formData.productCategoryId) {
         setLoadingVariants(true);
-        setError(null);
+        setVariantError(null);
         try {
           const fetchedVariants = await fetchVariantsForCategory(
             formData.productCategoryId,
           );
           if (fetchedVariants.length === 0) {
-            setError(
-              "No product variants found for this category. Please try again or select a different category.",
+            setVariantError(
+              "No product variants found for this category. Please select a different category.",
             );
           }
           setVariants(fetchedVariants);
         } catch (err) {
           console.error("Error loading variants:", err);
-          setError("Failed to load product variants. Please try again.");
+          setVariantError("Failed to load product variants. Please try again.");
           setVariants([]);
         } finally {
           setLoadingVariants(false);
@@ -239,10 +239,10 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
           <div className='p-6 text-center'>
             <p className='text-red-600 font-semibold text-lg mb-4'>{error}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => initFormData()}
               className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors'
             >
-              Refresh Page
+              Refresh
             </button>
           </div>
         )}
@@ -538,9 +538,12 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                       </option>
                     ))}
                   </select>
+                  <p className='text-red-500 text-sm text-center mt-2'>
+                    {variantError && variantError}
+                  </p>
                 </div>
 
-                <div>
+                {/* <div>
                   <label
                     className={`block text-sm font-medium mb-2 ${theme.text}`}
                   >
@@ -564,9 +567,9 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                     <option value='C4'>C4</option>
                     <option value='C5'>C5</option>
                   </select>
-                </div>
+                </div> */}
 
-                <div>
+                {/* <div>
                   <label
                     className={`block text-sm font-medium mb-2 ${theme.text}`}
                   >
@@ -590,7 +593,7 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                     <option value='07'>07</option>
                     <option value='08'>08</option>
                   </select>
-                </div>
+                </div> */}
 
                 {/* <div>
                   <label
