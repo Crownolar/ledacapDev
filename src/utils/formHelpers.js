@@ -11,15 +11,10 @@ export const getInitialSampleFormState = () => ({
 
   productCategoryId: "",
   productVariantId: "",
-
-  // productCode: "",
-  // sampleNumber: "",
-
   productName: "",
   brandName: "",
   batchNumber: "",
   price: "",
-  // sampleType: "SOLID",
   productOrigin: "LOCAL",
 
   gpsLatitude: "",
@@ -293,7 +288,7 @@ export const buildSamplePayload = (formData) => {
     vendorTypeOther: formData.vendorTypeOther || null,
     productVariantId: formData.productVariantId,
     productName: formData.productName,
-    sampleType: formData.sampleType,
+    // sampleType: formData.sampleType,
     price: parseFloat(formData.price),
     batchNumber: formData.batchNumber || null,
     brandName: formData.brandName || null,
@@ -307,8 +302,6 @@ export const buildSamplePayload = (formData) => {
     sonNumber: formData.sonNumber || null,
     productPhotoUrl: formData.productPhoto || null,
     calibrationCurveFile: formData.calibrationCurveFile?.data || null,
-    // productCode: formData.productCode,
-    // sampleNumber: formData.sampleNumber,
   };
 };
 
@@ -343,7 +336,6 @@ export const validateSampleForm = (formData) => {
   if (!formData.productVariantId)
     errors.productVariantId = "Product variant is required";
   if (!formData.productName) errors.productName = "Product name is required";
-  // if (!formData.sampleType) errors.sampleType = "Sample type is required";
   if (!formData.vendorType) errors.vendorType = "Vendor type is required";
   if (formData.vendorType === "OTHER" && !formData.vendorTypeOther) {
     errors.vendorTypeOther = "Vendor type specification is required";
@@ -351,14 +343,6 @@ export const validateSampleForm = (formData) => {
   if (!formData.price) errors.price = "Price is required";
   if (isNaN(parseFloat(formData.price)))
     errors.price = "Price must be a number";
-
-  // if (!formData.productCode) {
-  //   errors.productCode = "Product code is required";
-  // }
-
-  // if (!formData.sampleNumber) {
-  //   errors.sampleNumber = "Sample number is required";
-  // }
 
   return {
     valid: Object.keys(errors).length === 0,
