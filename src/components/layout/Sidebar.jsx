@@ -176,7 +176,7 @@ const Sidebar = ({
       key: "nafdac-verifications",
     },
     {
-      icon: BarChart3,
+      icon: Microscope,
       label: "Risk Intelligence",
       route: "/nafdac-risk",
       key: "nafdac-risk",
