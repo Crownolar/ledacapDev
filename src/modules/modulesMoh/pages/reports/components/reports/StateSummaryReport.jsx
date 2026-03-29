@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FilterBar } from "../../../../components/FilterBar";
 import { SectionLabel } from "../../../../components/SectionLabel";
 import { RateBadge } from "../../../../components/RateBadge";
@@ -9,18 +9,76 @@ import {
   exportStateSummaryPdf,
 } from "../../../../utils/reportExport";
 import ReportHeader from "./ReportHeader";
+import api from "../../../../../../utils/api";
+
+const STATES_CACHE_KEY = "moh_report_states_cache_v1";
 
 const StateSummaryReport = () => {
   const [generated, setGenerated] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [statesLoading, setStatesLoading] = useState(false);
   const [error, setError] = useState("");
   const [reportData, setReportData] = useState(null);
+  const [states, setStates] = useState([]);
 
   const [filters, setFilters] = useState({
     state: "",
-    dateFrom: "2026-03-13",
+    dateFrom: "2026-01-01",
     dateTo: "2026-03-14",
   });
+
+  const normalizeStates = (payload) => {
+    const rows =
+      Array.isArray(payload?.data) ? payload.data :
+      Array.isArray(payload?.states) ? payload.states :
+      Array.isArray(payload?.data?.states) ? payload.data.states :
+      Array.isArray(payload?.items) ? payload.items :
+      Array.isArray(payload) ? payload :
+      [];
+
+    return rows
+      .map((state) => ({
+        id: state?.id || state?.stateId || state?.value || "",
+        name: state?.name || state?.stateName || state?.label || "",
+        code: state?.code || "",
+        isActive: state?.isActive,
+      }))
+      .filter((state) => state.id && state.name)
+      .filter((state) => state.isActive !== false)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  const fetchStates = async () => {
+    try {
+      const cached = sessionStorage.getItem(STATES_CACHE_KEY);
+      if (cached) {
+        setStates(JSON.parse(cached));
+        return;
+      }
+
+      setStatesLoading(true);
+
+      const res = await api.get("/management/states", {
+        params: {
+          page: 1,
+          pageSize: 100,
+        },
+      });
+
+      const normalized = normalizeStates(res.data);
+      setStates(normalized);
+      sessionStorage.setItem(STATES_CACHE_KEY, JSON.stringify(normalized));
+    } catch (err) {
+      console.error("Failed to fetch report states:", err);
+      setStates([]);
+    } finally {
+      setStatesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStates();
+  }, []);
 
   const handleGenerateReport = async () => {
     if (!filters.state) {
@@ -53,8 +111,8 @@ const StateSummaryReport = () => {
       console.error("Failed to fetch state summary report:", err);
 
       const message =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
         "Failed to generate state summary report.";
 
       setError(message);
@@ -76,28 +134,32 @@ const StateSummaryReport = () => {
   const registrationStatus = reportData?.registrationStatus || {};
   const vendorType = reportData?.vendorType || {};
 
-  const topLgas = Object.entries(reportData?.byLGA || {})
-    .map(([lgaName, stats]) => {
-      const contaminated = stats?.contaminated || 0;
-      const total = stats?.total || 0;
-      const rate =
-        total > 0 ? `${((contaminated / total) * 100).toFixed(1)}%` : "0%";
+  const topLgas = useMemo(() => {
+    return Object.entries(reportData?.byLGA || {})
+      .map(([lgaName, stats]) => {
+        const contaminated = stats?.contaminated || 0;
+        const total = stats?.total || 0;
+        const rate =
+          total > 0 ? `${((contaminated / total) * 100).toFixed(1)}%` : "0%";
 
-      return {
-        lgaName,
-        samples: total,
-        contaminated,
-        pending: stats?.pending || 0,
-        safe: stats?.safe || 0,
-        moderate: stats?.moderate || 0,
-        rate,
-      };
-    })
-    .sort((a, b) => b.samples - a.samples);
+        return {
+          lgaName,
+          samples: total,
+          contaminated,
+          pending: stats?.pending || 0,
+          safe: stats?.safe || 0,
+          moderate: stats?.moderate || 0,
+          rate,
+        };
+      })
+      .sort((a, b) => b.samples - a.samples);
+  }, [reportData]);
 
   const handleExportExcel = () => {
     exportStateSummaryExcel({
-      fileName: `state-summary-${summary.state || filters.state || "report"}-${summary?.dateRange?.from || filters.dateFrom}-${summary?.dateRange?.to || filters.dateTo}.xlsx`,
+      fileName: `state-summary-${summary.state || filters.state || "report"}-${
+        summary?.dateRange?.from || filters.dateFrom
+      }-${summary?.dateRange?.to || filters.dateTo}.xlsx`,
       generatedAt,
       state: summary.state || filters.state,
       dateFrom: summary?.dateRange?.from || filters.dateFrom,
@@ -114,7 +176,9 @@ const StateSummaryReport = () => {
 
   const handleExportPdf = () => {
     exportStateSummaryPdf({
-      fileName: `state-summary-${summary.state || filters.state || "report"}-${summary?.dateRange?.from || filters.dateFrom}-${summary?.dateRange?.to || filters.dateTo}.pdf`,
+      fileName: `state-summary-${summary.state || filters.state || "report"}-${
+        summary?.dateRange?.from || filters.dateFrom
+      }-${summary?.dateRange?.to || filters.dateTo}.pdf`,
       generatedAt,
       state: summary.state || filters.state,
       dateFrom: summary?.dateRange?.from || filters.dateFrom,
@@ -138,13 +202,18 @@ const StateSummaryReport = () => {
           onChange={(e) =>
             setFilters((prev) => ({ ...prev, state: e.target.value }))
           }
-          className="w-full sm:w-auto text-xs px-2 py-1.5 border border-gray-200 rounded-md outline-none focus:border-green-500"
+          disabled={statesLoading}
+          className="w-full sm:w-auto min-w-[220px] text-xs px-2 py-1.5 border border-gray-200 rounded-md outline-none focus:border-green-500 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <option value="">— Select state —</option>
-          <option value="Lagos">Lagos</option>
-          <option value="Kano">Kano</option>
-          <option value="Oyo">Oyo</option>
-          <option value="Abuja">Abuja</option>
+          <option value="">
+            {statesLoading ? "Loading states..." : "— Select state —"}
+          </option>
+
+          {states.map((state) => (
+            <option key={state.id} value={state.name}>
+              {state.name}
+            </option>
+          ))}
         </select>
 
         <FilterSep />
@@ -186,9 +255,11 @@ const StateSummaryReport = () => {
         <div className="mt-5 overflow-hidden rounded-xl border border-gray-200 w-full">
           <ReportHeader
             title="State summary"
-            subtitle={`Generated: ${generatedAt || "—"} · ${summary.state || filters.state} · ${
-              summary?.dateRange?.from || filters.dateFrom
-            } to ${summary?.dateRange?.to || filters.dateTo}`}
+            subtitle={`Generated: ${generatedAt || "—"} · ${
+              summary.state || filters.state
+            } · ${summary?.dateRange?.from || filters.dateFrom} to ${
+              summary?.dateRange?.to || filters.dateTo
+            }`}
             onExportPdf={handleExportPdf}
             onExportExcel={handleExportExcel}
           />
