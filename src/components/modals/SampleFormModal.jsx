@@ -28,34 +28,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
       : getInitialSampleFormState(),
   );
 
-  // as of 30th march 2026 main data=>
-  //   {
-  //   "stateId": "",
-  //   "lgaId": "",
-  //   "vendorType": "",
-  //   "productName": "Test product Test 2",
-  //   "productVariantId": "",
-  // //   "marketId": "market-cuid",
-  // //   "marketName": "",
-  //   "marketType": "FORMAL",
-  //   "brandName": "Brand X",
-  //   "batchNumber": "B001",
-  //   "manufacturerName": "Mfg",
-  //   "notes": "Optional notes",
-  //   "price": 1500,
-  //   "gpsLatitude": 9.0765,
-  //   "gpsLongitude": 7.3986,
-  //   "productOrigin": "LOCAL",
-  //   "isRegistered": false,
-  //   "nafdacNumber": null,
-  //   "sonNumber": null,
-  //   "brand_letter": null,
-  //   "productPhotoUrl": null,
-  //   "calibrationCurveId": null,
-  //   "calibrationCurveFile": null,
-  //   "calibrationDate": null
-  // }
-
   const { theme } = useTheme();
 
   const [states, setStates] = useState([]);

@@ -347,28 +347,6 @@ export const buildFieldSampleId = (sample) => {
 export const validateSampleForm = (formData) => {
   const errors = {};
 
-  // as of 30th march 2026
-  // Optional Fields
-  //   "marketId": "market-cuid",
-  //   "marketName": null,
-  //   "marketType": "FORMAL",
-  //   "brandName": "Brand X",
-  //   "batchNumber": "B001",
-  //   "manufacturerName": "Mfg",
-  //   "notes": "Optional notes",
-  //   "price": 1500,
-  //   "gpsLatitude": 9.0765,
-  //   "gpsLongitude": 7.3986,
-  //   "productOrigin": "LOCAL",
-  //   "isRegistered": false,
-  //   "nafdacNumber": null,
-  //   "sonNumber": null,
-  //   "brand_letter": null,
-  //   "productPhotoUrl": null,
-  //   "calibrationCurveId": null,
-  //   "calibrationCurveFile": null,
-  //   "calibrationDate": null
-
   if (!formData.stateId) errors.stateId = "State is required";
   if (!formData.lgaId) errors.lgaId = "LGA is required";
 
