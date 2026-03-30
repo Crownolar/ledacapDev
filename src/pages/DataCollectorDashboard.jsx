@@ -354,7 +354,7 @@ const DataCollectorDashboard = () => {
             </div>
           ))}
         </div>
-        
+
         {/* page info badges */}
         <div className='flex flex-col sm:flex-row gap-3 mb-6'>
           <div
@@ -557,7 +557,7 @@ const DataCollectorDashboard = () => {
                 <thead>
                   <tr className={`border-b ${theme?.border} ${theme.bg}`}>
                     {[
-                      "Sample ID",
+                      // "Sample ID",
                       "Product / Variant",
                       "Location",
                       "Price",
@@ -587,13 +587,13 @@ const DataCollectorDashboard = () => {
                         key={sample.id}
                         className={`group hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 transition-colors`}
                       >
-                        <td className='px-4 py-3.5'>
+                        {/* <td className='px-4 py-3.5'>
                           <span
                             className={`font-mono text-xs font-semibold ${theme?.text}`}
                           >
                             {sample.sampleId}
                           </span>
-                        </td>
+                        </td> */}
 
                         <td className='px-4 py-3.5 max-w-[200px]'>
                           <p
@@ -619,7 +619,7 @@ const DataCollectorDashboard = () => {
 
                         <td className='px-4 py-3.5 whitespace-nowrap'>
                           <span className={`font-semibold ${theme?.text}`}>
-                            {parseFloat(sample.price)
+                            {!Number.isNaN(parseFloat(sample.price))
                               ? `₦${parseFloat(sample.price).toLocaleString()}`
                               : "N/A"}
                           </span>
@@ -689,6 +689,7 @@ const DataCollectorDashboard = () => {
               </table>
             </div>
 
+            {/* mobile view */}
             <div className='md:hidden divide-y divide-gray-100 dark:divide-gray-700/60'>
               {filteredSamples.map((sample) => {
                 const status = getReadingStatus(sample);
@@ -703,11 +704,11 @@ const DataCollectorDashboard = () => {
                         <p className={`font-semibold ${theme?.text} truncate`}>
                           {sample.productName}
                         </p>
-                        <p
+                        {/* <p
                           className={`font-mono text-xs ${theme?.textMuted} mt-0.5`}
                         >
                           {sample.sampleId}
-                        </p>
+                        </p> */}
                       </div>
                       <span
                         className={`inline-flex items-center gap-1.5 ${status.color} px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0`}
@@ -739,7 +740,9 @@ const DataCollectorDashboard = () => {
                           Price
                         </p>
                         <p className={`${theme?.text} font-medium mt-0.5`}>
-                          ₦{parseFloat(sample.price).toLocaleString()}
+                          {!Number.isNaN(parseFloat(sample.price))
+                            ? `₦${parseFloat(sample.price).toLocaleString()}`
+                            : "N/A"}
                         </p>
                       </div>
                       <div className='col-span-2'>
@@ -813,48 +816,48 @@ const DataCollectorDashboard = () => {
                   samples
                 </p>
 
-                  {totalPages > 1 && (
-                    <div className='flex items-center gap-2'>
-                      <button
-                        onClick={handlePrevClickPagination}
-                        disabled={pageNumbers.currentPage === 1}
-                        className={`px-2 py-1 rounded border ${theme?.border} text-xs ${pageNumbers.currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                      >
-                        Prev
-                      </button>
+                {totalPages > 1 && (
+                  <div className='flex items-center gap-2'>
+                    <button
+                      onClick={handlePrevClickPagination}
+                      disabled={pageNumbers.currentPage === 1}
+                      className={`px-2 py-1 rounded border ${theme?.border} text-xs ${pageNumbers.currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                    >
+                      Prev
+                    </button>
 
-                      {displayedPages.map((page) => {
-                        return (
-                          <button
-                            key={page}
-                            onClick={() => {
-                              setPageNumbers((prev) => ({
-                                ...prev,
-                                currentPage: page,
-                              }));
-                            }}
-                            className={`px-2 py-1 rounded text-xs border ${theme?.border} ${pageNumbers.currentPage === page ? "bg-emerald-600 text-white" : ""}`}
-                          >
-                            {page}
-                          </button>
-                        );
-                      })}
+                    {displayedPages.map((page) => {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => {
+                            setPageNumbers((prev) => ({
+                              ...prev,
+                              currentPage: page,
+                            }));
+                          }}
+                          className={`px-2 py-1 rounded text-xs border ${theme?.border} ${pageNumbers.currentPage === page ? "bg-emerald-600 text-white" : ""}`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
 
-                      {totalPages > maxPageButtons && (
-                        <span className={`text-xs ${theme?.textMuted} px-2`}>
-                          …
-                        </span>
-                      )}
+                    {totalPages > maxPageButtons && (
+                      <span className={`text-xs ${theme?.textMuted} px-2`}>
+                        …
+                      </span>
+                    )}
 
-                      <button
-                        onClick={handleNextClickPagination}
-                        disabled={pageNumbers.currentPage === totalPages}
-                        className={`px-2 py-1 rounded border ${theme?.border} text-xs ${pageNumbers.currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
+                    <button
+                      onClick={handleNextClickPagination}
+                      disabled={pageNumbers.currentPage === totalPages}
+                      className={`px-2 py-1 rounded border ${theme?.border} text-xs ${pageNumbers.currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
               {hasActiveFilters && (
                 <button
