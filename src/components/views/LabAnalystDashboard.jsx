@@ -31,7 +31,6 @@ const LabAnalystDashboard = () => {
     const newSkip = skip + 20;
     const noMore = skip + take >= (totalItems || 1);
     if (noMore) return;
-    s;
     try {
       setIsLoadingMore(true);
       setSkip(newSkip);
