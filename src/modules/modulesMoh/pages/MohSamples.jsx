@@ -478,7 +478,7 @@ const Samples = () => {
                       <td
                         className={`px-4 py-3 border-b ${tableCellClass} font-mono text-xs ${theme.text}`}
                       >
-                        {row.sampleId || "—"}
+                        {row.code || "—"}
                       </td>
                       <td className={`px-4 py-3 border-b ${tableCellClass}`}>
                         {row.state?.name || row.stateName || "—"}
@@ -541,7 +541,7 @@ const Samples = () => {
                         darkMode ? "text-green-300" : "text-green-700"
                       }`}
                     >
-                      {row.sampleId || "—"}
+                      {row.code || "—"}
                     </span>
                     <StatusBadge status={row.status} />
                   </div>

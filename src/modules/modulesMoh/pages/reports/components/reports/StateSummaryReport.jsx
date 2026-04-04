@@ -21,7 +21,7 @@ const StateSummaryReport = () => {
   const [error, setError] = useState("");
   const [reportData, setReportData] = useState(null);
   const [states, setStates] = useState([]);
-  const {theme} = useTheme();
+  const { theme } = useTheme();
 
   const [filters, setFilters] = useState({
     state: "",
@@ -30,13 +30,17 @@ const StateSummaryReport = () => {
   });
 
   const normalizeStates = (payload) => {
-    const rows =
-      Array.isArray(payload?.data) ? payload.data :
-      Array.isArray(payload?.states) ? payload.states :
-      Array.isArray(payload?.data?.states) ? payload.data.states :
-      Array.isArray(payload?.items) ? payload.items :
-      Array.isArray(payload) ? payload :
-      [];
+    const rows = Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload?.states)
+        ? payload.states
+        : Array.isArray(payload?.data?.states)
+          ? payload.data.states
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : Array.isArray(payload)
+              ? payload
+              : [];
 
     return rows
       .map((state) => ({
@@ -220,7 +224,9 @@ const StateSummaryReport = () => {
 
         <FilterSep />
 
-        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>From</label>
+        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
+          From
+        </label>
         <input
           type="date"
           value={filters.dateFrom}
@@ -230,7 +236,9 @@ const StateSummaryReport = () => {
           className={`w-full sm:w-auto text-xs px-2 py-1.5 ${theme.border} ${theme.input} rounded-md outline-none focus:border-green-500`}
         />
 
-        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>To</label>
+        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
+          To
+        </label>
         <input
           type="date"
           value={filters.dateTo}
@@ -270,77 +278,103 @@ const StateSummaryReport = () => {
             <div className="border-b border-gray-100 px-4 sm:px-5 py-4">
               <SectionLabel>Summary</SectionLabel>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>State</span>
                 <span className={`font-medium ${theme.text}`}>
                   {summary.state || filters.state}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
-                <span cclassName={`${theme.textMuted}`}>Total samples</span>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
+                <span className={`${theme.textMuted}`}>Total samples</span>
                 <span className={`font-medium ${theme.text}`}>
                   {summary.totalSamples ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Safe</span>
                 <span className="font-medium text-green-700">
                   {contaminationBreakdown.SAFE ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Moderate</span>
                 <span className="font-medium text-amber-600">
                   {contaminationBreakdown.MODERATE ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Contaminated</span>
                 <span className="font-medium text-red-600">
                   {contaminationBreakdown.CONTAMINATED ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Pending</span>
                 <span className="font-medium text-amber-600">
                   {contaminationBreakdown.PENDING ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Contamination rate</span>
                 <span className="font-medium text-red-600">
                   {summary.percentageContaminated ?? "0.00"}%
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
-                <span className={`${theme.textMuted}`}>Registered products</span>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
+                <span className={`${theme.textMuted}`}>
+                  Registered products
+                </span>
                 <span className={`font-medium ${theme.text}`}>
                   {registrationStatus.registered ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
-                <span className={`${theme.textMuted}`}>Unregistered products</span>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
+                <span className={`${theme.textMuted}`}>
+                  Unregistered products
+                </span>
                 <span className={`font-medium ${theme.text}`}>
                   {registrationStatus.unregistered ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Formal vendors</span>
                 <span className={`font-medium ${theme.text}`}>
                   {vendorType.formal ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Informal vendors</span>
                 <span className={`font-medium ${theme.text}`}>
                   {vendorType.informal ?? 0}
@@ -351,29 +385,39 @@ const StateSummaryReport = () => {
             <div className="border-b border-gray-100 px-4 sm:px-5 py-4">
               <SectionLabel>Verification breakdown</SectionLabel>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Verified original</span>
                 <span className="font-medium text-green-700">
                   {verificationBreakdown.VERIFIED_ORIGINAL ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Verified fake</span>
                 <span className="font-medium text-red-600">
                   {verificationBreakdown.VERIFIED_FAKE ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
                 <span className={`${theme.textMuted}`}>Unverified</span>
                 <span className="font-medium text-amber-600">
                   {verificationBreakdown.UNVERIFIED ?? 0}
                 </span>
               </div>
 
-              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
-                <span className={`text-gray-500`}>Verification pending</span>
+              <div
+                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
+              >
+                <span className={`${theme.textMuted}`}>
+                  Verification pending
+                </span>
                 <span className="font-medium text-gray-900">
                   {verificationBreakdown.VERIFICATION_PENDING ?? 0}
                 </span>
@@ -423,13 +467,76 @@ const StateSummaryReport = () => {
 
             <div className="px-4 sm:px-5 py-4">
               <SectionLabel>Recommendations</SectionLabel>
-              <div className={`text-sm leading-relaxed ${theme.textMuted}`}>
+
+              <div
+                className={`text-sm leading-relaxed ${theme.textMuted} space-y-3`}
+              >
                 {recommendations.length > 0 ? (
-                  recommendations.map((item, index) => (
-                    <div key={index}>
-                      {index + 1}. {item}
-                    </div>
-                  ))
+                  recommendations.map((item, index) => {
+                    const isObject = item && typeof item === "object";
+
+                    return (
+                      <div
+                        key={index}
+                        className={`rounded-lg border ${theme.border} p-3`}
+                      >
+                        <div className={`font-semibold ${theme.text} mb-1`}>
+                          Recommendation {index + 1}
+                        </div>
+
+                        {isObject ? (
+                          <div className="space-y-1">
+                            {item.priority && (
+                              <div>
+                                <span className={`font-medium ${theme.text}`}>
+                                  Priority:
+                                </span>{" "}
+                                {item.priority}
+                              </div>
+                            )}
+
+                            {item.category && (
+                              <div>
+                                <span className={`font-medium ${theme.text}`}>
+                                  Category:
+                                </span>{" "}
+                                {item.category}
+                              </div>
+                            )}
+
+                            {item.finding && (
+                              <div>
+                                <span className={`font-medium ${theme.text}`}>
+                                  Finding:
+                                </span>{" "}
+                                {item.finding}
+                              </div>
+                            )}
+
+                            {item.recommendation && (
+                              <div>
+                                <span className={`font-medium ${theme.text}`}>
+                                  Recommendation:
+                                </span>{" "}
+                                {item.recommendation}
+                              </div>
+                            )}
+
+                            {item.action && (
+                              <div>
+                                <span className={`font-medium ${theme.text}`}>
+                                  Action:
+                                </span>{" "}
+                                {item.action}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>{String(item)}</div>
+                        )}
+                      </div>
+                    );
+                  })
                 ) : (
                   <div>No recommendations available.</div>
                 )}

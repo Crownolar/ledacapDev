@@ -38,4 +38,4 @@ export const TH =
   "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider border-b border-gray-200";
 
 export const TD =
-  "px-4 py-3 border-b border-gray-100 text-gray-700";
+  "px-4 py-3 border-b border-gray-100 text-gray-400";

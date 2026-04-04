@@ -331,7 +331,7 @@ const ContaminationAnalysisReport = () => {
             <SectionLabel>Distribution</SectionLabel>
 
             <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
-              <span className="text-gray-500">Safe</span>
+              <span className={`${theme.textMuted}`}>Safe</span>
               <span className="font-medium text-green-700">
                 {distribution.safe ?? 0}
               </span>
@@ -538,8 +538,6 @@ const ContaminationAnalysisReport = () => {
                           <tr key={index} className={`${theme.hover} cursor-pointer`}>
                             <td className={TD}>
                               {item.sampleId ||
-                                item.sampleCode ||
-                                item.sampleName ||
                                 "-"}
                             </td>
                             <td className={TD}>{item.state || "-"}</td>
