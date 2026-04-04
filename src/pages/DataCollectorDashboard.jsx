@@ -52,6 +52,51 @@ const DataCollectorDashboard = () => {
   const [loadingSupervisor, setLoadingSupervisor] = useState(false);
   const PAGE_SIZE = 50;
   const [maxPageButtons, setMaxPageButtons] = useState(7);
+  const [take, setTake] = useState(20);
+  const [skip, setSkip] = useState(0);
+
+  const filteredSamples = useMemo(() => {
+    return allSamples.filter((sample) => {
+      if (filterStatus === "pending" && hasAllReadings(sample)) return false;
+      if (filterStatus === "completed" && !hasAllReadings(sample)) return false;
+
+      if (variantFilter !== "all") {
+        const variantName =
+          sample.productVariant?.displayName || sample.productVariant?.name;
+        if (variantName !== variantFilter) return false;
+      }
+
+      // if (searchQuery.trim()) {
+      //   const q = searchQuery.toLowerCase();
+      //   const matchesId = sample.sampleId?.toLowerCase().includes(q);
+      //   const matchesName = sample.productName?.toLowerCase().includes(q);
+      //   if (!matchesId && !matchesName) return false;
+      // }
+
+      return true;
+    });
+  }, [allSamples, filterStatus, variantFilter, searchQuery]);
+
+  // SEARCH BAR
+
+  // useEffect(() => {
+  //   if (searchQuery) return;
+  //   setSkip(0);
+  //   fetchLabData();
+  // }, [searchQuery]);
+  // effect for debouncing and fetching data when query changes
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setDebouncedQuery(searchQuery);
+  //   }, 500);
+
+  //   return () => clearTimeout(timer);
+  // }, [searchQuery]);
+
+  // useEffect(() => {
+  //   let params = searchQuery ? { q: searchQuery, take, skip } : { take, skip };
+  //   api.get("/samples/search", { params }).then;
+  // }, [debouncedQuery]);
 
   const handlePrevClickPagination = () => {
     const step = maxPageButtons;
@@ -184,27 +229,6 @@ const DataCollectorDashboard = () => {
     };
   };
 
-  const filteredSamples = useMemo(() => {
-    return allSamples.filter((sample) => {
-      if (filterStatus === "pending" && hasAllReadings(sample)) return false;
-      if (filterStatus === "completed" && !hasAllReadings(sample)) return false;
-
-      if (variantFilter !== "all") {
-        const variantName =
-          sample.productVariant?.displayName || sample.productVariant?.name;
-        if (variantName !== variantFilter) return false;
-      }
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesId = sample.sampleId?.toLowerCase().includes(q);
-        const matchesName = sample.productName?.toLowerCase().includes(q);
-        if (!matchesId && !matchesName) return false;
-      }
-
-      return true;
-    });
-  }, [allSamples, filterStatus, variantFilter, searchQuery]);
   const totalPages = pagination?.totalPages || 1;
 
   const displayedPages = pagination
@@ -239,13 +263,12 @@ const DataCollectorDashboard = () => {
     setEditSample(null);
   };
 
-  const hasActiveFilters =
-    filterStatus !== "all" || variantFilter !== "all" || searchQuery.trim();
+  const hasActiveFilters = filterStatus !== "all" || variantFilter !== "all";
 
   const clearFilters = () => {
     setFilterStatus("all");
     setVariantFilter("all");
-    setSearchQuery("");
+    // setSearchQuery("");
   };
 
   return (
