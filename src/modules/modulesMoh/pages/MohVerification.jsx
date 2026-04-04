@@ -276,7 +276,7 @@ const Verification = () => {
         ))}
       </div>
 
-      <div className={`${theme.bg} rounded-xl border ${theme.border} overflow-hidden`}>  
+      <div className={`${theme.card} rounded-xl border ${theme.border} overflow-hidden`}>  
         {/* Table header — stack on mobile, row on sm+ */}
         <div className={`px-4 py-3 border-b ${theme.border} flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between`}>
           <div>

@@ -12,7 +12,7 @@ const SummaryCards = ({
       {items.map((item) => (
         <div
           key={item.label}
-          className={`rounded-xl border ${theme.border} ${theme.bg} p-3`}
+          className={`rounded-xl border ${theme.border} ${theme.card} p-3`}
         >
           <div className={`mb-1 text-xs font-medium uppercase tracking-widest ${theme.textMuted}`}>
             {item.label}

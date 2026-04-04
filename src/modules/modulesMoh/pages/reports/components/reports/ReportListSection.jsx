@@ -12,7 +12,7 @@ const ReportListSection = ({
 }) => {
   const {theme} = useTheme();
   return (
-    <div className={`rounded-xl border ${theme.border} ${theme.bg} p-4 ${className}`}>
+    <div className={`rounded-xl border ${theme.border} ${theme.card} p-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
           <SectionLabel>{title}</SectionLabel>

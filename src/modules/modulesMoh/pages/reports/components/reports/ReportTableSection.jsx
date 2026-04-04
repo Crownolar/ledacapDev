@@ -15,7 +15,7 @@ const ReportTableSection = ({
 
   const {theme} = useTheme();
   return (
-    <div className={`overflow-hidden rounded-xl border ${theme.border} ${theme.bg} ${className}`}>
+    <div className={`overflow-hidden rounded-xl border ${theme.border} ${theme.card} ${className}`}>
       <div className={`flex items-center justify-between border-b ${theme.border} px-4 py-2.5`}>
         <div>
           <SectionLabel>{title}</SectionLabel>
