@@ -17,8 +17,11 @@ import {
 } from "../../utils/formHelpers";
 import { useTheme } from "../../context/ThemeContext";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 
 const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
+  const navigate = useNavigate();
+
   const isEdit = mode === "edit";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -47,6 +50,9 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
   const calibrationCurveRef = useRef(null);
 
   const initFormData = async () => {
+    setError(null);
+    setLoadingData(true);
+
     const token = sessionStorage.getItem("accessToken");
     if (!token) {
       console.warn("No authentication token found. User must be logged in.");
@@ -55,7 +61,6 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
       return;
     }
 
-    setLoadingData(true);
     try {
       const data = await fetchFormData();
       setStates(data?.states || []);
@@ -188,8 +193,9 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
           ? "Sample updated successfully!"
           : "Sample created successfully!",
       );
-
-      onClose();
+      setTimeout(() => {
+        navigate(0);
+      }, 1000);
     } catch (err) {
       const errorMsg =
         err.response?.data?.error ||
@@ -543,7 +549,7 @@ const SampleFormModal = ({ onClose, onSubmit, mode, initialSample }) => {
                     className={`w-full px-4 py-2 border rounded-lg ${theme.input} focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
                   >
                     <option value=''>Select Brand Letter</option>
-                    {["a", "b", "c", "d"].map((letter) => (
+                    {["a", "b", "c", "d", "e"].map((letter) => (
                       <option key={letter} value={letter}>
                         {letter}
                       </option>

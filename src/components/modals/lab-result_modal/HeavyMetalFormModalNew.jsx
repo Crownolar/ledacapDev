@@ -22,6 +22,7 @@ import {
 } from "../../../redux/slice/heavyMetalSlice";
 import { useTheme } from "../../../context/ThemeContext";
 import { useEnums } from "../../../context/EnumsContext";
+import { useNavigate } from "react-router";
 
 const AUTHORITIES = {
   NAFDAC: {
@@ -81,6 +82,7 @@ const HeavyMetalFormModalNew = ({
   const { loading, error, successMessage } = useSelector(
     (state) => state.heavyMetal,
   );
+  const navigate = useNavigate();
 
   const [sample, setSample] = useState(null);
   const [thresholds, setThresholds] = useState([]);
@@ -229,6 +231,11 @@ const HeavyMetalFormModalNew = ({
         }),
       ).unwrap();
       await dispatch(getSampleReadings(sampleId));
+
+      setTimeout(() => {
+        navigate(0);
+      }, 1000);
+
       onClose();
     } catch (err) {
       alert("Failed to save readings: " + (err?.message || "Unknown error"));
@@ -652,7 +659,7 @@ const HeavyMetalFormModalNew = ({
                       return (
                         <div
                           key={index}
-                          className={`p-3.5 space-y-3 ${cfg.row}`}
+                          className={`p-3.5 space-y-3 ${cfg.row} border-2`}
                         >
                           <div className='flex items-center justify-between'>
                             <span
@@ -737,17 +744,13 @@ const HeavyMetalFormModalNew = ({
                                 >
                                   <p>
                                     Safe{" "}
-                                    <span
-                                      className={`font-semibold ${theme?.text}`}
-                                    >
+                                    <span className={`font-semibold `}>
                                       &lt;{threshold.safeLimit}
                                     </span>
                                   </p>
                                   <p>
                                     Danger{" "}
-                                    <span
-                                      className={`font-semibold ${theme?.text}`}
-                                    >
+                                    <span className={`font-semibold`}>
                                       &gt;{threshold.dangerLimit}
                                     </span>
                                   </p>
