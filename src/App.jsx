@@ -5,13 +5,11 @@ import PrivateRoute from "./Route/PrivateRoute";
 import Layout from "./Route/Layout";
 import AuthModal from "./components/auth/AuthModal";
 import InviteCodeGenerate from "./pages/InviteCodeGenerate";
-// import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { handleLogout } from "./redux/slice/authSlice";
 import MapView from "./components/views/MapView";
 import Reports from "./components/views/Reports";
 import Database from "./pages/Database";
-// import { fetchSamples } from "./redux/slice/samplesSlice";
 import PolicyWelcome from "./pages/PolicyWelcome";
 import HeavyMetalFormModalNew from "./components/modals/lab-result_modal/HeavyMetalFormModalNew";
 import DataCollectorDashboard from "./pages/DataCollectorDashboard";
@@ -39,13 +37,12 @@ import MohVerification from "./modules/modulesMoh/pages/MohVerification";
 import MohContamination from "./modules/modulesMoh/pages/MohContamination";
 import { useTheme } from "./context/ThemeContext";
 
-
 const App = () => {
   const dispatch = useDispatch();
 
   const { currentUser, isAuthenticated } = useSelector((state) => state.auth);
   // const { theme, darkMode, toggleDarkMode } = useTheme();
-  const {theme, darkMode, toggleDarkMode }= useTheme().theme;
+  const { theme, darkMode, toggleDarkMode } = useTheme().theme;
 
   const logout = () => dispatch(handleLogout());
 
