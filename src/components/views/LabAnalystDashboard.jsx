@@ -36,6 +36,7 @@ const LabAnalystDashboard = () => {
     if (noMore) return;
     try {
       setIsLoadingMore(true);
+      setError(null);
       setSkip(newSkip);
       const res = await api.get("/lab/samples-requiring-confirmation", {
         params: query
@@ -47,13 +48,16 @@ const LabAnalystDashboard = () => {
       }
     } catch (err) {
       console.error("Failed to load more samples:", err);
+      setError(err.response?.data?.message || "Failed to load more samples");
     } finally {
       setIsLoadingMore(false);
     }
   };
+
   const fetchLabData = async (params) => {
     try {
       setError(null);
+      setLoading(true);
       const token = sessionStorage.getItem("accessToken");
       if (!token) {
         console.error("❌ [LabAnalystDashboard] No access token found");
@@ -61,7 +65,6 @@ const LabAnalystDashboard = () => {
         setLoading(false);
         return;
       }
-      setLoading(true);
       const samplesRes = await api.get("/lab/samples-requiring-confirmation", {
         params: debouncedQuery
           ? { take, skip: 0, q: debouncedQuery }
@@ -84,11 +87,6 @@ const LabAnalystDashboard = () => {
       .then((res) => setLabStats(res.data.data || null));
   }, []);
 
-  useEffect(() => {
-    if (query) return;
-    setSkip(0);
-    fetchLabData();
-  }, [query]);
   // effect for debouncing and fetching data when query changes
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,23 +97,9 @@ const LabAnalystDashboard = () => {
   }, [query]);
 
   useEffect(() => {
+    setSkip(0);
     fetchLabData();
   }, [debouncedQuery]);
-
-  if (error) {
-    return (
-      <div className='w-full flex justify-center mt-6 sm:mt-10 px-3 sm:px-4'>
-        <div
-          className={`border-l-4 border-red-600 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 sm:p-4 rounded shadow max-w-xl w-full`}
-        >
-          <h2 className='font-semibold text-base sm:text-lg flex items-center gap-2'>
-            <AlertTriangle size={18} className='sm:w-5 sm:h-5' /> Error
-          </h2>
-          <p className='mt-1 text-sm'>{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className='space-y-4 sm:space-y-6 px-3 sm:px-0'>
@@ -167,11 +151,10 @@ const LabAnalystDashboard = () => {
           />
           <input
             type='text'
-            disabled={loading}
+            // disabled={loading}
             placeholder='Search samples...'
             value={query}
             onChange={(e) => {
-              console.log(e.target.value);
               setQuery(e.target.value);
             }}
             className={`w-full pl-10 pr-4 py-2 border rounded-lg ${theme?.input}  focus:ring-emerald-500`}
@@ -181,7 +164,7 @@ const LabAnalystDashboard = () => {
         <h3 className='text-base sm:text-lg font-semibold mb-3 sm:mb-4 inline-flex items-center gap-2'>
           Samples Requiring Lab Confirmation
           <span className='inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'>
-            {samplesRequiringConfirmation.length}
+            {loading ? "--" : samplesRequiringConfirmation.length}
           </span>
         </h3>
 
@@ -205,19 +188,6 @@ const LabAnalystDashboard = () => {
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
-              {loading && (
-                <tr>
-                  <td colSpan='7' className='px-4 py-8 text-center'>
-                    <div className='flex items-center justify-center gap-3'>
-                      <div className='w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin' />
-                      <span className={`text-sm ${theme?.textMuted}`}>
-                        Loading samples...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              )}
-
               {samplesRequiringConfirmation.length > 0 &&
                 !loading &&
                 samplesRequiringConfirmation.map((sample) => (
@@ -267,49 +237,8 @@ const LabAnalystDashboard = () => {
                     </td>
                   </tr>
                 ))}
-              {samplesRequiringConfirmation.length === 0 && !loading && (
-                <tr>
-                  <td colSpan='6' className='px-4 py-8 text-center'>
-                    <div className='flex flex-col items-center justify-center'>
-                      <p className={`text-sm font-medium ${theme?.text} mb-1`}>
-                        No samples pending lab confirmation
-                      </p>
-                      <p className={`text-xs ${theme?.textMuted}`}>
-                        Samples with Lead XRF results requiring AAS will appear
-                        here
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-              {query &&
-                samplesRequiringConfirmation.length === 0 &&
-                !loading && (
-                  <tr>
-                    <td colSpan='6' className='px-4 py-8 text-center'>
-                      <div className='flex flex-col items-center justify-center'>
-                        <p
-                          className={`text-sm font-medium ${theme?.text} mb-1`}
-                        >
-                          No samples matches the query
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
             </tbody>
           </table>
-          {samplesRequiringConfirmation.length > 0 && !loading && (
-            <div className='py-3 flex justify-center'>
-              <button
-                onClick={handleFetchMore}
-                disabled={isLoadingMore || skip + take >= (totalItems || 1)}
-                className={`px-4 py-2 rounded-lg text-sm text-white ${isLoadingMore || skip + take >= (totalItems || 0) ? "bg-gray-400 opacity-60 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
-              >
-                {isLoadingMore ? "Loading..." : "Load more"}
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Mobile/Tablet Card View */}
@@ -401,21 +330,29 @@ const LabAnalystDashboard = () => {
                   </div>
                 </div>
               ))}
-
-              {/* Load more button for mobile/tablet */}
-
-              {samplesRequiringConfirmation.length > 0 && !loading && (
-                <div className='py-3 flex justify-center'>
-                  <button
-                    onClick={handleFetchMore}
-                    disabled={isLoadingMore || skip + take >= (totalItems || 1)}
-                    className={`px-4 py-2 rounded-lg text-sm text-white ${isLoadingMore || skip + take >= (totalItems || 0) ? "bg-gray-400 opacity-60 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
-                  >
-                    {isLoadingMore ? "Loading..." : "Load more"}
-                  </button>
-                </div>
-              )}
             </>
+          )}
+        </div>
+        {/* loading  */}
+        <div>
+          {loading && (
+            <div className='flex items-center justify-center gap-3 mt-5'>
+              <div className='w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin' />
+              <span className={`text-sm ${theme?.textMuted}`}>
+                Loading samples...
+              </span>
+            </div>
+          )}
+          {samplesRequiringConfirmation.length > 0 && !loading && (
+            <div className='py-3 flex justify-center'>
+              <button
+                onClick={handleFetchMore}
+                disabled={isLoadingMore || skip + take >= (totalItems || 1)}
+                className={`px-4 py-2 rounded-lg text-sm text-white ${isLoadingMore || skip + take >= (totalItems || 0) ? "bg-gray-400 opacity-60 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
+              >
+                {isLoadingMore ? "Loading..." : "Load more"}
+              </button>
+            </div>
           )}
           {!loading && samplesRequiringConfirmation.length === 0 && (
             <div className='flex flex-col items-center justify-center py-10 text-center'>
@@ -434,15 +371,11 @@ const LabAnalystDashboard = () => {
               </p>
             </div>
           )}
-        </div>
-        {/* loading  */}
-        <div>
-          {loading && (
-            <div className='flex items-center justify-center gap-3'>
-              <div className='w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin' />
-              <span className={`text-sm ${theme?.textMuted}`}>
-                Loading samples...
-              </span>
+          {error && !loading && (
+            <div className='flex flex-col items-center justify-center py-10 text-center'>
+              <p className={`text-sm font-medium ${theme?.text} mb-1`}>
+                {error ? error : "Error loading samples"}
+              </p>
             </div>
           )}
         </div>
