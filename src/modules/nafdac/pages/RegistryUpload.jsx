@@ -12,6 +12,7 @@ import {
   getRegistryVersions,
 } from "../api/nafdacService";
 import { LoaderSpinner } from "../utils/iconComponent";
+import api from "../../../utils/api";
 
 const formatDate = (d) =>
   d
@@ -26,60 +27,33 @@ const RegistryUpload = () => {
   const [summary, setSummary] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [clickedVersion, setClickedVersion] = useState(null);
+
   const [activating, setActivating] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
-
-  // testing
-
-  const mockVersions = [
-    {
-      id: "123",
-      versionLabel: "2024-03-16",
-      isActive: false,
-      uploadedAt: "2013-03-16T11:58:06.023Z",
-      uploadedBy: {
-        id: "wer3",
-        fullName: "dele alli",
-        email: "dele@gmail",
-      },
-      recordCount: 1627,
-      errorCount: 2441,
-    },
-    {
-      id: "1234",
-      versionLabel: "1962-11-06",
-      isActive: false,
-      uploadedAt: "1962-11-06T20:59:23.168Z",
-      uploadedBy: {
-        id: "werey",
-        fullName: "colin powell",
-        email: "colin@gmail.com",
-      },
-      recordCount: 2968,
-      errorCount: 5213,
-    },
-    {
-      id: "12345",
-      versionLabel: "1962-11-06",
-      isActive: true,
-      uploadedAt: "1962-11-06T20:59:23.168Z",
-      uploadedBy: {
-        id: "were",
-        fullName: "donal trump",
-        email: "donal@gmail.com",
-      },
-      recordCount: 2968,
-      errorCount: 5213,
-    },
-  ];
   const [versions, setVersions] = useState(null);
-
   const [version, setVersion] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // to test click loading state
+  const [clickedVersion, setClickedVersion] = useState(null);
+
+  const handleVerifySamples = () => {
+    if (!version)
+      return alert("No active registry version found for verification");
+    api
+      .get(`/nafdac/verification/registry/${version.id}/verify-samples`)
+      .then((res) => {
+        alert(res.data.message);
+      })
+      .catch((err) => {
+        alert(
+          err.response?.data?.error || err.message || "Verification failed",
+        );
+      });
+  };
 
   useEffect(() => {
     if (!version && versions && versions.length > 0) {
@@ -175,9 +149,6 @@ const RegistryUpload = () => {
           prev ? prev.map((pv) => ({ ...pv, isActive: pv.id === v.id })) : prev,
         );
         setVersion({ ...v, isActive: true });
-        // setSummary((s) =>
-        //   s ? { ...s, status: "ACTIVE", versionLabel: v.versionLabel } : s,
-        // );
       })
       .catch((err) =>
         setError(err.response?.data?.error || err.message || "Activate failed"),
@@ -202,7 +173,6 @@ const RegistryUpload = () => {
     if (file) handleFileSelect(file);
     e.target.value = "";
   };
-
   return (
     <div>
       <PageHeader
@@ -210,6 +180,16 @@ const RegistryUpload = () => {
         subtitle='Upload and publish the NAFDAC product registry. Only active version is used for verification.'
         action={summary?.status ? <Badge status={summary.status} /> : null}
       />
+      <div className='mt-5 mb-10   text-center md:text-left '>
+        <button
+          className='px-5 py-2.5  bg-emerald-600 text-white font-medium rounded-lg shadow-md 
+hover:bg-emerald-700 active:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 
+transition duration-200 ease-in-out'
+          onClick={handleVerifySamples}
+        >
+          Verify
+        </button>
+      </div>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8'>
         <StatCard
@@ -238,7 +218,7 @@ const RegistryUpload = () => {
         />
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-5 gap-6'>
+      <div className='grid grid-cols-1 lg:grid-cols-5 gap-6 mb-[150px]'>
         <div className='lg:col-span-3 col-span-1 space-y-4'>
           <div
             onDragOver={(e) => {
@@ -378,7 +358,7 @@ const RegistryUpload = () => {
               </button>
 
               {dropdownOpen && (
-                <div className='absolute z-20 left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg max-h-56 overflow-auto'>
+                <div className='absolute z-20  left-0 right-0 mt-2 bg-white 0 shadow-lg max-h-36 overflow-auto rounded-lg'>
                   {versions?.map((v) => (
                     <button
                       key={v.id}
@@ -386,7 +366,7 @@ const RegistryUpload = () => {
                         setClickedVersion(v.id);
                         handleActivate(v);
                       }}
-                      className='w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between gap-3'
+                      className='w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between gap-3 border-b border-slate-400'
                     >
                       <div>
                         <div className='text-sm text-slate-700 font-semibold'>

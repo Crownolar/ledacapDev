@@ -240,12 +240,12 @@ const Sidebar = ({
     <>
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          className='fixed  inset-0 z-[2000] bg-black/40 lg:hidden'
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
-      <div className="hidden lg:block w-64 shrink-0 pt-5">
+      <div className='hidden lg:block w-64 shrink-0 pt-5'>
         <aside
           className={`
             sticky top-24 z-30
@@ -257,7 +257,7 @@ const Sidebar = ({
             ${theme?.card} ${theme?.border}
           `}
         >
-          <nav className="space-y-2 flex-1 min-h-0 overflow-y-auto scrollbar-hide pr-1">
+          <nav className='space-y-2 flex-1 min-h-0 overflow-y-auto scrollbar-hide pr-1'>
             {navItemsToRender.map((item) => (
               <NavItem
                 key={item.key}
@@ -277,9 +277,9 @@ const Sidebar = ({
             {config.sampleButton && (
               <button
                 onClick={handleSampleButtonClick}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className='w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors'
               >
-                <Plus className="w-5 h-5" />
+                <Plus className='w-5 h-5' />
                 New Sample
               </button>
             )}
@@ -289,7 +289,7 @@ const Sidebar = ({
                 onClick={() => excelImportRef?.current?.click()}
                 className={`w-full border ${theme?.border} font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 ${theme?.text} transition-colors ${theme?.hover}`}
               >
-                <Upload className="w-5 h-5" />
+                <Upload className='w-5 h-5' />
                 Import Excel
               </button>
             )}
@@ -297,25 +297,27 @@ const Sidebar = ({
         </aside>
       </div>
 
+      {/* mobile sidebar */}
       <aside
         className={`
-          fixed top-16 left-0 z-50 pt-6
+          fixed top-16 left-0 z-[2000] pt-6
           h-[calc(100vh-4rem)] w-64
           shadow-xl
           p-4
           flex flex-col
           transform transition-transform duration-300 ease-in-out
           lg:hidden
+         
           ${theme?.card} ${theme?.border}
           ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex flex-col h-full min-h-0">
+        <div className='flex flex-col h-full min-h-0'>
           <nav
-            className="
+            className='
               space-y-2 pr-1 overflow-y-auto scrollbar-hide
               max-h-[min(55vh,calc(100vh-14rem))]
-            "
+            '
           >
             {navItemsToRender.map((item) => (
               <NavItem
@@ -336,9 +338,9 @@ const Sidebar = ({
             {config.sampleButton && (
               <button
                 onClick={handleSampleButtonClick}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className='w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors'
               >
-                <Plus className="w-5 h-5" />
+                <Plus className='w-5 h-5' />
                 New Sample
               </button>
             )}
@@ -348,7 +350,7 @@ const Sidebar = ({
                 onClick={() => excelImportRef?.current?.click()}
                 className={`w-full border ${theme?.border} font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 ${theme?.text} transition-colors ${theme?.hover}`}
               >
-                <Upload className="w-5 h-5" />
+                <Upload className='w-5 h-5' />
                 Import Excel
               </button>
             )}

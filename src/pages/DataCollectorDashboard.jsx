@@ -22,15 +22,15 @@ import api from "../utils/api";
 const DataCollectorDashboard = () => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.auth);
+
   const { theme } = useTheme();
 
   const [allSamples, setAllSamples] = useState([]);
   const [stats, setStats] = useState(null);
   const [samplesLoading, setSamplesLoading] = useState(null);
-  const [samplesError, setSamplesError] = useState(null);
+  const [samplesError, setSamplesError] = useState(false);
 
   const [filterStatus, setFilterStatus] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [variantFilter, setVariantFilter] = useState("all");
 
   const [selectedSample, setSelectedSample] = useState(null);
@@ -44,69 +44,66 @@ const DataCollectorDashboard = () => {
   const [take, setTake] = useState(20);
   const [skip, setSkip] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
-  const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const handleFetchMore = async () => {
     if (samplesLoading) return;
     const newSkip = skip + 20;
     const noMore = skip + take >= (totalItems || 1);
     if (noMore) return;
+
     try {
       setSamplesLoading(true);
+      setSamplesError(false);
       setSkip(newSkip);
-      const res = await api.get("/samples", {
-        params: query
-          ? { take, skip: newSkip, collectorId: currentUser.id, q: query }
-          : { take, skip: newSkip, collectorId: currentUser.id },
-      });
+
+      let params = {
+        take,
+        skip: newSkip,
+        collectorId: currentUser.id,
+        q: searchQuery ? searchQuery : undefined,
+      };
+      console.log(debouncedQuery);
+      let res;
+      if (!debouncedQuery) {
+        res = await api.get("/samples", { params });
+      } else {
+        res = await api.get("/samples/search", { params });
+      }
+
       if (res.data?.data) {
         setAllSamples((prev) => [...prev, ...res.data.data]);
+        setTotalItems(res.data.pagination.totalCount || 1);
       }
     } catch (err) {
-      console.error("Failed to load more samples:", err);
+      setSamplesError("Failed to load more samples");
     } finally {
       setSamplesLoading(false);
     }
   };
 
-  const handleFiltering = () => {};
-
-  const filteredSamples = useMemo(() => {
-    return allSamples.filter((sample) => {
-      if (filterStatus === "pending" && hasAllReadings(sample)) return false;
-      if (filterStatus === "completed" && !hasAllReadings(sample)) return false;
-
-      if (variantFilter !== "all") {
-        const variantName =
-          sample.productVariant?.displayName || sample.productVariant?.name;
-        if (variantName !== variantFilter) return false;
-      }
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesId = sample.sampleId?.toLowerCase().includes(q);
-        const matchesName = sample.productName?.toLowerCase().includes(q);
-        if (!matchesId && !matchesName) return false;
-      }
-
-      return true;
-    });
-  }, [allSamples, filterStatus, variantFilter, searchQuery]);
-
   const fetchCollectorSamples = async () => {
     try {
       const params = {
-        collectorId: currentUser.id,
+        q: searchQuery ? searchQuery : undefined,
+        createdBy: currentUser.id,
         skip,
         take,
       };
-
+      let res;
       setSamplesLoading(true);
+      setSamplesError(false);
+      setAllSamples([]);
 
-      await api.get("/samples", { params }).then((res) => {
-        setAllSamples(res.data.data);
-        setTotalItems(res.data.pagination.totalCount || 1);
-      });
+      if (!debouncedQuery) {
+        res = await api.get("/samples", { params });
+      } else {
+        res = await api.get("/samples/search", { params });
+      }
+
+      setAllSamples(res.data.data);
+      setTotalItems(res.data.pagination.totalCount || 1);
     } catch (e) {
       console.log(e);
       setSamplesError(true);
@@ -115,6 +112,7 @@ const DataCollectorDashboard = () => {
     }
   };
 
+  // fetch stats
   useEffect(() => {
     api.get("/samples/stats").then((res) => {
       setStats(res.data.data);
@@ -146,25 +144,19 @@ const DataCollectorDashboard = () => {
   }, [currentUser?.id]);
 
   // fetching from search bar
+  useEffect(() => {
+    setSkip(0);
+    fetchCollectorSamples();
+  }, [debouncedQuery]);
 
-  //  useEffect(() => {
-  //     if (query) return;
-  //     setSkip(0);
-  //    fetchCollectorSamples()
-  //   }, [query]);
+  // effect for debouncing and fetching data when query changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500);
 
-  //   // effect for debouncing and fetching data when query changes
-  //   useEffect(() => {
-  //     const timer = setTimeout(() => {
-  //       setDebouncedQuery(query);
-  //     }, 500);
-
-  //     return () => clearTimeout(timer);
-  //   }, [query]);
-
-  //   useEffect(() => {
-  //     fetchLabData();
-  //   }, [debouncedQuery]);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const uniqueVariants = useMemo(() => {
     const variants = allSamples
@@ -235,6 +227,29 @@ const DataCollectorDashboard = () => {
     setVariantFilter("all");
     setSearchQuery("");
   };
+
+  // FILTERED SAMPLES
+  const filteredSamples = useMemo(() => {
+    return allSamples.filter((sample) => {
+      if (filterStatus === "pending" && hasAllReadings(sample)) return false;
+      if (filterStatus === "completed" && !hasAllReadings(sample)) return false;
+
+      if (variantFilter !== "all") {
+        const variantName =
+          sample.productVariant?.displayName || sample.productVariant?.name;
+        if (variantName !== variantFilter) return false;
+      }
+
+      // if (searchQuery.trim()) {
+      //   const q = searchQuery.toLowerCase();
+      //   const matchesId = sample.sampleId?.toLowerCase().includes(q);
+      //   const matchesName = sample.productName?.toLowerCase().includes(q);
+      //   if (!matchesId && !matchesName) return false;
+      // }
+
+      return true;
+    });
+  }, [allSamples, filterStatus, variantFilter]);
 
   return (
     <div className={`min-h-screen ${theme?.bg}`}>
@@ -423,8 +438,9 @@ const DataCollectorDashboard = () => {
           ))}
         </div>
 
+        {/* filter */}
         <div
-          className={`${theme?.card} rounded-3xl border ${theme?.border} shadow-sm p-4 sm:p-5 mb-6`}
+          className={`${theme?.card} rounded-3xl border ${theme?.border} shadow-sm p-4 sm:p-5 mb-6  sticky top-0`}
         >
           <div className='flex flex-col xl:flex-row gap-4'>
             <div className='relative flex-1'>
@@ -588,6 +604,7 @@ const DataCollectorDashboard = () => {
               </div>
             </div>
 
+            {/* desktop view */}
             <div className='hidden lg:block overflow-x-auto scrollbar-hide'>
               <table className='w-full text-sm'>
                 <thead>
@@ -847,7 +864,9 @@ const DataCollectorDashboard = () => {
         )}
         {samplesError && (
           <div className='bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-2xl mb-5 text-sm'>
-            Error occured when fetching samples
+            {samplesError === true
+              ? "Failed to load samples. Please try again."
+              : samplesError}
           </div>
         )}
 
