@@ -38,6 +38,16 @@ const roleConfig = {
     excelImport: false,
     navItems: ["dashboard", "map"],
   },
+  policymakeruniversity: {
+    sampleButton: false,
+    excelImport: false,
+    navItems: ["dashboard", "map"],
+  },
+  policymakerresolve: {
+    sampleButton: false,
+    excelImport: false,
+    navItems: ["dashboard", "map"],
+  },
   policymakernafdac: {
     sampleButton: false,
     excelImport: false,
@@ -86,7 +96,9 @@ const Sidebar = ({
   excelImportRef,
 }) => {
   const { currentUser } = useSelector((state) => state.auth);
-  const normalizedRole = currentUser?.role?.toLowerCase().replace(/[\s_]/g, "");
+  const normalizedRole = currentUser?.role
+    ?.toLowerCase()
+    .replace(/[\s_.-]/g, "");
   const config = roleConfig[normalizedRole] || roleConfig.superadmin;
   const { theme, darkMode } = useTheme();
 
@@ -216,7 +228,7 @@ const Sidebar = ({
   ];
 
   const navItemsToRender = allNavItems.filter((item) =>
-    config.navItems.includes(item.key)
+    config.navItems.includes(item.key),
   );
 
   const handleSampleButtonClick = () => {
@@ -259,7 +271,9 @@ const Sidebar = ({
             ))}
           </nav>
 
-          <div className={`mt-6 pt-6 border-t ${theme.border} space-y-2 shrink-0`}>
+          <div
+            className={`mt-6 pt-6 border-t ${theme.border} space-y-2 shrink-0`}
+          >
             {config.sampleButton && (
               <button
                 onClick={handleSampleButtonClick}
@@ -316,7 +330,9 @@ const Sidebar = ({
             ))}
           </nav>
 
-          <div className={`mt-4 pt-4 border-t ${theme.border} space-y-2 shrink-0`}>
+          <div
+            className={`mt-4 pt-4 border-t ${theme.border} space-y-2 shrink-0`}
+          >
             {config.sampleButton && (
               <button
                 onClick={handleSampleButtonClick}
