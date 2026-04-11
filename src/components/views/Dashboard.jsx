@@ -25,7 +25,7 @@ import { Package, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import StatCard from "../common/StatCard";
 import { COLORS } from "../../utils/constants";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchSamples } from "../../redux/slice/samplesSlice";
+import { fetchSamples, fetchSampleStats } from "../../redux/slice/samplesSlice";
 import {
   aggregateByMonth,
   deriveLocationData,
@@ -68,26 +68,41 @@ const CustomTooltip = ({ active, payload, label, theme }) => {
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { samples, loading, error, errorCode, hasFetched } = useSelector(
-    (state) => state.samples
+  const { samples, loading, error, errorCode, hasFetched, stats } = useSelector(
+    (state) => state.samples,
   );
 
   const [filterState, setFilterState] = useState("all");
   const [filterProduct, setFilterProduct] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [states, setStates] = useState([]);
-  const [stats, setStats] = useState(null);
+  // const [stats, setStats] = useState(null);
   const { theme } = useTheme();
+
+  useEffect(() => {
+    dispatch(
+      fetchSampleStats({
+        ...(filterState !== "all" && { stateId: filterState }),
+        ...(filterProduct !== "all" && { productVariantId: filterProduct }),
+      }),
+    );
+  }, [dispatch, filterState, filterProduct]);
 
   // Variants that appear in loaded samples only (so "All Products" never shows empty)
   const productVariantsInSamples = useMemo(() => {
     if (!samples || samples.length === 0) return [];
-    const variantIds = [...new Set(samples.map((s) => s.productVariant?.id).filter(Boolean))];
-    return variantIds.map((id) => {
-      const sample = samples.find((s) => s.productVariant?.id === id);
-      const v = sample?.productVariant;
-      return v ? { id: v.id, name: v.name, displayName: v.displayName } : null;
-    }).filter(Boolean);
+    const variantIds = [
+      ...new Set(samples.map((s) => s.productVariant?.id).filter(Boolean)),
+    ];
+    return variantIds
+      .map((id) => {
+        const sample = samples.find((s) => s.productVariant?.id === id);
+        const v = sample?.productVariant;
+        return v
+          ? { id: v.id, name: v.name, displayName: v.displayName }
+          : null;
+      })
+      .filter(Boolean);
   }, [samples]);
 
   // Fetch states on mount
@@ -95,7 +110,9 @@ const Dashboard = () => {
     const fetchStates = async () => {
       try {
         const api = await import("../../utils/api").then((m) => m.default);
-        const response = await api.get("/management/states", { params: { activeOnly: "true" } });
+        const response = await api.get("/management/states", {
+          params: { activeOnly: "true" },
+        });
         setStates(response.data.data || []);
       } catch (err) {
         console.error("Failed to fetch states:", err);
@@ -131,13 +148,13 @@ const Dashboard = () => {
     if (!filteredSamples) return {};
     const total = filteredSamples.length;
     const contaminated = filteredSamples.filter(
-      (s) => getContaminationStatus(s).toLowerCase() === "contaminated"
+      (s) => getContaminationStatus(s).toLowerCase() === "contaminated",
     ).length;
     const safe = filteredSamples.filter(
-      (s) => getContaminationStatus(s).toLowerCase() === "safe"
+      (s) => getContaminationStatus(s).toLowerCase() === "safe",
     ).length;
     const pending = filteredSamples.filter(
-      (s) => getContaminationStatus(s).toLowerCase() === "pending"
+      (s) => getContaminationStatus(s).toLowerCase() === "pending",
     ).length;
 
     const byState = Object.entries(
@@ -145,7 +162,7 @@ const Dashboard = () => {
         const stateName = s.state?.name || "Unknown";
         acc[stateName] = (acc[stateName] || 0) + 1;
         return acc;
-      }, {})
+      }, {}),
     ).map(([name, value]) => ({ name, value }));
 
     const byProductType = Object.entries(
@@ -156,7 +173,7 @@ const Dashboard = () => {
           "Unknown";
         acc[type] = (acc[type] || 0) + 1;
         return acc;
-      }, {})
+      }, {}),
     ).map(([name, value]) => ({ name, value }));
 
     const registeredVsUnregistered = [
@@ -185,15 +202,15 @@ const Dashboard = () => {
 
   const exposureData = useMemo(
     () => aggregateByMonth(filteredSamples, 6),
-    [filteredSamples]
+    [filteredSamples],
   );
   const locationData = useMemo(
     () => deriveLocationData(filteredSamples).slice(0, 8),
-    [filteredSamples]
+    [filteredSamples],
   );
   const detectionMetrics = useMemo(
     () => deriveDetectionMetrics(filteredSamples),
-    [filteredSamples]
+    [filteredSamples],
   );
 
   if (error) {
@@ -316,7 +333,8 @@ const Dashboard = () => {
           value={stats?.contaminated ?? analytics.contaminated}
           color="bg-red-600"
           subtext={`${(
-            ((stats?.contaminated ?? analytics.contaminated) / (stats?.totalSamples || analytics.total || 1)) *
+            ((stats?.contaminated ?? analytics.contaminated) /
+              (stats?.totalSamples || analytics.total || 1)) *
             100
           ).toFixed(1)}% of total`}
           theme={theme}
@@ -326,9 +344,11 @@ const Dashboard = () => {
           label="Safe"
           value={stats?.safe ?? analytics.safe}
           color="bg-green-600"
-          subtext={`${(((stats?.safe ?? analytics.safe) / (stats?.totalSamples || analytics.total || 1)) * 100).toFixed(
-            1
-          )}% of total`}
+          subtext={`${(
+            ((stats?.safe ?? analytics.safe) /
+              (stats?.totalSamples || analytics.total || 1)) *
+            100
+          ).toFixed(1)}% of total`}
           theme={theme}
         />
         <StatCard
