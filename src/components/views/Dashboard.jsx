@@ -34,6 +34,7 @@ import {
 } from "../../utils/chartDataHelpers";
 import { useTheme } from "../../context/ThemeContext";
 import api from "../../utils/api";
+import { useEnums } from "../../context/EnumsContext";
 
 const CustomTooltip = ({ active, payload, label, theme }) => {
   if (active && payload && payload.length) {
@@ -68,10 +69,10 @@ const CustomTooltip = ({ active, payload, label, theme }) => {
 };
 
 const Dashboard = () => {
-  const dispatch = useDispatch();
-  const { samples, loading, error, errorCode, hasFetched, stats } = useSelector(
-    (state) => state.samples,
-  );
+  // const dispatch = useDispatch();
+  // const { samples, loading, error, errorCode, hasFetched } = useSelector(
+  //   (state) => state.samples,
+  // );
 
   const [filterState, setFilterState] = useState("all");
   const [loadingStats, setLoadingStats] = useState(false);
@@ -79,34 +80,34 @@ const Dashboard = () => {
   const [filterProduct, setFilterProduct] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [states, setStates] = useState([]);
-  // const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(null);
   const { theme } = useTheme();
 
-  useEffect(() => {
-    dispatch(
-      fetchSampleStats({
-        ...(filterState !== "all" && { stateId: filterState }),
-        ...(filterProduct !== "all" && { productVariantId: filterProduct }),
-      }),
-    );
-  }, [dispatch, filterState, filterProduct]);
+  // useEffect(() => {
+  //   dispatch(
+  //     fetchSampleStats({
+  //       ...(filterState !== "all" && { stateId: filterState }),
+  //       ...(filterProduct !== "all" && { productVariantId: filterProduct }),
+  //     }),
+  //   );
+  // }, [dispatch, filterState, filterProduct]);
 
   // Variants that appear in loaded samples only (so "All Products" never shows empty)
-  const productVariantsInSamples = useMemo(() => {
-    if (!samples || samples.length === 0) return [];
-    const variantIds = [
-      ...new Set(samples.map((s) => s.productVariant?.id).filter(Boolean)),
-    ];
-    return variantIds
-      .map((id) => {
-        const sample = samples.find((s) => s.productVariant?.id === id);
-        const v = sample?.productVariant;
-        return v
-          ? { id: v.id, name: v.name, displayName: v.displayName }
-          : null;
-      })
-      .filter(Boolean);
-  }, [samples]);
+  // const productVariantsInSamples = useMemo(() => {
+  //   if (!samples || samples.length === 0) return [];
+  //   const variantIds = [
+  //     ...new Set(samples.map((s) => s.productVariant?.id).filter(Boolean)),
+  //   ];
+  //   return variantIds
+  //     .map((id) => {
+  //       const sample = samples.find((s) => s.productVariant?.id === id);
+  //       const v = sample?.productVariant;
+  //       return v
+  //         ? { id: v.id, name: v.name, displayName: v.displayName }
+  //         : null;
+  //     })
+  //     .filter(Boolean);
+  // }, [samples]);
 
   // Fetch states on mount
   useEffect(() => {
@@ -124,12 +125,15 @@ const Dashboard = () => {
     fetchStates();
   }, []);
 
+  const enums = useEnums();
+  console.log(enums.productCategories);
+
   // Load samples once into Redux (no refetch when filters change)
-  useEffect(() => {
-    if (!hasFetched) {
-      dispatch(fetchSamples({ page: 1, limit: 20 }));
-    }
-  }, [dispatch, hasFetched]);
+  // useEffect(() => {
+  //   if (!hasFetched) {
+  //     dispatch(fetchSamples({ page: 1, limit: 800 }));
+  //   }
+  // }, [dispatch, hasFetched]);
 
   // fetch stats
 
@@ -137,67 +141,58 @@ const Dashboard = () => {
     setLoadingStats(true);
     setLoadingError(null);
     api
-      .get("/samples/stats?stateId=cmn94zdu400l1fpxf5ri72dpq")
+      .get("/samples/stats?from=2026-01-01&to=2026-04-12")
       .then((res) => setStats(res.data.data))
       .catch(() => setLoadingError(true))
       .finally(() => setLoadingStats(false));
   }, []);
 
-  // console.log(stats);
-
   // Filter samples based on filters
-  const filteredSamples = useMemo(() => {
-    if (!samples) return [];
-    return samples.filter((s) => {
-      if (filterState !== "all" && s.state?.id !== filterState) return false;
-      if (filterProduct !== "all" && s.productVariant?.id !== filterProduct)
-        return false;
-      if (
-        filterStatus !== "all" &&
-        getContaminationStatus(s).toLowerCase() !== filterStatus.toLowerCase()
-      )
-        return false;
-      return true;
-    });
-  }, [samples, filterState, filterProduct, filterStatus]);
+  // const filteredSamples = useMemo(() => {
+  //   if (!samples) return [];
+  //   return samples.filter((s) => {
+  //     if (filterState !== "all" && s.state?.id !== filterState) return false;
+  //     if (filterProduct !== "all" && s.productVariant?.id !== filterProduct)
+  //       return false;
+  //     if (
+  //       filterStatus !== "all" &&
+  //       getContaminationStatus(s).toLowerCase() !== filterStatus.toLowerCase()
+  //     )
+  //       return false;
+  //     return true;
+  //   });
+  // }, [samples, filterState, filterProduct, filterStatus]);
 
-  const analytics = useMemo(() => {
-    if (!filteredSamples) return {};
-    const total = filteredSamples.length;
-    const contaminated = filteredSamples.filter(
-      (s) => getContaminationStatus(s).toLowerCase() === "contaminated",
-    ).length;
-    const safe = filteredSamples.filter(
-      (s) => getContaminationStatus(s).toLowerCase() === "safe",
-    ).length;
-    const pending = filteredSamples.filter(
-      (s) => getContaminationStatus(s).toLowerCase() === "pending",
-    ).length;
+  const calculateAnalytics = () => {
+    const total = stats?.totalSamples;
+    const contaminated = stats?.contaminated;
+    const safe = stats?.safe;
+    const pending = stats?.pending;
 
-    const byState = Object.entries(
-      filteredSamples.reduce((acc, s) => {
-        const stateName = s.state?.name || "Unknown";
-        acc[stateName] = (acc[stateName] || 0) + 1;
+    const byState = stats?.byState?.map((s) => ({
+      name: s?.state,
+      value: s?.count,
+    }));
+
+    const productTypeStats =
+      stats?.byProductVariant?.reduce((acc, s) => {
+        const type = s?.productCategoryName || "Unknown";
+        acc[type] = (acc[type] || 0) + (s?.count || 0);
         return acc;
-      }, {}),
-    ).map(([name, value]) => ({ name, value }));
+      }, {}) || {};
 
-    const byProductType = Object.entries(
-      filteredSamples.reduce((acc, s) => {
-        const type =
-          s.productVariant?.category?.name ||
-          s.productVariant?.displayName ||
-          "Unknown";
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-      }, {}),
-    ).map(([name, value]) => ({ name, value }));
+    const byProductType = Object.entries(productTypeStats).map(
+      ([name, value]) => ({
+        name,
+        value,
+      }),
+    );
 
     const registeredVsUnregistered = [
       {
         name: "Registered",
-        total: samples.length,
-        contaminated: contaminated,
+        total: stats?.total,
+        contaminated: stats?.contaminated,
       },
       {
         name: "Unregistered",
@@ -215,53 +210,26 @@ const Dashboard = () => {
       byProductType,
       registeredVsUnregistered,
     };
-  }, [filteredSamples]);
+  };
 
-  const exposureData = useMemo(
-    () => aggregateByMonth(filteredSamples, 6),
-    [filteredSamples],
-  );
+  const analytics = calculateAnalytics();
+  const exposureData = aggregateByMonth(stats);
+  const locationData = deriveLocationData(stats);
+  const detectionMetrics = deriveDetectionMetrics(stats);
 
-  console.log("exposureData", exposureData);
-
-  const locationData = useMemo(
-    () => deriveLocationData(filteredSamples).slice(0, 8),
-    [filteredSamples],
-  );
-
-  console.log("locationData", locationData);
-
-  const detectionMetrics = useMemo(
-    () => deriveDetectionMetrics(filteredSamples),
-    [filteredSamples],
-  );
-
-  console.log("detectionMetrics", detectionMetrics);
-
-  if (error) {
+  if (loadingError) {
     return (
       <div className='w-full flex justify-center mt-6 sm:mt-10 px-3 sm:px-4'>
         <div
-          className={`border-l-4 ${
-            errorCode === 401
-              ? "border-red-600 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-              : "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
-          } p-3 sm:p-4 rounded shadow max-w-xl w-full`}
+          className={`border-l-4 border-red-600 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 sm:p-4 rounded shadow max-w-xl w-full`}
         >
           <h2 className='font-semibold text-base sm:text-lg flex items-center gap-2'>
-            {errorCode === 401 ? (
-              <>
-                <AlertTriangle size={18} className='sm:w-5 sm:h-5' />{" "}
-                Authentication Error
-              </>
-            ) : (
-              <>
-                <AlertTriangle size={18} className='sm:w-5 sm:h-5' /> Server
-                Error
-              </>
-            )}
+            <>
+              <AlertTriangle size={18} className='sm:w-5 sm:h-5' /> Server
+              Error.Try refreshing.
+            </>
           </h2>
-          <p className='mt-1 text-xs sm:text-sm'>{error}</p>
+          {/* <p className='mt-1 text-xs sm:text-sm'>{error}</p>
           {error?.status === 401 && (
             <button
               onClick={() => (window.location.href = "/login")}
@@ -269,13 +237,13 @@ const Dashboard = () => {
             >
               Login Again
             </button>
-          )}
+          )} */}
         </div>
       </div>
     );
   }
 
-  if (loading)
+  if (loadingStats)
     return (
       <p
         className={`text-center mt-6 sm:mt-10 text-base sm:text-lg animate-pulse ${theme?.text} px-4`}
@@ -283,14 +251,14 @@ const Dashboard = () => {
         Loading dashboard data...
       </p>
     );
-  if (!loading && (!samples || samples.length === 0))
-    return (
-      <p
-        className={`text-center mt-6 sm:mt-10 text-base sm:text-lg ${theme?.text} px-4`}
-      >
-        No samples found.
-      </p>
-    );
+  // if (!loadingStats)
+  //   return (
+  //     <p
+  //       className={`text-center mt-6 sm:mt-10 text-base sm:text-lg ${theme?.text} px-4`}
+  //     >
+  //       No samples found.
+  //     </p>
+  //   );
 
   return (
     <div
@@ -322,7 +290,7 @@ const Dashboard = () => {
             className={`w-full px-3 py-2 sm:px-4 text-sm sm:text-base border rounded-lg ${theme?.input} focus:ring-2 focus:ring-emerald-500`}
           >
             <option value='all'>All Products</option>
-            {productVariantsInSamples.map((v) => (
+            {enums?.productCategories?.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.displayName || v.name || "Unknown"}
               </option>
@@ -609,9 +577,9 @@ const Dashboard = () => {
             <PieChart>
               <Pie
                 data={[
-                  { name: "Safe", value: analytics.safe },
-                  { name: "Contaminated", value: analytics.contaminated },
-                  { name: "Pending", value: analytics.pending },
+                  { name: "Safe", value: stats?.safe ?? 0 },
+                  { name: "Contaminated", value: stats?.contaminated ?? 0 },
+                  { name: "Pending", value: stats?.pending ?? 0 },
                 ]}
                 cx='50%'
                 cy='50%'
