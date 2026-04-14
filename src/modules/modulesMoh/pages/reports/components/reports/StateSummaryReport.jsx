@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FilterBar } from "../../../../components/FilterBar";
 import { SectionLabel } from "../../../../components/SectionLabel";
 import { RateBadge } from "../../../../components/RateBadge";
@@ -9,85 +9,28 @@ import {
   exportStateSummaryPdf,
 } from "../../../../utils/reportExport";
 import ReportHeader from "./ReportHeader";
-import api from "../../../../../../utils/api";
 import { useTheme } from "../../../../../../context/ThemeContext";
-
-const STATES_CACHE_KEY = "moh_report_states_cache_v1";
+import { useStates } from "../../../../hooks/useStates";
 
 const StateSummaryReport = () => {
   const [generated, setGenerated] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [statesLoading, setStatesLoading] = useState(false);
   const [error, setError] = useState("");
   const [reportData, setReportData] = useState(null);
-  const [states, setStates] = useState([]);
   const { theme } = useTheme();
+  const { states, loadingStates, statesError } = useStates();
 
   const [filters, setFilters] = useState({
-    state: "",
+    stateId: "",
     dateFrom: "2026-01-01",
     dateTo: "2026-03-14",
   });
 
-  const normalizeStates = (payload) => {
-    const rows = Array.isArray(payload?.data)
-      ? payload.data
-      : Array.isArray(payload?.states)
-        ? payload.states
-        : Array.isArray(payload?.data?.states)
-          ? payload.data.states
-          : Array.isArray(payload?.items)
-            ? payload.items
-            : Array.isArray(payload)
-              ? payload
-              : [];
-
-    return rows
-      .map((state) => ({
-        id: state?.id || state?.stateId || state?.value || "",
-        name: state?.name || state?.stateName || state?.label || "",
-        code: state?.code || "",
-        isActive: state?.isActive,
-      }))
-      .filter((state) => state.id && state.name)
-      .filter((state) => state.isActive !== false)
-      .sort((a, b) => a.name.localeCompare(b.name));
-  };
-
-  const fetchStates = async () => {
-    try {
-      const cached = sessionStorage.getItem(STATES_CACHE_KEY);
-      if (cached) {
-        setStates(JSON.parse(cached));
-        return;
-      }
-
-      setStatesLoading(true);
-
-      const res = await api.get("/management/states", {
-        params: {
-          page: 1,
-          pageSize: 100,
-        },
-      });
-
-      const normalized = normalizeStates(res.data);
-      setStates(normalized);
-      sessionStorage.setItem(STATES_CACHE_KEY, JSON.stringify(normalized));
-    } catch (err) {
-      console.error("Failed to fetch report states:", err);
-      setStates([]);
-    } finally {
-      setStatesLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStates();
-  }, []);
+  const selectedState = states.find((state) => state.id === filters.stateId);
+  const selectedStateName = selectedState?.name || "";
 
   const handleGenerateReport = async () => {
-    if (!filters.state) {
+    if (!filters.stateId) {
       setError("Please select a state.");
       setGenerated(false);
       return;
@@ -110,7 +53,16 @@ const StateSummaryReport = () => {
       setError("");
       setGenerated(false);
 
-      const data = await getStateSummaryReport(filters);
+      const payload = {
+        state: selectedStateName,
+        stateId: filters.stateId,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+      };
+
+      console.log("STATE SUMMARY PAYLOAD:", payload);
+
+      const data = await getStateSummaryReport(payload);
       setReportData(data?.data || data);
       setGenerated(true);
     } catch (err) {
@@ -163,11 +115,11 @@ const StateSummaryReport = () => {
 
   const handleExportExcel = () => {
     exportStateSummaryExcel({
-      fileName: `state-summary-${summary.state || filters.state || "report"}-${
+      fileName: `state-summary-${summary.state || selectedStateName || "report"}-${
         summary?.dateRange?.from || filters.dateFrom
       }-${summary?.dateRange?.to || filters.dateTo}.xlsx`,
       generatedAt,
-      state: summary.state || filters.state,
+      state: summary.state || selectedStateName,
       dateFrom: summary?.dateRange?.from || filters.dateFrom,
       dateTo: summary?.dateRange?.to || filters.dateTo,
       summary,
@@ -182,11 +134,11 @@ const StateSummaryReport = () => {
 
   const handleExportPdf = () => {
     exportStateSummaryPdf({
-      fileName: `state-summary-${summary.state || filters.state || "report"}-${
+      fileName: `state-summary-${summary.state || selectedStateName || "report"}-${
         summary?.dateRange?.from || filters.dateFrom
       }-${summary?.dateRange?.to || filters.dateTo}.pdf`,
       generatedAt,
-      state: summary.state || filters.state,
+      state: summary.state || selectedStateName,
       dateFrom: summary?.dateRange?.from || filters.dateFrom,
       dateTo: summary?.dateRange?.to || filters.dateTo,
       summary,
@@ -204,19 +156,19 @@ const StateSummaryReport = () => {
       <FilterBar>
         <label className="text-xs text-gray-500">State (required)</label>
         <select
-          value={filters.state}
+          value={filters.stateId}
           onChange={(e) =>
-            setFilters((prev) => ({ ...prev, state: e.target.value }))
+            setFilters((prev) => ({ ...prev, stateId: e.target.value }))
           }
-          disabled={statesLoading}
+          disabled={loadingStates}
           className={`w-full sm:w-auto min-w-[220px] text-xs px-2 py-1.5 ${theme.border} ${theme.input} rounded-md outline-none focus:border-green-500 disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           <option value="">
-            {statesLoading ? "Loading states..." : "— Select state —"}
+            {loadingStates ? "Loading states..." : "— Select state —"}
           </option>
 
           {states.map((state) => (
-            <option key={state.id} value={state.name}>
+            <option key={state.id} value={state.id}>
               {state.name}
             </option>
           ))}
@@ -255,6 +207,12 @@ const StateSummaryReport = () => {
         </BtnPrimary>
       </FilterBar>
 
+      {statesError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {statesError}
+        </div>
+      )}
+
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -262,11 +220,11 @@ const StateSummaryReport = () => {
       )}
 
       {generated && reportData && (
-        <div className="mt-5 overflow-hidden rounded-xl border ${theme.border} w-full">
+        <div className={`mt-5 overflow-hidden rounded-xl border ${theme.border} w-full`}>
           <ReportHeader
             title="State summary"
             subtitle={`Generated: ${generatedAt || "—"} · ${
-              summary.state || filters.state
+              summary.state || selectedStateName
             } · ${summary?.dateRange?.from || filters.dateFrom} to ${
               summary?.dateRange?.to || filters.dateTo
             }`}
@@ -278,104 +236,78 @@ const StateSummaryReport = () => {
             <div className="border-b border-gray-100 px-4 sm:px-5 py-4">
               <SectionLabel>Summary</SectionLabel>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>State</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>State</span>
                 <span className={`font-medium ${theme.text}`}>
-                  {summary.state || filters.state}
+                  {summary.state || selectedStateName}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Total samples</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Total samples</span>
                 <span className={`font-medium ${theme.text}`}>
                   {summary.totalSamples ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Safe</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Safe</span>
                 <span className="font-medium text-green-700">
                   {contaminationBreakdown.SAFE ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Moderate</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Moderate</span>
                 <span className="font-medium text-amber-600">
                   {contaminationBreakdown.MODERATE ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Contaminated</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Contaminated</span>
                 <span className="font-medium text-red-600">
                   {contaminationBreakdown.CONTAMINATED ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Pending</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Pending</span>
                 <span className="font-medium text-amber-600">
                   {contaminationBreakdown.PENDING ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Contamination rate</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Contamination rate</span>
                 <span className="font-medium text-red-600">
                   {summary.percentageContaminated ?? "0.00"}%
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>
-                  Registered products
-                </span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Registered products</span>
                 <span className={`font-medium ${theme.text}`}>
                   {registrationStatus.registered ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>
-                  Unregistered products
-                </span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Unregistered products</span>
                 <span className={`font-medium ${theme.text}`}>
                   {registrationStatus.unregistered ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Formal vendors</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Formal vendors</span>
                 <span className={`font-medium ${theme.text}`}>
                   {vendorType.formal ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Informal vendors</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Informal vendors</span>
                 <span className={`font-medium ${theme.text}`}>
                   {vendorType.informal ?? 0}
                 </span>
@@ -385,39 +317,29 @@ const StateSummaryReport = () => {
             <div className="border-b border-gray-100 px-4 sm:px-5 py-4">
               <SectionLabel>Verification breakdown</SectionLabel>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Verified original</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Verified original</span>
                 <span className="font-medium text-green-700">
                   {verificationBreakdown.VERIFIED_ORIGINAL ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Verified fake</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Verified fake</span>
                 <span className="font-medium text-red-600">
                   {verificationBreakdown.VERIFIED_FAKE ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>Unverified</span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Unverified</span>
                 <span className="font-medium text-amber-600">
                   {verificationBreakdown.UNVERIFIED ?? 0}
                 </span>
               </div>
 
-              <div
-                className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
-              >
-                <span className={`${theme.textMuted}`}>
-                  Verification pending
-                </span>
+              <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
+                <span className={theme.textMuted}>Verification pending</span>
                 <span className="font-medium text-gray-900">
                   {verificationBreakdown.VERIFICATION_PENDING ?? 0}
                 </span>
@@ -441,10 +363,7 @@ const StateSummaryReport = () => {
                   <tbody>
                     {topLgas.length > 0 ? (
                       topLgas.map((item, index) => (
-                        <tr
-                          key={item.lgaName || index}
-                          className={`${theme.hover}`}
-                        >
+                        <tr key={item.lgaName || index} className={theme.hover}>
                           <td className={TD}>{item.lgaName}</td>
                           <td className={TD}>{item.samples}</td>
                           <td className={TD}>{item.contaminated}</td>
@@ -468,18 +387,13 @@ const StateSummaryReport = () => {
             <div className="px-4 sm:px-5 py-4">
               <SectionLabel>Recommendations</SectionLabel>
 
-              <div
-                className={`text-sm leading-relaxed ${theme.textMuted} space-y-3`}
-              >
+              <div className={`text-sm leading-relaxed ${theme.textMuted} space-y-3`}>
                 {recommendations.length > 0 ? (
                   recommendations.map((item, index) => {
                     const isObject = item && typeof item === "object";
 
                     return (
-                      <div
-                        key={index}
-                        className={`rounded-lg border ${theme.border} p-3`}
-                      >
+                      <div key={index} className={`rounded-lg border ${theme.border} p-3`}>
                         <div className={`font-semibold ${theme.text} mb-1`}>
                           Recommendation {index + 1}
                         </div>
@@ -488,45 +402,35 @@ const StateSummaryReport = () => {
                           <div className="space-y-1">
                             {item.priority && (
                               <div>
-                                <span className={`font-medium ${theme.text}`}>
-                                  Priority:
-                                </span>{" "}
+                                <span className={`font-medium ${theme.text}`}>Priority:</span>{" "}
                                 {item.priority}
                               </div>
                             )}
 
                             {item.category && (
                               <div>
-                                <span className={`font-medium ${theme.text}`}>
-                                  Category:
-                                </span>{" "}
+                                <span className={`font-medium ${theme.text}`}>Category:</span>{" "}
                                 {item.category}
                               </div>
                             )}
 
                             {item.finding && (
                               <div>
-                                <span className={`font-medium ${theme.text}`}>
-                                  Finding:
-                                </span>{" "}
+                                <span className={`font-medium ${theme.text}`}>Finding:</span>{" "}
                                 {item.finding}
                               </div>
                             )}
 
                             {item.recommendation && (
                               <div>
-                                <span className={`font-medium ${theme.text}`}>
-                                  Recommendation:
-                                </span>{" "}
+                                <span className={`font-medium ${theme.text}`}>Recommendation:</span>{" "}
                                 {item.recommendation}
                               </div>
                             )}
 
                             {item.action && (
                               <div>
-                                <span className={`font-medium ${theme.text}`}>
-                                  Action:
-                                </span>{" "}
+                                <span className={`font-medium ${theme.text}`}>Action:</span>{" "}
                                 {item.action}
                               </div>
                             )}

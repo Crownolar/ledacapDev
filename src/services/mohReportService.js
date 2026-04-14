@@ -1,16 +1,16 @@
 import api from "../utils/api";
 
-const resolveStateParam = (state) => {
-  if (!state) return undefined;
+// const resolveStateParam = (state) => {
+//   if (!state) return undefined;
 
-  if (typeof state === "object") return state.name;
+//   if (typeof state === "object") return state.name;
 
-  return state;
-};
+//   return state;
+// };
 
 export const getStateSummaryReport = async ({ state, dateFrom, dateTo }) => {
   const params = {
-    ...(resolveStateParam(state) && { state: resolveStateParam(state) }),
+    ...(state && { state }),
     ...(dateFrom && { dateFrom }),
     ...(dateTo && { dateTo }),
   };
@@ -22,23 +22,19 @@ export const getStateSummaryReport = async ({ state, dateFrom, dateTo }) => {
     headers: { Accept: "application/json" },
   });
 
-  console.log("STATE SUMMARY RESPONSE:", response.data);
-
   return response.data;
 };
 
 export const getContaminationAnalysisReport = async ({
-  states,
+  stateIds,
+  stateName,
   productVariantIds,
   dateFrom,
   dateTo,
 }) => {
   const params = {
-    ...(states?.length && {
-      states: states
-        .map((s) => (typeof s === "object" ? s.name : s))
-        .join(","),
-    }),
+    ...(stateIds?.length && { stateIds: stateIds.join(",") }),
+    ...(stateName && { state: stateName }),
     ...(productVariantIds?.length && {
       productVariantIds: productVariantIds.join(","),
     }),
@@ -56,9 +52,34 @@ export const getContaminationAnalysisReport = async ({
   return response.data;
 };
 
-export const getProductTypeReport = async ({ state, dateFrom, dateTo }) => {
+// export const getContaminationAnalysisReport = async ({
+//   stateIds,
+//   productVariantIds,
+//   dateFrom,
+//   dateTo,
+// }) => {
+//   const params = {
+//     ...(stateIds?.length && { stateIds: stateIds.join(",") }),
+//     ...(productVariantIds?.length && {
+//       productVariantIds: productVariantIds.join(","),
+//     }),
+//     ...(dateFrom && { dateFrom }),
+//     ...(dateTo && { dateTo }),
+//   };
+
+//   console.log("CONTAMINATION ANALYSIS PARAMS:", params);
+
+//   const response = await api.get("/moh/reports/contamination-analysis", {
+//     params,
+//     headers: { Accept: "application/json" },
+//   });
+
+//   return response.data;
+// };
+
+export const getProductTypeReport = async ({ stateId, dateFrom, dateTo }) => {
   const params = {
-    ...(resolveStateParam(state) && { state: resolveStateParam(state) }),
+    ...(stateId && { stateId }),
     ...(dateFrom && { dateFrom }),
     ...(dateTo && { dateTo }),
   };
@@ -95,12 +116,14 @@ export const getRiskAssessmentReport = async ({
 };
 
 export const getContaminationSummary = async ({
-  state,
+  stateId,
+  stateName,
   dateFrom,
   dateTo,
 }) => {
   const params = {
-    ...(resolveStateParam(state) && { state: resolveStateParam(state) }),
+    ...(stateId && { stateId }),
+    ...(stateName && { state: stateName }),
     ...(dateFrom && { dateFrom }),
     ...(dateTo && { dateTo }),
   };
@@ -116,10 +139,7 @@ export const getContaminationSummary = async ({
 };
 
 export const getSavedReports = async () => {
-  const response = await api.get("/moh/reports", {
-    headers: { Accept: "application/json" },
-  });
-
+  const response = await api.get("/moh/reports");
   return response.data;
 };
 

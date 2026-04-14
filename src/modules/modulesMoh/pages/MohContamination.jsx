@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BtnPrimary, TH, TD } from "../utils/MohUI";
+import { BtnPrimary, TD } from "../utils/MohUI";
 import { FilterBar } from "../components/FilterBar";
 import { WhiteCard } from "../components/WhiteCard";
 import { SectionLabel } from "../components/SectionLabel";
@@ -9,13 +9,16 @@ import SummaryCards from "./reports/components/reports/SummaryCards";
 import ReportTableSection from "./reports/components/reports/ReportTableSection";
 import ReportListSection from "./reports/components/reports/ReportListSection";
 import { useTheme } from "../../../context/ThemeContext";
+import { useStates } from "../hooks/useStates";
 
 const Contamination = () => {
   const chartRef = useRef(null);
   const chartInst = useRef(null);
+  const { theme } = useTheme();
+  const { states, loadingStates, statesError } = useStates();
 
   const [filters, setFilters] = useState({
-    state: "ALL_STATES",
+    stateId: "",
     dateFrom: "2026-03-13",
     dateTo: "2026-03-14",
   });
@@ -24,7 +27,9 @@ const Contamination = () => {
   const [hotspotLoading, setHotspotLoading] = useState(false);
   const [error, setError] = useState("");
   const [summaryData, setSummaryData] = useState(null);
-  const {theme} = useTheme();
+
+  const selectedState = states.find((state) => state.id === filters.stateId);
+  const selectedStateName = selectedState?.name || "All regions";
 
   const handleLoadSummary = async () => {
     if (!filters.dateFrom || !filters.dateTo) {
@@ -42,10 +47,19 @@ const Contamination = () => {
       setHotspotLoading(true);
       setError("");
 
-      const data = await getContaminationSummary(filters);
+      const payload = {
+        stateId: filters.stateId,
+        stateName: selectedState?.name || "",
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+      };
+
+      console.log("CONTAMINATION FILTERS:", payload);
+
+      const data = await getContaminationSummary(payload);
       console.log("Contamination summary response:", data);
 
-      setSummaryData(data?.data || data);
+      setSummaryData(data?.data || data || null);
     } catch (err) {
       console.error("Failed to fetch contamination summary:", err);
 
@@ -61,6 +75,11 @@ const Contamination = () => {
       setHotspotLoading(false);
     }
   };
+
+  useEffect(() => {
+    handleLoadSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const summary = summaryData?.summary || {};
   const contaminationBreakdown = summary?.contaminationBreakdown || {};
@@ -161,13 +180,11 @@ const Contamination = () => {
   }, [byLGA]);
 
   useEffect(() => {
-    handleLoadSummary();
-  }, []);
-
-  useEffect(() => {
     if (!window.Chart || !chartRef.current) return;
 
     chartInst.current?.destroy();
+
+    if (!hotspotRows.length) return;
 
     chartInst.current = new window.Chart(chartRef.current, {
       type: "bar",
@@ -182,7 +199,7 @@ const Contamination = () => {
                 ? "#dc2626"
                 : item.riskScore >= 5
                   ? "#d97706"
-                  : "#059669",
+                  : "#059669"
             ),
           },
         ],
@@ -210,30 +227,37 @@ const Contamination = () => {
   }, [hotspotRows]);
 
   return (
-    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 ${theme.card} ${theme.textMuted} rounded-xl border ${theme.border} p-4`}>
-      {/* ── Left column ── */}
+    <div
+      className={`grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 ${theme.card} ${theme.textMuted} rounded-xl border ${theme.border} p-4`}
+    >
       <div>
         <div className="mb-3">
           <div className={`text-sm font-medium ${theme.text}`}>
             Contamination summary
           </div>
-          <div className={`text-xs ${theme.textMuted}`}>By state and date range</div>
+          <div className={`text-xs ${theme.textMuted}`}>
+            By state and date range
+          </div>
         </div>
 
         <FilterBar>
           <label className={`text-xs ${theme.textMuted}`}>State</label>
           <select
-            value={filters.state}
+            value={filters.stateId}
             onChange={(e) =>
-              setFilters((prev) => ({ ...prev, state: e.target.value }))
+              setFilters((prev) => ({ ...prev, stateId: e.target.value }))
             }
             className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
           >
-            <option value="ALL_STATES">All States</option>
-            <option value="Lagos">Lagos</option>
-            <option value="Kano">Kano</option>
-            <option value="Oyo">Oyo</option>
-            <option value="Abuja">Abuja</option>
+            <option value="">
+              {loadingStates ? "Loading states..." : "All States"}
+            </option>
+
+            {states.map((state) => (
+              <option key={state.id} value={state.id}>
+                {state.name || state.displayName || "Unknown State"}
+              </option>
+            ))}
           </select>
 
           <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
@@ -248,7 +272,9 @@ const Contamination = () => {
             className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
           />
 
-          <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>To</label>
+          <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
+            To
+          </label>
           <input
             type="date"
             value={filters.dateTo}
@@ -262,6 +288,12 @@ const Contamination = () => {
             {loading ? "Loading..." : "Load"}
           </BtnPrimary>
         </FilterBar>
+
+        {statesError && (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {statesError}
+          </div>
+        )}
 
         {error && (
           <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -280,7 +312,7 @@ const Contamination = () => {
           emptyMessage="No LGA data available."
           className="mb-3"
           renderRow={(row) => (
-            <tr key={row.lgaName} className={`${theme.hover}`}>
+            <tr key={row.lgaName} className={theme.hover}>
               <td className={TD}>{row.lgaName}</td>
               <td className={TD}>{row.total}</td>
               <td className={TD}>{row.contaminated}</td>
@@ -297,8 +329,13 @@ const Contamination = () => {
           rows={productRows}
           emptyMessage="No product type data available."
           renderRow={(row) => (
-            <tr key={row.productType} className={`${theme.hover}`}>
-              <td className={TD}>{row.productType}</td>
+            <tr key={row.productType} className={theme.hover}>
+              <td className={TD}>
+                {row.productType?.displayName ||
+                  row.productType?.name ||
+                  row.productType ||
+                  "—"}
+              </td>
               <td className={TD}>{row.total}</td>
               <td className={TD}>{row.contaminated}</td>
               <td className={TD}>
@@ -309,15 +346,14 @@ const Contamination = () => {
         />
       </div>
 
-      {/* ── Right column ── */}
       <div>
         <div className="mb-3">
           <div className={`text-sm font-medium ${theme.text}`}>
             Risk hotspot rankings
           </div>
           <div className={`text-xs ${theme.textMuted}`}>
-            {filters.state === "ALL_STATES" ? "All regions" : filters.state} ·
-            derived from contamination rate
+            {filters.stateId ? selectedStateName : "All regions"} · derived from
+            contamination rate
           </div>
         </div>
 
@@ -334,7 +370,9 @@ const Contamination = () => {
             className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
           />
 
-          <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>To</label>
+          <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
+            To
+          </label>
           <input
             type="date"
             value={filters.dateTo}
@@ -351,9 +389,17 @@ const Contamination = () => {
 
         <WhiteCard className="mb-3">
           <SectionLabel>Risk scores by LGA</SectionLabel>
-          <div className="relative w-full" style={{ height: 260 }}>
-            <canvas ref={chartRef} />
-          </div>
+          {hotspotRows.length === 0 ? (
+            <div
+              className={`h-[260px] flex items-center justify-center text-sm ${theme.textMuted}`}
+            >
+              No hotspot data available.
+            </div>
+          ) : (
+            <div className="relative w-full" style={{ height: 260 }}>
+              <canvas ref={chartRef} />
+            </div>
+          )}
         </WhiteCard>
 
         <ReportListSection
@@ -375,15 +421,13 @@ const Contamination = () => {
               item.value ||
               `Lead: ${item.leadLevel ?? item.reading ?? "-"} ppm`;
 
-            const numericReading = Number(
-              item.leadLevel ?? item.reading ?? 0,
-            );
+            const numericReading = Number(item.leadLevel ?? item.reading ?? 0);
             const color =
               numericReading >= 3 ? "text-red-600" : "text-amber-600";
 
             return (
               <div className="flex justify-between text-xs">
-                <span className={`${theme.textMuted}`}>{label}</span>
+                <span className={theme.textMuted}>{label}</span>
                 <span className={`font-medium ${color}`}>{value}</span>
               </div>
             );
@@ -394,11 +438,50 @@ const Contamination = () => {
           title="Recommendations"
           items={recommendations}
           emptyMessage="No recommendations available."
-          renderItem={(item, index) => (
-            <div className={`text-xs ${theme.textMuted}`}>
-              {index + 1}. {item}
-            </div>
-          )}
+          renderItem={(item, index) => {
+            if (typeof item === "string") {
+              return (
+                <div className={`text-xs ${theme.textMuted}`}>
+                  {index + 1}. {item}
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-1 text-xs">
+                <div className={`font-medium ${theme.text}`}>
+                  {index + 1}.{" "}
+                  {item?.recommendation || item?.finding || "Recommendation"}
+                </div>
+
+                {item?.category && (
+                  <div className={theme.textMuted}>
+                    <span className="font-medium">Category:</span>{" "}
+                    {item.category}
+                  </div>
+                )}
+
+                {item?.priority && (
+                  <div className={theme.textMuted}>
+                    <span className="font-medium">Priority:</span>{" "}
+                    {item.priority}
+                  </div>
+                )}
+
+                {item?.finding && (
+                  <div className={theme.textMuted}>
+                    <span className="font-medium">Finding:</span> {item.finding}
+                  </div>
+                )}
+
+                {item?.action && (
+                  <div className={theme.textMuted}>
+                    <span className="font-medium">Action:</span> {item.action}
+                  </div>
+                )}
+              </div>
+            );
+          }}
         />
       </div>
     </div>
