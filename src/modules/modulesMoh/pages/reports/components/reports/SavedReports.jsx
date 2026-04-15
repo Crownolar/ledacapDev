@@ -49,44 +49,6 @@ const SavedReports = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewError, setPreviewError] = useState("");
 
-  // useEffect(() => {
-  //   const fetchReports = async () => {
-  //     try {
-  //       setLoading(true);
-  //       setError("");
-
-  //       const data = await getSavedReports();
-  //       console.log("Saved reports list:", data);
-
-  //       const reportList = Array.isArray(data?.items)
-  //         ? data.items
-  //         : Array.isArray(data?.data)
-  //           ? data.data
-  //           : Array.isArray(data?.reports)
-  //             ? data.reports
-  //             : Array.isArray(data)
-  //               ? data
-  //               : [];
-
-  //       setReports(reportList);
-  //     } catch (err) {
-  //       console.error("Failed to fetch saved reports:", err);
-
-  //       const message =
-  //         err.response?.data?.message ||
-  //         err.response?.data?.error ||
-  //         "Failed to fetch saved reports.";
-
-  //       setError(message);
-  //       setReports([]);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchReports();
-  // }, []);
-
   useEffect(() => {
     const fetchReports = async () => {
       try {
@@ -106,29 +68,16 @@ const SavedReports = () => {
                 ? data
                 : [];
 
-        if (reportList.length > 0) {
-          setReports(reportList);
-        } else {
-          setReports([
-            {
-              id: "mock-state-summary-1",
-              reportType: "STATE_SUMMARY",
-              generatedAt: new Date().toISOString(),
-              filters: {
-                state: "Kano",
-                dateFrom: "2026-03-13",
-                dateTo: "2026-03-14",
-              },
-              summary: {
-                state: "Kano",
-              },
-              isMock: true,
-            },
-          ]);
-        }
+        setReports(reportList);
       } catch (err) {
         console.error("Failed to fetch saved reports:", err);
-        setError("Failed to fetch saved reports.");
+
+        const message =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Failed to fetch saved reports.";
+
+        setError(message);
         setReports([]);
       } finally {
         setLoading(false);
@@ -138,93 +87,61 @@ const SavedReports = () => {
     fetchReports();
   }, []);
 
-  //  const handleOpenReport = async (id) => {
-  //   try {
-  //     setOpeningId(id);
-  //     setPreviewError("");
+  // useEffect(() => {
+  //   const fetchReports = async () => {
+  //     try {
+  //       setLoading(true);
+  //       setError("");
 
-  //     const data = await getReportById(id);
-  //     console.log("Opened full report:", data);
+  //       const data = await getSavedReports();
+  //       console.log("Saved reports list:", data);
 
-  //     setSelectedReport(data?.data || data);
-  //     setShowPreview(true);
-  //   } catch (err) {
-  //     console.error("Failed to fetch report by ID:", err);
+  //       const reportList = Array.isArray(data?.items)
+  //         ? data.items
+  //         : Array.isArray(data?.data)
+  //           ? data.data
+  //           : Array.isArray(data?.reports)
+  //             ? data.reports
+  //             : Array.isArray(data)
+  //               ? data
+  //               : [];
 
-  //     const message =
-  //       err.response?.data?.message ||
-  //       err.response?.data?.error ||
-  //       "Failed to open report.";
+  //       if (reportList.length > 0) {
+  //         setReports(reportList);
+  //       } else {
+  //         setReports([
+  //           {
+  //             id: "mock-state-summary-1",
+  //             reportType: "STATE_SUMMARY",
+  //             generatedAt: new Date().toISOString(),
+  //             filters: {
+  //               state: "Kano",
+  //               dateFrom: "2026-03-13",
+  //               dateTo: "2026-03-14",
+  //             },
+  //             summary: {
+  //               state: "Kano",
+  //             },
+  //             isMock: true,
+  //           },
+  //         ]);
+  //       }
+  //     } catch (err) {
+  //       console.error("Failed to fetch saved reports:", err);
+  //       setError("Failed to fetch saved reports.");
+  //       setReports([]);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-  //     setPreviewError(message);
-  //   } finally {
-  //     setOpeningId("");
-  //   }
-  // };
+  //   fetchReports();
+  // }, []);
 
-  const handleOpenReport = async (id) => {
+   const handleOpenReport = async (id) => {
     try {
       setOpeningId(id);
       setPreviewError("");
-
-      if (id === "mock-state-summary-1") {
-        setSelectedReport({
-          id: "mock-state-summary-1",
-          reportType: "STATE_SUMMARY",
-          generatedAt: new Date().toISOString(),
-          filters: {
-            state: "Kano",
-            dateFrom: "2026-03-13",
-            dateTo: "2026-03-14",
-          },
-          summary: {
-            state: "Kano",
-            totalSamples: 16,
-            percentageContaminated: "0.00",
-            contaminationBreakdown: {
-              SAFE: 0,
-              MODERATE: 0,
-              CONTAMINATED: 0,
-              PENDING: 16,
-            },
-            verificationBreakdown: {
-              VERIFIED_ORIGINAL: 0,
-              VERIFIED_FAKE: 0,
-              UNVERIFIED: 16,
-              VERIFICATION_PENDING: 0,
-            },
-          },
-          byLGA: {
-            Dala: {
-              total: 5,
-              safe: 0,
-              moderate: 0,
-              contaminated: 0,
-              pending: 5,
-            },
-            Tarauni: {
-              total: 4,
-              safe: 0,
-              moderate: 0,
-              contaminated: 0,
-              pending: 4,
-            },
-          },
-          registrationStatus: {
-            registered: 15,
-            unregistered: 1,
-          },
-          vendorType: {
-            formal: 0,
-            informal: 16,
-            total: 16,
-            byType: { OTHER: 16 },
-          },
-          recommendations: [],
-        });
-        setShowPreview(true);
-        return;
-      }
 
       const data = await getReportById(id);
       console.log("Opened full report:", data);
@@ -244,6 +161,89 @@ const SavedReports = () => {
       setOpeningId("");
     }
   };
+
+  // const handleOpenReport = async (id) => {
+  //   try {
+  //     setOpeningId(id);
+  //     setPreviewError("");
+
+  //     if (id === "mock-state-summary-1") {
+  //       setSelectedReport({
+  //         id: "mock-state-summary-1",
+  //         reportType: "STATE_SUMMARY",
+  //         generatedAt: new Date().toISOString(),
+  //         filters: {
+  //           state: "Kano",
+  //           dateFrom: "2026-03-13",
+  //           dateTo: "2026-03-14",
+  //         },
+  //         summary: {
+  //           state: "Kano",
+  //           totalSamples: 16,
+  //           percentageContaminated: "0.00",
+  //           contaminationBreakdown: {
+  //             SAFE: 0,
+  //             MODERATE: 0,
+  //             CONTAMINATED: 0,
+  //             PENDING: 16,
+  //           },
+  //           verificationBreakdown: {
+  //             VERIFIED_ORIGINAL: 0,
+  //             VERIFIED_FAKE: 0,
+  //             UNVERIFIED: 16,
+  //             VERIFICATION_PENDING: 0,
+  //           },
+  //         },
+  //         byLGA: {
+  //           Dala: {
+  //             total: 5,
+  //             safe: 0,
+  //             moderate: 0,
+  //             contaminated: 0,
+  //             pending: 5,
+  //           },
+  //           Tarauni: {
+  //             total: 4,
+  //             safe: 0,
+  //             moderate: 0,
+  //             contaminated: 0,
+  //             pending: 4,
+  //           },
+  //         },
+  //         registrationStatus: {
+  //           registered: 15,
+  //           unregistered: 1,
+  //         },
+  //         vendorType: {
+  //           formal: 0,
+  //           informal: 16,
+  //           total: 16,
+  //           byType: { OTHER: 16 },
+  //         },
+  //         recommendations: [],
+  //       });
+  //       setShowPreview(true);
+  //       return;
+  //     }
+
+  //     const data = await getReportById(id);
+  //     console.log("Opened full report:", data);
+
+  //     setSelectedReport(data?.data || data);
+  //     setShowPreview(true);
+  //   } catch (err) {
+  //     console.error("Failed to fetch report by ID:", err);
+
+  //     const message =
+  //       err.response?.data?.message ||
+  //       err.response?.data?.error ||
+  //       "Failed to open report.";
+
+  //     setPreviewError(message);
+  //   } finally {
+  //     setOpeningId("");
+  //   }
+  // };
 
   return (
     <>

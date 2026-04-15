@@ -289,7 +289,7 @@ const ContaminationAnalysisReport = () => {
               className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
             >
               <span className={theme.textMuted}>Total samples</span>
-              <span className="font-medium text-gray-900">
+              <span className={`font-medium ${theme.text}`}>
                 {summary.totalSamples ?? 0}
               </span>
             </div>
@@ -298,7 +298,7 @@ const ContaminationAnalysisReport = () => {
               className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}
             >
               <span className={theme.textMuted}>Total readings</span>
-              <span className="font-medium text-gray-900">
+              <span className={`font-medium ${theme.text}`}>
                 {summary.totalReadings ?? 0}
               </span>
             </div>

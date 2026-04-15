@@ -85,7 +85,9 @@ const Contamination = () => {
   const contaminationBreakdown = summary?.contaminationBreakdown || {};
   const byLGA = summaryData?.byLGA || {};
   const byProductType = summaryData?.byProductType || {};
+  console.log(byProductType)
   const highRiskSamples = summaryData?.highRiskSamples || [];
+  console.log(highRiskSamples)
   const registrationStatus = summaryData?.registrationStatus || {};
   const vendorType = summaryData?.vendorType || {};
   const recommendations = summaryData?.recommendations || [];
@@ -241,13 +243,13 @@ const Contamination = () => {
         </div>
 
         <FilterBar>
-          <label className={`text-xs ${theme.textMuted}`}>State</label>
+          <label className={`text-xs ${theme.text}`}>State ( Required )</label>
           <select
             value={filters.stateId}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, stateId: e.target.value }))
             }
-            className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
+            className={`w-full sm:w-auto text-xs px-2 py-1.5 ${theme.input} border ${theme.border} rounded-md outline-none focus:border-green-500`}
           >
             <option value="">
               {loadingStates ? "Loading states..." : "All States"}
@@ -269,7 +271,7 @@ const Contamination = () => {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))
             }
-            className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
+            className={`w-full sm:w-auto text-xs px-2 py-1.5 ${theme.input} border ${theme.border} rounded-md outline-none focus:border-green-500`}
           />
 
           <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
@@ -281,7 +283,7 @@ const Contamination = () => {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, dateTo: e.target.value }))
             }
-            className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
+            className={`w-full sm:w-auto text-xs px-2 py-1.5 ${theme.input} border ${theme.border} rounded-md outline-none focus:border-green-500`}
           />
 
           <BtnPrimary onClick={handleLoadSummary} disabled={loading}>
@@ -367,7 +369,7 @@ const Contamination = () => {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))
             }
-            className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
+            className={`w-full sm:w-auto text-xs px-2 py-1.5 ${theme.input} border ${theme.border} rounded-md outline-none focus:border-green-500`}
           />
 
           <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
@@ -379,7 +381,7 @@ const Contamination = () => {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, dateTo: e.target.value }))
             }
-            className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} rounded-md outline-none focus:border-green-500`}
+            className={`w-full sm:w-auto text-xs px-2 py-1.5 ${theme.input} border ${theme.border} rounded-md outline-none focus:border-green-500`}
           />
 
           <BtnPrimary onClick={handleLoadSummary} disabled={hotspotLoading}>
@@ -411,7 +413,7 @@ const Contamination = () => {
             const label =
               item.label ||
               `${item.state || "Unknown"} — ${
-                item.sampleId ||
+                item.productName ||
                 item.sampleCode ||
                 item.sampleName ||
                 `Sample ${index + 1}`
@@ -419,7 +421,7 @@ const Contamination = () => {
 
             const value =
               item.value ||
-              `Lead: ${item.leadLevel ?? item.reading ?? "-"} ppm`;
+              `${item.contaminatedMetals[0].metal}: ${item.contaminatedMetals[0].concentration ?? item.reading ?? "-"} ppm`;
 
             const numericReading = Number(item.leadLevel ?? item.reading ?? 0);
             const color =
