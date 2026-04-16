@@ -38,3 +38,10 @@ export const getSampleOverview = async (params = {}) => {
   const res = await api.get(`/moh/samples?${query}`);
   return res.data;
 };
+
+export const getSampleStats = async (params = {}) => {
+  const { data } = await api.get("/samples/stats", { params });
+  console.log(data)
+  console.log("API RESPONSE FOR SAMPLES STATS LOGS:", data);
+  return data;
+};

@@ -211,14 +211,14 @@ const RiskAssessmentReport = () => {
 
             <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
               <span className={`${theme.textMuted}`}>Unregistered high-risk</span>
-              <span className="font-medium text-gray-900">
+              <span className={`font-medium ${theme.text}`}>
                 {summary.unregisteredHighRiskCount ?? 0}
               </span>
             </div>
 
             <div className={`flex justify-between border-b ${theme.border} py-1.5 text-sm`}>
               <span className={`${theme.textMuted}`}>Counterfeits high-risk</span>
-              <span className="font-medium text-gray-900">
+              <span className={`font-medium ${theme.text}`}>
                 {summary.counterfeitsHighRiskCount ?? 0}
               </span>
             </div>
@@ -252,16 +252,17 @@ const RiskAssessmentReport = () => {
                                 item.location ||
                                 item.market ||
                                 item.name ||
+                                item.lga ||
                                 "-"}
                             </td>
                             <td className={TD}>
                               {item.state || item.stateName || "-"}
                             </td>
                             <td className={TD}>
-                              {item.count ?? item.total ?? 0}
+                              {item.moderateCount ?? item.total ?? 0}
                             </td>
                             <td className={TD}>
-                              {item.riskLevel || item.risk || "-"}
+                              {item.avgRiskScore || "-"}
                             </td>
                           </tr>
                         ))
@@ -306,10 +307,10 @@ const RiskAssessmentReport = () => {
                               {item.state || item.stateName || "-"}
                             </td>
                             <td className={TD}>
-                              {item.leadLevel ?? item.reading ?? "-"}
+                              {item.leadLevel ?? item.reading ?? item.riskScore ?? "-"}
                             </td>
                             <td className={TD}>
-                              {item.status || item.riskLevel || "-"}
+                              {item.status || item.verificationStatus || "-"}
                             </td>
                           </tr>
                         ))
@@ -357,7 +358,7 @@ const RiskAssessmentReport = () => {
                               {item.state || item.stateName || "-"}
                             </td>
                             <td className={TD}>
-                              {item.leadLevel ?? item.reading ?? "-"}
+                              {item.leadLevel ?? item.riskScore ?? "-"}
                             </td>
                           </tr>
                         ))
@@ -427,7 +428,7 @@ const RiskAssessmentReport = () => {
                   <table className="w-full min-w-[280px] border-collapse text-xs">
                     <thead>
                       <tr>
-                        {["Product Type", "Count", "Risk level"].map((h) => (
+                        {["Product Type", "Critical Count", "Fake Count", "High Count", "Risk level"].map((h) => (
                           <th key={h} className={TH}>
                             {h}
                           </th>
@@ -445,10 +446,16 @@ const RiskAssessmentReport = () => {
                                 "-"}
                             </td>
                             <td className={TD}>
-                              {item.count ?? item.total ?? 0}
+                              {item.criticalCount}
                             </td>
                             <td className={TD}>
-                              {item.riskLevel || item.risk || "-"}
+                              {item.fakeCount}
+                            </td>
+                            <td className={TD}>
+                              {item.highCount}
+                            </td>
+                            <td className={TD}>
+                              {item.avgRiskScore}
                             </td>
                           </tr>
                         ))

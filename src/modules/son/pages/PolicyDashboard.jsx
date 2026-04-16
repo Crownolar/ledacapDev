@@ -1,11 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useTheme } from "../../../context/ThemeContext";
-import {
-  fetchSamples,
-  fetchSampleStats,
-} from "../../../redux/slice/samplesSlice";
 import PolicyAlertPanel from "../components/PolicyAlertPanel";
 import PolicyFilterBar from "../components/PolicyFilterBar";
 import PolicyFooterSummary from "../components/PolicyFooterSummary";
@@ -15,7 +11,7 @@ import PolicyProductRiskTable from "../components/PolicyProductRiskTable";
 import PolicyRecommendationCard from "../components/PolicyRecommendationCard";
 import PolicyRiskHotspots from "../components/PolicyRiskHotspots";
 import PolicyTrendCard from "../components/PolicyTrendCard";
-import usePolicyData from "../hooks/usePolicyData";
+import api from "../../../utils/api";
 
 const normalizeRole = (role) => {
   if (!role) return "";
@@ -38,28 +34,20 @@ const policyRoleMeta = {
 };
 
 const PolicyDashboard = () => {
-  const dispatch = useDispatch();
   const { theme } = useTheme();
-
   const { currentUser } = useSelector((state) => state.auth);
-  const {
-    samples,
-    loading,
-    error,
-    errorCode,
-    hasFetched,
-    pagination,
-    stats,
-  } = useSelector((state) => state.samples);
-
-  const totalSamples =
-    stats?.totalSamples ?? pagination?.totalCount ?? samples.length;
 
   const [states, setStates] = useState([]);
   const [filterState, setFilterState] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  const [summaryData, setSummaryData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState(null);
 
   const normalizedRole = normalizeRole(currentUser?.role);
 
@@ -73,25 +61,17 @@ const PolicyDashboard = () => {
   }, [normalizedRole]);
 
   useEffect(() => {
-    dispatch(
-      fetchSampleStats({
-        ...(filterState !== "all" && { stateId: filterState }),
-        ...(fromDate && { dateFrom: fromDate }),
-        ...(toDate && { dateTo: toDate }),
-      }),
-    );
-  }, [dispatch, filterState, fromDate, toDate]);
-
-  useEffect(() => {
     const fetchStates = async () => {
       try {
-        const api = await import("../../../utils/api").then((m) => m.default);
+        setStatesLoading(true);
         const response = await api.get("/management/states", {
           params: { activeOnly: "true" },
         });
         setStates(response.data?.data || []);
       } catch (err) {
         console.error("Failed to fetch states:", err);
+      } finally {
+        setStatesLoading(false);
       }
     };
 
@@ -99,28 +79,42 @@ const PolicyDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (!hasFetched) {
-      dispatch(fetchSamples({ page: 1, limit: 5000 }));
-    }
-  }, [dispatch, hasFetched]);
+    const fetchPolicySummary = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        setErrorCode(null);
 
-  const {
-    pending,
-    contaminationRateText,
-    highRiskStates,
-    hotspotStates,
-    trendData,
-    productRiskRows,
-    alerts,
-    recommendations,
-    executiveSummary,
-  } = usePolicyData({
-    samples: samples || [],
-    filterState,
-    filterStatus,
-    fromDate,
-    toDate,
-  });
+        const params = {
+          ...(filterState !== "all" && { stateId: filterState }),
+          ...(fromDate && { dateFrom: fromDate }),
+          ...(toDate && { dateTo: toDate }),
+          ...(filterStatus !== "all" && { status: filterStatus }),
+        };
+
+        const response = await api.get("/samples/policy-dashboard-summary", {
+          params,
+        });
+
+        const payload = response?.data?.data || null;
+        console.log("payload:", payload);
+        console.log("productRiskRows:", payload?.productRiskRows);
+        setSummaryData(payload);
+      } catch (err) {
+        console.error("Failed to fetch policy dashboard summary:", err);
+        setError(
+          err?.response?.data?.message ||
+            "Failed to load policy dashboard summary.",
+        );
+        setErrorCode(err?.response?.status || 500);
+        setSummaryData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPolicySummary();
+  }, [filterState, filterStatus, fromDate, toDate]);
 
   const handleReset = () => {
     setFilterState("all");
@@ -165,7 +159,7 @@ const PolicyDashboard = () => {
     );
   }
 
-  if (!samples || samples.length === 0) {
+  if (!summaryData) {
     return (
       <p className={`text-center mt-10 text-lg ${theme.text}`}>
         No policy data available.
@@ -204,6 +198,7 @@ const PolicyDashboard = () => {
       <PolicyFilterBar
         theme={theme}
         states={states}
+        statesLoading={statesLoading}
         filterState={filterState}
         setFilterState={setFilterState}
         filterStatus={filterStatus}
@@ -217,38 +212,46 @@ const PolicyDashboard = () => {
 
       <PolicyHeroStats
         theme={theme}
-        total={totalSamples}
-        contaminationRateText={
-          stats?.contaminationRate != null
-            ? `${Number(stats.contaminationRate).toFixed(1)}%`
-            : contaminationRateText
-        }
-        highRiskStates={stats?.highRiskStates ?? highRiskStates}
-        pending={stats?.pending ?? pending}
+        total={summaryData.totalSamples ?? 0}
+        contaminationRateText={`${Number(summaryData.contaminationRate ?? 0).toFixed(1)}%`}
+        highRiskStates={summaryData.highRiskStates ?? 0}
+        pending={summaryData.pending ?? 0}
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <PolicyAlertPanel theme={theme} alerts={alerts} />
+        <PolicyAlertPanel theme={theme} alerts={summaryData.alerts || []} />
         <PolicyRecommendationCard
           theme={theme}
-          recommendations={recommendations}
+          recommendations={summaryData.recommendations || []}
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <PolicyTrendCard theme={theme} trendData={trendData} />
-        <PolicyRiskHotspots theme={theme} hotspots={hotspotStates} />
+        <PolicyTrendCard
+          theme={theme}
+          trendData={summaryData.trendData || []}
+        />
+        <PolicyRiskHotspots
+          theme={theme}
+          hotspots={summaryData.hotspots || []}
+        />
       </div>
 
-      <PolicyProductRiskTable theme={theme} rows={productRiskRows} />
+      <PolicyProductRiskTable
+        theme={theme}
+        rows={summaryData.productRiskRows || []}
+      />
 
       <PolicyMapPreview
         theme={theme}
-        hotspotCount={highRiskStates}
+        hotspotCount={summaryData.highRiskStates ?? 0}
         totalStates={states.length}
       />
 
-      <PolicyFooterSummary theme={theme} summary={executiveSummary} />
+      <PolicyFooterSummary
+        theme={theme}
+        summary={summaryData.executiveSummary || ""}
+      />
     </div>
   );
 };

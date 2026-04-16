@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { MetricCard } from "../../components/MetricCard";
 import { WhiteCard } from "../../components/WhiteCard";
 import { SectionLabel } from "../../components/SectionLabel";
@@ -6,70 +7,88 @@ import DonutChart from "./charts/DonutChart";
 import TrendChart from "./charts/TrendChart";
 import { useTheme } from "../../../../context/ThemeContext";
 
-const MohDashboard = ({ onNavigate }) => {
+const MohDashboard = () => {
   const { theme, darkMode } = useTheme();
   const { metrics, hotspots, trend, loading } = useDashboard();
+  const navigate = useNavigate();
+
+  const goToPage = (page) => {
+    const routeMap = {
+      samples: "/moh/samples",
+      contamination: "/moh/contamination",
+    };
+
+    if (routeMap[page]) {
+      navigate(routeMap[page]);
+    }
+  };
 
   const METRICS = [
     {
       label: "Total Samples",
-      value: metrics?.totalSamples?.toLocaleString() || "—",
+      value: metrics?.totalSamples?.toLocaleString() || "0",
       sub: "Nationwide · last 30 days",
       color: darkMode ? "text-gray-100" : "text-gray-900",
       page: "samples",
     },
     {
-      label: "Verified Products",
-      value: metrics?.verified?.toLocaleString() || "—",
-      sub: "Verified",
-      color: darkMode ? "text-green-300" : "text-green-700",
-      page: "verification",
-    },
-    {
-      label: "Failed Verifications",
-      value: metrics?.failed?.toLocaleString() || "—",
-      sub: "Failed",
-      color: darkMode ? "text-red-300" : "text-red-600",
-      page: "verification",
-    },
-    {
-      label: "Pending",
-      value: metrics?.pending?.toLocaleString() || "—",
-      sub: "Pending",
+      label: "Pending Results",
+      value: metrics?.pendingResults?.toLocaleString() || "0",
+      sub: "Awaiting lab results",
       color: darkMode ? "text-amber-300" : "text-amber-600",
-      page: "verification",
+      page: "samples",
+    },
+    {
+      label: "Samples With Results",
+      value: metrics?.withResults?.toLocaleString() || "0",
+      sub: "Lab readings available",
+      color: darkMode ? "text-blue-300" : "text-blue-600",
+      page: "samples",
+    },
+    {
+      label: "Contaminated Samples",
+      value: metrics?.contaminated?.toLocaleString() || "0",
+      sub: "Detected contamination",
+      color: darkMode ? "text-red-300" : "text-red-600",
+      page: "contamination",
     },
   ];
 
   const formattedHotspots = Array.isArray(hotspots)
-    ? hotspots.map((h) => ({
-        name: h.state || h.name,
-        width: `${Math.min((h.riskScore || 0) * 10, 100)}%`,
-        score: h.riskScore || 0,
-        color:
-          h.riskScore >= 7
-            ? darkMode
-              ? "text-red-300"
-              : "text-red-600"
-            : h.riskScore >= 5
+    ? hotspots.map((h) => {
+        const score = Number(h?.riskScore) || 0;
+
+        return {
+          name: h?.state || h?.name || "Unknown",
+          width: `${Math.min(score * 10, 100)}%`,
+          score,
+          color:
+            score >= 7
               ? darkMode
-                ? "text-amber-300"
-                : "text-amber-600"
-              : darkMode
-                ? "text-green-300"
-                : "text-green-600",
-      }))
+                ? "text-red-300"
+                : "text-red-600"
+              : score >= 5
+                ? darkMode
+                  ? "text-amber-300"
+                  : "text-amber-600"
+                : darkMode
+                  ? "text-green-300"
+                  : "text-green-600",
+        };
+      })
     : [];
 
   if (loading) {
     return (
-      <div className={`p-6 text-sm ${theme.textMuted}`}>Loading dashboard...</div>
+      <div className={`p-6 text-sm ${theme.textMuted}`}>
+        Loading dashboard...
+      </div>
     );
   }
 
   return (
-    <div className={`${theme.text}`}>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+    <div className={theme.text}>
+      <div className="grid grid-cols-1 gap-3 mb-5 md:grid-cols-2 xl:grid-cols-4">
         {METRICS.map((m) => (
           <MetricCard
             key={m.label}
@@ -78,14 +97,14 @@ const MohDashboard = ({ onNavigate }) => {
             sub={m.sub}
             color={m.color}
             clickable
-            onClick={() => onNavigate(m.page)}
+            onClick={() => goToPage(m.page)}
           />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 gap-4 mb-4 xl:grid-cols-2">
         <WhiteCard>
-          <SectionLabel>Verification status breakdown</SectionLabel>
+          <SectionLabel>Sample status breakdown</SectionLabel>
           <DonutChart metrics={metrics} />
         </WhiteCard>
 
@@ -93,8 +112,8 @@ const MohDashboard = ({ onNavigate }) => {
           <div className="flex items-center justify-between mb-3">
             <SectionLabel>Top risk hotspots</SectionLabel>
             <button
-              onClick={() => onNavigate("contamination")}
-              className="text-xs text-green-600 dark:text-green-400 font-medium"
+              onClick={() => goToPage("contamination")}
+              className="text-xs font-medium text-green-600 dark:text-green-400"
             >
               View all →
             </button>
@@ -106,11 +125,10 @@ const MohDashboard = ({ onNavigate }) => {
             </div>
           ) : (
             formattedHotspots.map((h) => (
-              <div
-                key={h.name}
-                className="flex items-center gap-2 mb-2 text-xs"
-              >
-                <div className={`w-20 font-medium ${theme.text}`}>{h.name}</div>
+              <div key={h.name} className="flex items-center gap-2 mb-2 text-xs">
+                <div className={`w-20 font-medium truncate ${theme.text}`}>
+                  {h.name}
+                </div>
 
                 <div
                   className={`flex-1 h-2 rounded ${
@@ -139,7 +157,7 @@ const MohDashboard = ({ onNavigate }) => {
       </div>
 
       <WhiteCard>
-        <SectionLabel>Monthly verification trend — 2025</SectionLabel>
+        <SectionLabel>Monthly sample status trend</SectionLabel>
         <TrendChart trend={trend} />
       </WhiteCard>
     </div>

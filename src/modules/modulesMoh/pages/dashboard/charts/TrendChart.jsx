@@ -5,45 +5,68 @@ const TrendChart = ({ trend = [] }) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 
-  const { months, verifiedData, failedData, pendingData, hasData } = useMemo(() => {
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    ];
+  const { months, safeData, moderateData, contaminatedData, pendingData, hasData } =
+    useMemo(() => {
+      const monthOrder = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
 
-    const verifiedData = new Array(12).fill(0);
-    const failedData = new Array(12).fill(0);
-    const pendingData = new Array(12).fill(0);
+      const monthMap = Object.fromEntries(
+        monthOrder.map((month) => [
+          month,
+          {
+            safe: 0,
+            moderate: 0,
+            contaminated: 0,
+            pending: 0,
+          },
+        ])
+      );
 
-    trend.forEach((item) => {
-      if (!item?.createdAt) return;
+      trend.forEach((item) => {
+        const month = item?.month;
+        if (!month || !monthMap[month]) return;
 
-      const date = new Date(item.createdAt);
-      if (Number.isNaN(date.getTime())) return;
+        monthMap[month] = {
+          safe: Number(item.safe) || 0,
+          moderate: Number(item.moderate) || 0,
+          contaminated: Number(item.contaminated) || 0,
+          pending: Number(item.pending) || 0,
+        };
+      });
 
-      const month = date.getMonth();
-      const status = item.status || item.verificationStatus;
+      const months = monthOrder;
+      const safeData = months.map((month) => monthMap[month].safe);
+      const moderateData = months.map((month) => monthMap[month].moderate);
+      const contaminatedData = months.map((month) => monthMap[month].contaminated);
+      const pendingData = months.map((month) => monthMap[month].pending);
 
-      if (status === "VERIFIED" || status === "VERIFIED_ORIGINAL") {
-        verifiedData[month]++;
-      } else if (status === "FAILED" || status === "VERIFIED_FAKE") {
-        failedData[month]++;
-      } else if (
-        status === "PENDING" ||
-        status === "VERIFICATION_PENDING" ||
-        status === "UNVERIFIED"
-      ) {
-        pendingData[month]++;
-      }
-    });
+      const hasData =
+        safeData.some((v) => v > 0) ||
+        moderateData.some((v) => v > 0) ||
+        contaminatedData.some((v) => v > 0) ||
+        pendingData.some((v) => v > 0);
 
-    const hasData =
-      verifiedData.some((v) => v > 0) ||
-      failedData.some((v) => v > 0) ||
-      pendingData.some((v) => v > 0);
-
-    return { months, verifiedData, failedData, pendingData, hasData };
-  }, [trend]);
+      return {
+        months,
+        safeData,
+        moderateData,
+        contaminatedData,
+        pendingData,
+        hasData,
+      };
+    }, [trend]);
 
   useEffect(() => {
     if (!canvasRef.current || !hasData) return;
@@ -56,16 +79,24 @@ const TrendChart = ({ trend = [] }) => {
         labels: months,
         datasets: [
           {
-            label: "Verified",
-            data: verifiedData,
+            label: "Safe",
+            data: safeData,
             borderColor: "#059669",
             tension: 0.4,
             fill: false,
             pointRadius: 3,
           },
           {
-            label: "Failed",
-            data: failedData,
+            label: "Moderate",
+            data: moderateData,
+            borderColor: "#d97706",
+            tension: 0.4,
+            fill: false,
+            pointRadius: 3,
+          },
+          {
+            label: "Contaminated",
+            data: contaminatedData,
             borderColor: "#dc2626",
             tension: 0.4,
             fill: false,
@@ -74,7 +105,7 @@ const TrendChart = ({ trend = [] }) => {
           {
             label: "Pending",
             data: pendingData,
-            borderColor: "#d97706",
+            borderColor: "#2563eb",
             tension: 0.4,
             fill: false,
             pointRadius: 3,
@@ -108,7 +139,7 @@ const TrendChart = ({ trend = [] }) => {
     return () => {
       chartRef.current?.destroy();
     };
-  }, [months, verifiedData, failedData, pendingData, hasData]);
+  }, [months, safeData, moderateData, contaminatedData, pendingData, hasData]);
 
   if (!hasData) {
     return (
