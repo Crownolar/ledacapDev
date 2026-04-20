@@ -3,7 +3,6 @@ import { AlertTriangle } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useTheme } from "../../../context/ThemeContext";
 import PolicyAlertPanel from "../components/PolicyAlertPanel";
-import PolicyFilterBar from "../components/PolicyFilterBar";
 import PolicyFooterSummary from "../components/PolicyFooterSummary";
 import PolicyHeroStats from "../components/PolicyHeroStats";
 import PolicyMapPreview from "../components/PolicyMapPreview";
@@ -38,11 +37,6 @@ const PolicyDashboard = () => {
   const { currentUser } = useSelector((state) => state.auth);
 
   const [states, setStates] = useState([]);
-  const [filterState, setFilterState] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-
   const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statesLoading, setStatesLoading] = useState(false);
@@ -85,16 +79,7 @@ const PolicyDashboard = () => {
         setError("");
         setErrorCode(null);
 
-        const params = {
-          ...(filterState !== "all" && { stateId: filterState }),
-          ...(fromDate && { dateFrom: fromDate }),
-          ...(toDate && { dateTo: toDate }),
-          ...(filterStatus !== "all" && { status: filterStatus }),
-        };
-
-        const response = await api.get("/samples/policy-dashboard-summary", {
-          params,
-        });
+        const response = await api.get("/samples/policy-dashboard-summary");
 
         const payload = response?.data?.data || null;
         console.log("payload:", payload);
@@ -104,7 +89,7 @@ const PolicyDashboard = () => {
         console.error("Failed to fetch policy dashboard summary:", err);
         setError(
           err?.response?.data?.message ||
-            "Failed to load policy dashboard summary.",
+            "Failed to load policy dashboard summary."
         );
         setErrorCode(err?.response?.status || 500);
         setSummaryData(null);
@@ -114,14 +99,7 @@ const PolicyDashboard = () => {
     };
 
     fetchPolicySummary();
-  }, [filterState, filterStatus, fromDate, toDate]);
-
-  const handleReset = () => {
-    setFilterState("all");
-    setFilterStatus("all");
-    setFromDate("");
-    setToDate("");
-  };
+  }, []);
 
   if (error) {
     return (
@@ -194,21 +172,6 @@ const PolicyDashboard = () => {
           </div>
         </div>
       </div>
-
-      <PolicyFilterBar
-        theme={theme}
-        states={states}
-        statesLoading={statesLoading}
-        filterState={filterState}
-        setFilterState={setFilterState}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-        fromDate={fromDate}
-        setFromDate={setFromDate}
-        toDate={toDate}
-        setToDate={setToDate}
-        onReset={handleReset}
-      />
 
       <PolicyHeroStats
         theme={theme}
