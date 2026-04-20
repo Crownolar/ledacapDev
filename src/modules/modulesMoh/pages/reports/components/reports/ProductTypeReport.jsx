@@ -22,12 +22,17 @@ const ProductTypeReport = () => {
   const [states, setStates] = useState([]);
   const { theme } = useTheme();
 
+  
+
   const [filters, setFilters] = useState({
-    state: "",
+    stateId: "",
     dateFrom: "2026-03-13",
     dateTo: "2026-03-14",
   });
 
+  const selectedState = states.find((s) => s.id === filters.stateId);
+  const selectedStateName = selectedState?.name || "All States";
+  
   const normalizeStates = (payload) => {
     const rows = Array.isArray(payload?.data)
       ? payload.data
@@ -104,7 +109,7 @@ const ProductTypeReport = () => {
       setGenerated(false);
 
       const data = await getProductTypeReport({
-        state: filters.state,
+        stateId: filters.stateId,
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
       });
@@ -156,7 +161,7 @@ const ProductTypeReport = () => {
 
   const handleExportExcel = () => {
     exportProductTypeExcel({
-      fileName: `product-type-report-${filters.state || "all-states"}-${filters.dateFrom}-${filters.dateTo}.xlsx`,
+      fileName: `product-type-report-${selectedStateName || "all-states"}-${filters.dateFrom}-${filters.dateTo}.xlsx`,
       generatedAt,
       state: filters.state,
       dateFrom: filters.dateFrom,
@@ -187,9 +192,9 @@ const ProductTypeReport = () => {
       <FilterBar>
         <label className={`text-xs ${theme.textMuted}`}>State (optional)</label>
         <select
-          value={filters.state}
+          value={filters.stateId}
           onChange={(e) =>
-            setFilters((prev) => ({ ...prev, state: e.target.value }))
+            setFilters((prev) => ({ ...prev, stateId: e.target.value }))
           }
           disabled={statesLoading}
           className={`w-full sm:w-auto min-w-[220px] text-xs px-2 py-1.5 border ${theme.border} ${theme.input}  rounded-md outline-none focus:border-green-500 disabled:opacity-60 disabled:cursor-not-allowed`}
@@ -199,7 +204,7 @@ const ProductTypeReport = () => {
           </option>
 
           {states.map((state) => (
-            <option key={state.id} value={state.name}>
+            <option key={state.id} value={state.id}>
               {state.name}
             </option>
           ))}
@@ -207,7 +212,9 @@ const ProductTypeReport = () => {
 
         <FilterSep />
 
-        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>From</label>
+        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
+          From
+        </label>
         <input
           type="date"
           value={filters.dateFrom}
@@ -217,7 +224,9 @@ const ProductTypeReport = () => {
           className={`w-full sm:w-auto text-xs px-2 py-1.5 border ${theme.border} ${theme.input} rounded-md outline-none focus:border-green-500`}
         />
 
-        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>To</label>
+        <label className={`text-xs ${theme.textMuted} whitespace-nowrap`}>
+          To
+        </label>
         <input
           type="date"
           value={filters.dateTo}
@@ -241,11 +250,13 @@ const ProductTypeReport = () => {
       )}
 
       {generated && reportData && (
-        <div className={`mt-5 overflow-hidden rounded-xl border ${theme.border} ${theme.bg} w-full`}>
+        <div
+          className={`mt-5 overflow-hidden rounded-xl border ${theme.border} ${theme.bg} w-full`}
+        >
           <ReportHeader
             title="Product type report"
             subtitle={`Generated: ${generatedAt || "—"} · ${
-              filters.state || "All States"
+              selectedStateName
             } · ${filters.dateFrom} to ${filters.dateTo}`}
             onExportPdf={handleExportPdf}
             onExportExcel={handleExportExcel}
@@ -255,7 +266,9 @@ const ProductTypeReport = () => {
             <SectionLabel>Summary</SectionLabel>
 
             <div className="flex justify-between border-b border-gray-50 py-1.5 text-sm">
-              <span className={`text-${theme.textMuted}`}>Total product types</span>
+              <span className={`text-${theme.textMuted}`}>
+                Total product types
+              </span>
               <span className={`font-medium ${theme.text}`}>
                 {summary.totalProductTypes ?? 0}
               </span>
@@ -298,7 +311,7 @@ const ProductTypeReport = () => {
                     rows.map((item, index) => (
                       <tr
                         key={`${item.productType}-${index}`}
-                        className={`hover:bg-${theme.hover}`}
+                        className={theme.hover}
                       >
                         <td className={TD}>{item.productType}</td>
                         <td className={TD}>{item.totalSamples}</td>
@@ -326,7 +339,9 @@ const ProductTypeReport = () => {
           <div className="border-t border-gray-100 px-4 sm:px-5 py-4">
             <SectionLabel>Recommendations</SectionLabel>
 
-            <div className={`text-sm leading-relaxed ${theme.textMuted} space-y-3`}>
+            <div
+              className={`text-sm leading-relaxed ${theme.textMuted} space-y-3`}
+            >
               {recommendations.length > 0 ? (
                 recommendations.map((item, index) => (
                   <div

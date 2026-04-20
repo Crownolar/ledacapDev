@@ -8,11 +8,22 @@ import api from "../utils/api";
 //   return state;
 // };
 
-export const getStateSummaryReport = async ({ state, dateFrom, dateTo }) => {
+export const getStateSummaryReport = async ({ stateId, dateFrom, dateTo }) => {
+  if (!stateId) {
+    throw new Error("stateId is required");
+  }
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(
+      d.getDate(),
+    ).padStart(2, "0")}/${d.getFullYear()}`;
+  };
+
   const params = {
-    ...(state && { state }),
-    ...(dateFrom && { dateFrom }),
-    ...(dateTo && { dateTo }),
+    stateId,
+    ...(dateFrom && { dateFrom: formatDate(dateFrom) }),
+    ...(dateTo && { dateTo: formatDate(dateTo) }),
   };
 
   console.log("STATE SUMMARY PARAMS:", params);
@@ -51,31 +62,6 @@ export const getContaminationAnalysisReport = async ({
 
   return response.data;
 };
-
-// export const getContaminationAnalysisReport = async ({
-//   stateIds,
-//   productVariantIds,
-//   dateFrom,
-//   dateTo,
-// }) => {
-//   const params = {
-//     ...(stateIds?.length && { stateIds: stateIds.join(",") }),
-//     ...(productVariantIds?.length && {
-//       productVariantIds: productVariantIds.join(","),
-//     }),
-//     ...(dateFrom && { dateFrom }),
-//     ...(dateTo && { dateTo }),
-//   };
-
-//   console.log("CONTAMINATION ANALYSIS PARAMS:", params);
-
-//   const response = await api.get("/moh/reports/contamination-analysis", {
-//     params,
-//     headers: { Accept: "application/json" },
-//   });
-
-//   return response.data;
-// };
 
 export const getProductTypeReport = async ({ stateId, dateFrom, dateTo }) => {
   const params = {
