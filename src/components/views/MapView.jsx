@@ -25,7 +25,8 @@ const MapView = ({ theme: propTheme, samples: propSamples }) => {
     setLoading(true);
     setError(false);
     api
-      .get("/samples/geographic")
+
+      .get("/samples?fields=minimal&take=5000")
       .then((res) => {
         if (res.data.data?.length > 0) {
           setSamples(res.data.data);
@@ -67,10 +68,13 @@ const MapView = ({ theme: propTheme, samples: propSamples }) => {
   }
   if (!error && !loading && !samplesWithCoords.length > 0) {
     return (
-      <div className='bg-white/20 backdrop-blur-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg flex-shrink-0 self-end sm:self-auto'>
-        <p className='text-white font-semibold text-xs sm:text-sm whitespace-nowrap'>
-          {samplesWithCoords.length}{" "}
-          {samplesWithCoords.length === 1 ? "sample" : "samples"}
+      <div className='flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-sm flex-shrink-0 self-end sm:self-auto'>
+        <div className='flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15'>
+          <MapPin className='w-4 h-4 sm:w-5 sm:h-5 text-white' />
+        </div>
+
+        <p className='text-white text-xs sm:text-sm font-medium whitespace-nowrap'>
+          No samples with <span className='opacity-80'>coordinates</span>
         </p>
       </div>
     );
