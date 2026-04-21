@@ -19,7 +19,6 @@ export const useSamples = (currentUser) => {
     setError(null);
     try {
       const response = await api.get("/samples");
-      // Backend returns { success: true, data: [...] }
       setSamples(response.data.data || response.data || []);
     } catch (err) {
       console.error("Failed to fetch samples:", err);
