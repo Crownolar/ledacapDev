@@ -9,6 +9,7 @@ import {
   getReusedNafdacNumbers,
   getFakeProductsSummary,
 } from "../api/nafdacService";
+import { useTheme } from "../../../context/ThemeContext";
 
 const RiskIntelligence = () => {
   const [regions, setRegions] = useState([]);
@@ -19,6 +20,7 @@ const RiskIntelligence = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { theme } = useTheme()
 
   const fetchAll = () => {
     setLoading(true);
@@ -111,14 +113,14 @@ const RiskIntelligence = () => {
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-5 gap-6'>
-        <div className='lg:col-span-3 col-span-1 bg-white border border-slate-100 rounded-2xl shadow-sm p-4 sm:p-5 overflow-auto'>
-          <p className='font-semibold text-slate-700 text-sm mb-4'>
+        <div className={`lg:col-span-3 col-span-1 ${theme.card} border ${theme.border} rounded-2xl shadow-sm p-4 sm:p-5 overflow-auto`}>
+          <p className={`font-semibold ${theme.textMuted} text-sm mb-4`}>
             Regional Risk Scores
           </p>
           {loading ? (
-            <p className='text-sm text-slate-500'>Loading...</p>
+            <p className={`text-sm ${theme.textMuted}`}>Loading...</p>
           ) : regions.length === 0 ? (
-            <p className='text-sm text-slate-500'>No high-risk region data.</p>
+            <p className={`text-sm ${theme.textMuted}`}>No high-risk region data.</p>
           ) : (
             <div className='space-y-4'>
               {[...regions]
@@ -126,7 +128,7 @@ const RiskIntelligence = () => {
                 .map((d) => (
                   <div key={d.stateId || d.stateName}>
                     <div className='flex items-center justify-between mb-1.5'>
-                      <span className='text-sm font-medium text-slate-700'>
+                      <span className={`text-sm font-medium ${theme.textMuted}`}>
                         {d.stateName ?? "—"}
                       </span>
                       <span
@@ -181,14 +183,14 @@ const RiskIntelligence = () => {
             )}
           </div>
 
-          <div className='bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm'>
-            <p className='text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3'>
+          <div className={`${theme.card}border ${theme.border} rounded-2xl p-4 sm:p-5 shadow-sm`}>
+            <p className={`text-xs font-semibold ${theme.textMuted} uppercase tracking-widest mb-3`}>
               Fake Products by Category
             </p>
             {loading ? (
-              <p className='text-xs text-slate-500'>Loading…</p>
+              <p className={`text-xs ${theme.textMuted}`}>Loading…</p>
             ) : !fakeSummary.fakeByCategory?.length ? (
-              <p className='text-xs text-slate-500'>No data.</p>
+              <p className={`text-xs ${theme.textMuted}`}>No data.</p>
             ) : (
               fakeSummary.fakeByCategory.map((c) => (
                 <div
@@ -196,10 +198,11 @@ const RiskIntelligence = () => {
                   className='mb-3'
                 >
                   <div className='flex justify-between text-xs mb-1'>
-                    <span className='text-slate-600 font-medium'>
+                    <span className={`text-slate-600 font-medium ${theme.text}`}>
+
                       {c.categoryName ?? c.variantName ?? "—"}
                     </span>
-                    <span className='text-slate-400'>{c.count ?? 0} cases</span>
+                    <span className={`text-slate-400 ${theme.textMuted}`}>{c.count ?? 0} cases</span>
                   </div>
                   <div className='h-1.5 bg-slate-100 rounded-full overflow-hidden'>
                     <div

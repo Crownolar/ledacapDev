@@ -6,13 +6,14 @@ import Table from "../components/Table";
 import { icons } from "../utils/icons";
 import Icon from "../components/icons/Icon";
 import {
-  getProductByNafdacNumber,
+  // getProductByNafdacNumber,
   searchRegistryProducts,
 } from "../api/nafdacService";
+import { useTheme } from "../../../context/ThemeContext";
 
 const ProductSearch = () => {
   const [query, setQuery] = useState("");
-  const [nafdacNumber, setNafdacNumber] = useState("");
+  // const [nafdacNumber, setNafdacNumber] = useState("");
   const [filter, setFilter] = useState("ALL");
   const [take, setTake] = useState(20);
   const [skip, setSkip] = useState(0);
@@ -26,6 +27,7 @@ const ProductSearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const { theme } = useTheme()
 
   function handleFetchMore() {
     const newSkip = skip + 20;
@@ -94,12 +96,12 @@ const ProductSearch = () => {
           <Icon
             d={icons.search}
             size={16}
-            className='absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 '
+            className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${theme.textMuted}`}
           />
           <input
             type='text'
             placeholder='Search by by nafdac number, product name, or brand...'
-            className='w-full pl-10 pr-4 py-2.5 text-sm border text-black border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 bg-white'
+            className={`w-full pl-10 pr-4 py-2.5 text-sm ${theme.input} ${theme.text} border ${theme.border} rounded-xl outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 ${theme.bg} transition`}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -114,7 +116,7 @@ const ProductSearch = () => {
               onClick={() => {
                 setFilter(s);
               }}
-              className={`px-4 py-2.5 text-xs font-semibold rounded-xl border transition-all ${filter === s ? "bg-emerald-600 text-white border-emerald-600" : "border-slate-200 text-slate-500 hover:border-emerald-300 bg-white"}`}
+              className={`px-4 py-2.5 text-xs font-semibold rounded-xl border transition-all ${filter === s ? "bg-emerald-600 ${theme.text} border-emerald-600" : "${theme.border} ${theme.text} hover:border-emerald-300 ${theme.bg}"}`}
             >
               {s}
             </button>
@@ -122,9 +124,9 @@ const ProductSearch = () => {
         </div>
       </div>
 
-      <div className='bg-white border border-slate-100 rounded-2xl shadow-sm overflow-auto'>
-        <div className='p-4 border-b border-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3'>
-          <p className='text-xl text-slate-400'>
+      <div className={`${theme.bg} border ${theme.border} rounded-2xl shadow-sm overflow-auto`}>
+        <div className={`p-4 border-b ${theme.border} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`}>
+          <p className={`text-xl ${theme.textMuted}`}>
             {`${(data?.items?.length ?? 0).toLocaleString()} results  of ${(data?.totalCount ?? 0).toLocaleString()}`}
           </p>
         </div>
@@ -147,7 +149,7 @@ const ProductSearch = () => {
               >
                 {p.nafdacNumber ?? "—"}
               </code>,
-              <span key='pn' className='font-medium text-slate-700'>
+              <span key='pn' className={`font-medium ${theme.text}`}>
                 {p.productName ?? "—"}
               </span>,
               p.brandName ?? "—",
@@ -168,14 +170,14 @@ const ProductSearch = () => {
               <button
                 onClick={handleFetchMore}
                 disabled={loading || skip + take >= (data.totalCount || 1)}
-                className={`px-4 py-2 rounded-lg text-sm text-white ${loading || skip + take >= (data.totalCount || 0) ? "bg-gray-400 opacity-60 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
+                className={`px-4 py-2 rounded-lg text-sm ${theme.text} ${loading || skip + take >= (data.totalCount || 0) ? "bg-gray-400 opacity-60 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
               >
                 {loading ? "Loading..." : "Load more"}
               </button>
             </div>
           )}
           {!loading && (!data.items || data.items.length === 0) && (
-            <div className='p-8 text-center text-slate-500 text-sm'>
+            <div className={`p-8 text-center ${theme.textMuted} text-sm`}>
               No products found. Try a different search or ensure an active
               registry version exists.
             </div>

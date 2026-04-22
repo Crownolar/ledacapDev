@@ -11,6 +11,7 @@ import {
   getVerificationLogs,
   verifySample,
 } from "../api/nafdacService";
+import { useTheme } from "../../../context/ThemeContext";
 
 const PAGE_SIZE = 20;
 const formatDate = (d) =>
@@ -41,6 +42,7 @@ const VerificationLogs = () => {
   const [skip, setSkip] = useState(0);
   const fromRef = useRef(null);
   const toRef = useRef(null);
+  const { theme } = useTheme()
 
   function handleFetchMore() {
     const newSkip = skip + 20;
@@ -172,10 +174,10 @@ const VerificationLogs = () => {
         />
       </div>
 
-      <div className='bg-white border border-slate-100 rounded-2xl shadow-sm overflow-auto'>
-        <div className='p-4 border-b border-slate-50 flex flex-col sm:flex-row gap-3'>
+      <div className={`${theme.card} border ${theme.border} rounded-2xl shadow-sm overflow-auto`}>
+        <div className={`p-4 border-b ${theme.border} flex flex-col sm:flex-row gap-3`}>
           <div className='flex gap-2 flex-wrap items-center w-full sm:w-auto ml-0 sm:ml-auto'>
-            <Icon d={icons.filter} size={15} className='text-slate-400' />
+            <Icon d={icons.filter} size={15} className={`${theme.textMuted}`} />
             {[
               "ALL",
               "VERIFIED_ORIGINAL",
@@ -204,7 +206,7 @@ const VerificationLogs = () => {
                       : ""
                   }
                   readOnly
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${dateFrom ? "bg-emerald-600 text-white border-emerald-600" : "border-slate-200 text-slate-500 hover:border-emerald-300 bg-white"}`}
+                  className={`px-3 py-1.5 text-xs font-semibold ${theme.input} ${theme.text} rounded-lg border transition-all ${dateFrom ? "bg-emerald-600 text-white border-emerald-600" : "border-slate-200 text-slate-500 hover:border-emerald-300 bg-white"}`}
                 />
                 <input
                   id='vl-from'
